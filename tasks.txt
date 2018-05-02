@@ -1,0 +1,16 @@
+
+
+plan:
+1. collect and analysis papers (AIOps)
+	- AI + Log analysis
+	- AI + Fault localization
+	- AI + Fault tolerance (Self healing)
+
+2. build big data & ML platform
+	- CDH (hadoop, hive, impala, spark, solr/ElasticSearch, kudu)
+	- Lambda ETL (streaming + batch)
+	- Deeplearning4j / TensorFlow (basic ML + deep ML)
+
+
+
+
