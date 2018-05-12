@@ -1,0 +1,24 @@
+
+
+
+nc:
+nc -l localhost 9999 > out.log
+nc -l 9999 (server)
+nc localhost 9999 (client)
+nc localhost 9999 < in.log
+
+docker log collect:
+docker run -it --log-opt mode=non-blocking --log-opt max-buffer-size=4m alpine ping 127.0.0.1 
+docker run -it --log-driver=syslog --log-opt mode=non-blocking --log-opt max-buffer-size=4m --log-opt syslog-address=tcp://172.17.0.1:514 alpine ping 127.0.0.1
+
+log & nc:
+docker run -it --log-opt mode=non-blocking --log-opt max-buffer-size=4m alpine ping 127.0.0.1 | nc localhost 9999
+docker run -it --log-opt mode=non-blocking --log-opt max-buffer-size=4m alpine ping 127.0.0.1 >> localhost:9999
+
+
+
+docker driver + fluentd:
+docker run -it --log-opt mode=non-blocking --log-opt max-buffer-size=4m --log-driver=fluentd alpine ping 127.0.0.1
+docker run -d --name fluentd_docker -p 5140:5140 -p 24224:24224 -p 24224:24224/udp -v /Users/admin/work/workspace_micros/AI_Ops/logs:/fluentd/log fluent/fluentd
+
+
