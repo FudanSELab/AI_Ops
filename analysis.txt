@@ -5,6 +5,9 @@ zeppelin (interactive scala/spark):
 
 
 
+big dl:
+https://github.com/intel-analytics/BigDL
+
 
 
 
