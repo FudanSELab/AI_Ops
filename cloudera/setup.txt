@@ -1,17 +1,64 @@
 
+cdh  site ï¼š  http://10.141.211.173:7180/cmf/home 
+
+
+categoryï¼š
+    
+ hadoop
+ spark2
+ hue
+
+---------------------------------------------------------------------------
+
 
 hadoop:
 
+    version:  Hadoop 2.6.0-cdh5.14.2
 
+===========================================================================
 
 spark2:
 
+    version: 2.2.0
+
+    official site
+    https://www.cloudera.com/documentation/enterprise/5-14-x/topics/spark.html
+
+    Upgradeï¼š
+        need:  1. csd package  ï¼ˆ SPARK2_ON_YARN-2.2.0.cloudera2.jar ï¼‰      
+                     download siteï¼š  http://archive.cloudera.com/spark2/csd/
+
+               2. parcel  package  ï¼ˆ el7.parcelï¼Œel7.parcel.sha1  manifest.jsonï¼‰
+                     download siteï¼š http://archive.cloudera.com/spark2/parcels/2.1.0.cloudera1/ 
+
+        stepsï¼š  https://blog.csdn.net/u010936936/article/details/73650417
+
+
+    use:
+	     ------  start  spark2  ------
+	     su hdfs
+	     [hdfs@cdh003 ~]$ spark2-shell
+
+	test:
+	     scala> import java.lang.Math
+	     import java.lang.Math
+
+	     scala> Math.max(3,5)
+	     res0: Int = 5
+
+	notice: 
+	    1. if premission denyed cause by hdfs ----> su  hdfs
+	    2. spark2 Remove support for Hadoop 2.5 and earlier
 
 
 
 
+===========================================================================
 
-Ëù·¢ÉúµÄVS
+hueï¼š
+   
+   http://10.141.211.173:8888/hue/editor/?type=impala 
 
 
-test
+
+
