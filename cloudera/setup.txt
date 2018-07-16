@@ -1,21 +1,38 @@
-
-cdh  site ：  http://10.141.211.173:7180/cmf/home 
-
-
 category：
-    
+
+ cdh
+ zepperlin
  hadoop
  spark2
  hue
+ impala
+ hive
 
----------------------------------------------------------------------------
 
+
+------------------------- I'm a split line   ------------------------------
+
+cdh
+    site ： http://10.141.211.173:7180/cmf/home 
+
+
+------------------------- I'm a split line   ------------------------------
+
+zepperlin
+    site : 10.141.211.173:8080
+    start : ./zeppelin-0.8.0-bin-all/bin/zeppelin-daemon.sh    start / stop / restart
+    + hive :   config/ zeppelin-env.sh
+
+
+------------------------- I'm a split line   ------------------------------
+    
 
 hadoop:
 
     version:  Hadoop 2.6.0-cdh5.14.2
 
-===========================================================================
+------------------------- I'm a split line   ------------------------------
+
 
 spark2:
 
@@ -31,7 +48,9 @@ spark2:
                2. parcel  package  （ el7.parcel，el7.parcel.sha1  manifest.json）
                      download site： http://archive.cloudera.com/spark2/parcels/2.1.0.cloudera1/ 
 
-        steps：  https://blog.csdn.net/u010936936/article/details/73650417
+        steps：  https://blog.csdn.net/u010936936/article/details/73650417 
+            https://blog.csdn.net/abysscarry/article/details/79550746
+            https://blog.csdn.net/high2011/article/details/79138493
 
 
     use:
@@ -53,12 +72,8 @@ spark2:
 
 
 
-===========================================================================
+------------------------- I'm a split line   ------------------------------
 
 hue：
    
    http://10.141.211.173:8888/hue/editor/?type=impala 
-
-
-
-
