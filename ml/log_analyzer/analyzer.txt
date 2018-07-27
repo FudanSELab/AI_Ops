@@ -1,3 +1,11 @@
 
 
+ML Plan:
+LR
+DT
+SVM
+RNN
+DNN
+GAN
+
 
