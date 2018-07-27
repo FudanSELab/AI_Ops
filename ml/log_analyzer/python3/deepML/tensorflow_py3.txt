@@ -1,0 +1,42 @@
+
+
+tensorflow 0.11-:
+http://www.tensorfly.cn/tfdoc/tutorials/mnist_beginners.html
+
+
+
+tensorflow 1.8+:
+https://tensorflow.google.cn/get_started/
+https://tensorflow.google.cn/get_started/eager
+https://tensorflow.google.cn/get_started/get_started_for_beginners
+
+https://tensorflow.google.cn/tutorials/
+https://tensorflow.google.cn/tutorials/layers
+https://tensorflow.google.cn/tutorials/text_classification_with_tf_hub
+https://tensorflow.google.cn/tutorials/recurrent
+
+
+
+advanced topics:
+https://tensorflow.google.cn/programmers_guide/
+
+
+
+docs:
+https://tensorflow.google.cn/api_docs/python/tf/estimator/DNNLinearCombinedClassifier
+
+
+
+github:
+https://github.com/tensorflow/models
+
+
+
+setup:
+pip install -q --upgrade tensorflow
+
+
+
+
+
+
