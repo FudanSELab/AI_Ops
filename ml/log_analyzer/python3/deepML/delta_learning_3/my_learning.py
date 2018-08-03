@@ -38,10 +38,10 @@ def main(argv):
 				boundaries = [100, 200, 300]))
 		elif key.count("time") > 0:
 			print(key);
-			# vocabulary_feature_column = tf.feature_column.categorical_column_with_vocabulary_list(
-			#         key=key,
-			#         vocabulary_list=["kitchenware", "electronics", "sports"])
-			# my_feature_columns.append(vocabulary_feature_column);
+			vocabulary_feature_column = tf.feature_column.categorical_column_with_vocabulary_list(
+			        key=key,
+			        vocabulary_list=["below 1","below 2","below 3","below 6","below 10","above 10"])
+			my_feature_columns.append(tf.feature_column.indicator_column(vocabulary_feature_column));
 		else:
 			print("none");
 
