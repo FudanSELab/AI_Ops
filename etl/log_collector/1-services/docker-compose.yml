@@ -1,0 +1,88 @@
+version: '3'
+services:
+
+  rabbitmq:
+    image: rabbitmq:management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - my-network
+
+  kafka:
+    container_name: kafka
+    image: spotify/kafka:latest
+    ports:
+     - 2181:2181
+     - 9092:9092
+    networks:
+      - my-network
+
+
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - 9411:9411
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - my-network
+  
+  rest-service-collector:
+    build: rest-service-collector
+    image: my-service-cluster/rest-service-collector
+    # image: 10.141.212.25:5555/my-rest-service-collector
+    restart: always
+    ports:
+      - 9412:9412
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+    networks:
+      - my-network
+
+  rest-service-1:
+    build: rest-service-1
+    image: my-service-cluster/rest-service-1
+    # image: 10.141.212.25:5555/my-rest-service-1
+    restart: always
+    ports:
+      - 16001:16001
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+    networks:
+      - my-network
+
+  rest-service-end:
+    build: rest-service-end
+    image: my-service-cluster/rest-service-end
+    # image: 10.141.212.25:5555/my-rest-service-end
+    restart: always
+    ports:
+      - 16000:16000
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    # driver: overlay
+    driver: bridge
+
+
+
+
+
+  
