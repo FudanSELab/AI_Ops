@@ -39,8 +39,8 @@ public class HelloController {
 
 
 		ListenableFuture future = kafkaTemplate.send("app_log", info);
-		future.addCallback(o -> System.out.println("send-success: " + info),
-				throwable -> System.out.println("failed: " + info));
+		future.addCallback(o -> System.out.println("send-success: " + "--"),
+				throwable -> System.out.println("failed: " + "--"));
 
 
 		return "---------post------------";
