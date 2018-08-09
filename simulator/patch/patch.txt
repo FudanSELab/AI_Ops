@@ -1,0 +1,7 @@
+
+
+apply patch:
+1. periodically inject fault and its fix patch
+2. mini fix patch
+3. grayscale release (multi versions)
+
