@@ -11,7 +11,7 @@
 
     <parent>
         <groupId>org.myrestservice.sample</groupId>
-        <artifactId>rest-service-cluster</artifactId>
+        <artifactId>ai_ops_collector</artifactId>
         <version>0.1.0</version>
         <relativePath>../</relativePath>
     </parent>

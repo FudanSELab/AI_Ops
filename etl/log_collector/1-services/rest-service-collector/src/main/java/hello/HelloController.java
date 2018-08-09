@@ -3,6 +3,8 @@ package hello;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.google.gson.Gson;
+import hello.domain.Trace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -35,6 +37,7 @@ public class HelloController {
 		System.out.println("[===] HelloController - handle_collect");
 		System.out.println("==========HelloController - handle_collect============");
 		System.out.println(info);
+
 		System.out.println("==========================");
 
 
