@@ -1,0 +1,9 @@
+
+
+simulate the maintain process:
+1. node (memory/storage/...)
+2. traffic/routing
+3. instance scaling 
+
+
+
