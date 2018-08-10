@@ -9,13 +9,30 @@ import org.apache.parquet.example.data.Group;
 import org.apache.parquet.example.data.GroupFactory;
 import org.apache.parquet.example.data.simple.SimpleGroupFactory;
 import org.apache.parquet.hadoop.ParquetFileWriter;
+import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.example.ExampleParquetWriter;
+import org.apache.parquet.hadoop.example.GroupReadSupport;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
 
 public class ParquetUtil {
+
+    static void parquetReader(String inPath) throws IOException{
+        GroupReadSupport readSupport = new GroupReadSupport();
+        ParquetReader.Builder<Group> reader= ParquetReader.builder(readSupport, new Path(inPath));
+        ParquetReader<Group> build = reader.build();
+        Group line=null;
+        while((line=build.read())!=null){
+//            Group time = line.getGroup("traceId", 0);
+            System.out.println(line.getString("id", 0) + "\t" +
+                    line.getString("name", 0) + "\t" +
+                    line.getLong("timestamp", 0) + "\t");
+
+        }
+        System.out.println("读取结束");
+    }
 
     public static void parquetWriter(Trace trace) throws IOException{
         MessageType schema = MessageTypeParser.parseMessageType(
@@ -28,20 +45,16 @@ public class ParquetUtil {
                             " repeated group annotation {\n"+
                                 " required INT64 timestamp;\n" +
                                 " required binary value (UTF8);\n" +
-                                " required group endpoint {\n"+
-                                    " required binary serviceName (UTF8);\n" +
-                                    " required binary ipv4 (UTF8);\n" +
-                                    " required INT64 port;\n" +
-                                "}\n"+
+                                " required binary endpoint_serviceName (UTF8);\n" +
+                                " required binary endpoint_ipv4 (UTF8);\n" +
+                                " required INT32 endpoint_port;\n" +
                             "}\n"+
                             " repeated group binaryAnnotation {\n"+
                                 " required binary key (UTF8);\n" +
                                 " required binary value (UTF8);\n" +
-                                " required group endpoint {\n"+
-                                    " required binary serviceName (UTF8);\n" +
-                                    " required binary ipv4 (UTF8);\n" +
-                                    " required INT64 port;\n" +
-                                "}\n"+
+                                " required binary endpoint_serviceName (UTF8);\n" +
+                                " required binary endpoint_ipv4 (UTF8);\n" +
+                                " required INT32 endpoint_port;\n" +
                             "}\n"+
                         "}");
 
@@ -69,25 +82,22 @@ public class ParquetUtil {
                 .append("name",trace.getName())
                 .append("timestamp",trace.getTimestamp())
                 .append("duration",trace.getDuration());
-        for(int i = 0;i < trace.getAnnotations().size();i++){
+        for(int i = 0;i < trace.getAnnotations().length;i++){
             Group annotation = span.addGroup("annotation");
-            annotation.append("timestamp", trace.getAnnotations().get(i).getTimestamp());
-            annotation.append("value", trace.getAnnotations().get(i).getValue());
-
-            Group endPoint = annotation.addGroup("endpoint");
-            endPoint.append("serviceName",trace.getAnnotations().get(i).getEndPoint().getServiceName());
-            endPoint.append("ipv4",trace.getAnnotations().get(i).getEndPoint().getIpv4());
-            endPoint.append("port",trace.getAnnotations().get(i).getEndPoint().getPort());
+            annotation.append("timestamp", trace.getAnnotations()[i].getTimestamp());
+            annotation.append("value", trace.getAnnotations()[i].getValue());
+            annotation.append("endpoint_serviceName", trace.getAnnotations()[i].getEndpoint().getServiceName());
+            annotation.append("endpoint_ipv4", trace.getAnnotations()[i].getEndpoint().getIpv4());
+            annotation.append("endpoint_port", trace.getAnnotations()[i].getEndpoint().getPort());
         }
-        for(int i = 0;i < trace.getBinaryAnnotations().size();i++){
-            Group binaryAnnotation = span.addGroup("binaryAnnotation");
-            binaryAnnotation.append("key", trace.getBinaryAnnotations().get(i).getKey());
-            binaryAnnotation.append("value", trace.getBinaryAnnotations().get(i).getValue());
+        for(int i = 0;i < trace.getBinaryAnnotations().length;i++){
 
-            Group endPoint = binaryAnnotation.addGroup("endpoint");
-            endPoint.append("serviceName",trace.getBinaryAnnotations().get(i).getEndPoint().getServiceName());
-            endPoint.append("ipv4",trace.getBinaryAnnotations().get(i).getEndPoint().getIpv4());
-            endPoint.append("port",trace.getBinaryAnnotations().get(i).getEndPoint().getPort());
+            Group binaryAnnotation = span.addGroup("binaryAnnotation");
+            binaryAnnotation.append("key", trace.getBinaryAnnotations()[i].getKey());
+            binaryAnnotation.append("value", trace.getBinaryAnnotations()[i].getValue());
+            binaryAnnotation.append("endpoint_serviceName", trace.getBinaryAnnotations()[i].getEndpoint().getServiceName());
+            binaryAnnotation.append("endpoint_ipv4", trace.getBinaryAnnotations()[i].getEndpoint().getIpv4());
+            binaryAnnotation.append("endpoint_port", trace.getBinaryAnnotations()[i].getEndpoint().getPort());
         }
 
         writer.write(span);

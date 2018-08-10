@@ -6,7 +6,7 @@ public class Annotation {
 
     private String value;
 
-    private EndPoint endPoint;
+    private EndPoint endpoint;
 
     public Annotation() {
         //Empty Constructor
@@ -15,7 +15,7 @@ public class Annotation {
     public Annotation(long timestamp, String value, EndPoint endPoint) {
         this.timestamp = timestamp;
         this.value = value;
-        this.endPoint = endPoint;
+        this.endpoint = endPoint;
     }
 
     public long getTimestamp() {
@@ -34,11 +34,11 @@ public class Annotation {
         this.value = value;
     }
 
-    public EndPoint getEndPoint() {
-        return endPoint;
+    public EndPoint getEndpoint() {
+        return endpoint;
     }
 
-    public void setEndPoint(EndPoint endPoint) {
-        this.endPoint = endPoint;
+    public void setEndpoint(EndPoint endpoint) {
+        this.endpoint = endpoint;
     }
 }

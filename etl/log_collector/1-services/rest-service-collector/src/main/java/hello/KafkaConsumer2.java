@@ -13,7 +13,7 @@ public class KafkaConsumer2 {
 
 	@Scheduled(fixedRate = 1000 * 60)
 	public void testKafka() throws Exception {
-		System.out.println("[===] KafkaConsumer2 - testKafka");
+//		System.out.println("[===] KafkaConsumer2 - testKafka");
 		//TODO pure kafka consume timely
 	}
 }

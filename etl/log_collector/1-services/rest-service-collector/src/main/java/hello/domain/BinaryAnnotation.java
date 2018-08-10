@@ -6,16 +6,16 @@ public class BinaryAnnotation {
 
     private String value;
 
-    private EndPoint endPoint;
+    private EndPoint endpoint;
 
     public BinaryAnnotation() {
         //Empty Constructor
     }
 
-    public BinaryAnnotation(String key, String value, EndPoint endPoint) {
+    public BinaryAnnotation(String key, String value, EndPoint endpoint) {
         this.key = key;
         this.value = value;
-        this.endPoint = endPoint;
+        this.endpoint = endpoint;
     }
 
     public String getKey() {
@@ -34,11 +34,11 @@ public class BinaryAnnotation {
         this.value = value;
     }
 
-    public EndPoint getEndPoint() {
-        return endPoint;
+    public EndPoint getEndpoint() {
+        return endpoint;
     }
 
-    public void setEndPoint(EndPoint endPoint) {
-        this.endPoint = endPoint;
+    public void setEndpoint(EndPoint endpoint) {
+        this.endpoint = endpoint;
     }
 }

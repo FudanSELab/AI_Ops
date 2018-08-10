@@ -25,7 +25,7 @@ public class CsvFilePrinter{
     }
 
     public void init() throws IOException{
-        write(new String[]{"traceId","id","name","timestamp","duration"});
+        write(new String[]{"traceId","spanId","parentId","name","timestamp","duration","annotation","binaryAnnotation"});
     }
 
     public void write(String[] values) throws IOException {

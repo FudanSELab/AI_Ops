@@ -32,18 +32,25 @@ public class KafkaConsumer {
         String csvFile = "/parquet/traces.csv";
         CsvFilePrinter print = new CsvFilePrinter(csvFile,true);
 
+
+
+
         for(int i = 0; i < traces.length; i++){
 
             //写入csv
             print.write(new String[]{
                     traces[i].getTraceId(),
                     traces[i].getId(),
+                    traces[i].getParentId(),
                     traces[i].getName(),
                     "" + traces[i].getTimestamp(),
-                    "" + traces[i].getDuration()});
+                    "" + traces[i].getDuration(),
+                    gson.toJson(traces[i].getAnnotations()),
+                    gson.toJson(traces[i].getBinaryAnnotations())
+            });
 
             //写入Parquet
-            ParquetUtil.parquetWriter(traces[i]);
+            //ParquetUtil.parquetWriter(traces[i]);
         }
 
 

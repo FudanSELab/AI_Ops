@@ -1,7 +1,5 @@
 package hello.domain;
 
-import java.util.ArrayList;
-
 public class Trace {
 
     private String traceId;
@@ -10,22 +8,25 @@ public class Trace {
 
     private String name;
 
+    private String parentId;
+
     private long timestamp;
 
     private long duration;
 
-    private ArrayList<Annotation> annotations;
+    private Annotation[] annotations;
 
-    private ArrayList<BinaryAnnotation> binaryAnnotations;
+    private BinaryAnnotation[] binaryAnnotations;
 
     public Trace() {
         //Empty Constructor
     }
 
-    public Trace(String traceId, String id, String name, long timestamp, long duration, ArrayList<Annotation> annotations, ArrayList<BinaryAnnotation> binaryAnnotations) {
+    public Trace(String traceId, String id, String name, String parentId, long timestamp, long duration, Annotation[] annotations, BinaryAnnotation[] binaryAnnotations) {
         this.traceId = traceId;
         this.id = id;
         this.name = name;
+        this.parentId = parentId;
         this.timestamp = timestamp;
         this.duration = duration;
         this.annotations = annotations;
@@ -56,6 +57,14 @@ public class Trace {
         this.name = name;
     }
 
+    public String getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
+
     public long getTimestamp() {
         return timestamp;
     }
@@ -72,19 +81,19 @@ public class Trace {
         this.duration = duration;
     }
 
-    public ArrayList<Annotation> getAnnotations() {
+    public Annotation[] getAnnotations() {
         return annotations;
     }
 
-    public void setAnnotations(ArrayList<Annotation> annotations) {
+    public void setAnnotations(Annotation[] annotations) {
         this.annotations = annotations;
     }
 
-    public ArrayList<BinaryAnnotation> getBinaryAnnotations() {
+    public BinaryAnnotation[] getBinaryAnnotations() {
         return binaryAnnotations;
     }
 
-    public void setBinaryAnnotations(ArrayList<BinaryAnnotation> binaryAnnotations) {
+    public void setBinaryAnnotations(BinaryAnnotation[] binaryAnnotations) {
         this.binaryAnnotations = binaryAnnotations;
     }
 }
