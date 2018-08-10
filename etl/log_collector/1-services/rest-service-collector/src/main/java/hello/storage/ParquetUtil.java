@@ -28,10 +28,20 @@ public class ParquetUtil {
                             " repeated group annotation {\n"+
                                 " required INT64 timestamp;\n" +
                                 " required binary value (UTF8);\n" +
+                                " required group endpoint {\n"+
+                                    " required binary serviceName (UTF8);\n" +
+                                    " required binary ipv4 (UTF8);\n" +
+                                    " required INT64 port;\n" +
+                                "}\n"+
                             "}\n"+
                             " repeated group binaryAnnotation {\n"+
                                 " required binary key (UTF8);\n" +
                                 " required binary value (UTF8);\n" +
+                                " required group endpoint {\n"+
+                                    " required binary serviceName (UTF8);\n" +
+                                    " required binary ipv4 (UTF8);\n" +
+                                    " required INT64 port;\n" +
+                                "}\n"+
                             "}\n"+
                         "}");
 
@@ -53,24 +63,34 @@ public class ParquetUtil {
         ParquetWriter writer = builder.build();
 
 
-        Group group = factory.newGroup()
+        Group span = factory.newGroup()
                 .append("traceId",trace.getTraceId())
                 .append("id",trace.getId())
                 .append("name",trace.getName())
                 .append("timestamp",trace.getTimestamp())
                 .append("duration",trace.getDuration());
         for(int i = 0;i < trace.getAnnotations().size();i++){
-            Group tmpG = group.addGroup("annotation");
-            tmpG.append("timestamp", trace.getAnnotations().get(i).getTimestamp());
-            tmpG.append("value", trace.getAnnotations().get(i).getValue());
+            Group annotation = span.addGroup("annotation");
+            annotation.append("timestamp", trace.getAnnotations().get(i).getTimestamp());
+            annotation.append("value", trace.getAnnotations().get(i).getValue());
+
+            Group endPoint = annotation.addGroup("endpoint");
+            endPoint.append("serviceName",trace.getAnnotations().get(i).getEndPoint().getServiceName());
+            endPoint.append("ipv4",trace.getAnnotations().get(i).getEndPoint().getIpv4());
+            endPoint.append("port",trace.getAnnotations().get(i).getEndPoint().getPort());
         }
         for(int i = 0;i < trace.getBinaryAnnotations().size();i++){
-            Group tmpG = group.addGroup("binaryAnnotation");
-            tmpG.append("key", trace.getBinaryAnnotations().get(i).getKey());
-            tmpG.append("value", trace.getBinaryAnnotations().get(i).getValue());
+            Group binaryAnnotation = span.addGroup("binaryAnnotation");
+            binaryAnnotation.append("key", trace.getBinaryAnnotations().get(i).getKey());
+            binaryAnnotation.append("value", trace.getBinaryAnnotations().get(i).getValue());
+
+            Group endPoint = binaryAnnotation.addGroup("endpoint");
+            endPoint.append("serviceName",trace.getBinaryAnnotations().get(i).getEndPoint().getServiceName());
+            endPoint.append("ipv4",trace.getBinaryAnnotations().get(i).getEndPoint().getIpv4());
+            endPoint.append("port",trace.getBinaryAnnotations().get(i).getEndPoint().getPort());
         }
 
-        writer.write(group);
+        writer.write(span);
 
         System.out.println("write end");
         writer.close();
