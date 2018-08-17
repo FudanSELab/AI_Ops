@@ -1,0 +1,69 @@
+version: '3'
+services:
+  kafka:
+    container_name: kafka
+    image: spotify/kafka:latest
+    ports:
+     - 2181:2181
+     - 9092:9092
+    networks:
+      - my-network
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - 9411:9411
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - my-network
+
+  rest-service-collect:
+    build: rest-service-collect
+    image: my-service-cluster/rest-service-collect
+    # image: 10.141.212.25:5555/my-rest-service-collector
+    restart: always
+    ports:
+      - 9413:9413
+    volumes:
+      - /home/parquet:/parquet
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+    networks:
+      - my-network
+
+  rest-service-1:
+    build: rest-service-1
+    image: my-service-cluster/rest-service-1
+    # image: 10.141.212.25:5555/my-rest-service-1
+    restart: always
+    ports:
+      - 16005:16005
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+    networks:
+      - my-network
+
+  rest-service-end:
+    build: rest-service-end
+    image: my-service-cluster/rest-service-end
+    # image: 10.141.212.25:5555/my-rest-service-end
+    restart: always
+    ports:
+      - 16006:16006
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    # driver: overlay
+    driver: bridge
