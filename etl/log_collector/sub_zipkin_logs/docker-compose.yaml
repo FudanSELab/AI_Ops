@@ -63,6 +63,15 @@ services:
     networks:
       - my-network
 
+  api-server:
+    build: dashboard/apiserver
+    image: db/apiserver
+    restart: always
+    ports:
+      - 18898:18898
+    networks:
+      - my-network
+
 networks:
   my-network:
     # driver: overlay
