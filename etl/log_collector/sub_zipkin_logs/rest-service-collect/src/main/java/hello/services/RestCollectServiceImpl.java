@@ -6,7 +6,11 @@ import net.sf.json.JSONObject;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -77,7 +81,9 @@ public class RestCollectServiceImpl implements RestCollectService{
                     CSVUtils.createCSVFile(exportData, headMap, "/home", "CpuMemoryTelemetry");
                 }
 
-                // Thread.sleep(5000);
+                writeToHDFS();
+                System.out.println("End write time: " + dateFormat.format(System.currentTimeMillis()));
+                Thread.sleep(50000);
                 // if (2 == count) {
                 //    break;
                 // }
@@ -133,5 +139,21 @@ public class RestCollectServiceImpl implements RestCollectService{
                 serviceDataMap.put(LIMIT_MEMORY, jsonObject.getString(MEMORY));
             }
         }
+    }
+
+    private static void writeToHDFS() throws IOException {
+        Configuration conf = new Configuration();
+        conf.set("fs.defaultFS", "hdfs://10.141.211.173:8020");
+        FileSystem fs = FileSystem.get(conf);
+
+        System.out.println("================  begin create file =============");
+
+        Path newFile = new Path("hdfs://10.141.211.173:8020/user/admin/CpuMemoryTelemetry.csv");
+        if (fs.exists(newFile)) {
+            fs.delete(newFile, false);
+        }
+
+        fs.copyFromLocalFile(new Path("/home/CpuMemoryTelemetry.csv"), newFile);
+        System.out.println("================  end create file =============");
     }
 }
