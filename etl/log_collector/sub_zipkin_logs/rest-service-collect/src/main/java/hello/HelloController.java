@@ -1,18 +1,16 @@
 package hello;
 
+import hello.services.RestCollectService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 
-@RestController
+@RestController("/")
 public class HelloController {
 
 	private static final Logger log = LoggerFactory.getLogger(Application.class);
@@ -25,6 +23,9 @@ public class HelloController {
 
 	@Autowired
 	private KafkaTemplate kafkaTemplate;
+
+	@Autowired
+    private RestCollectService restCollectService;
 
 	@RequestMapping(value = "api/v1/spans", method ={RequestMethod.POST,RequestMethod.GET})
 	public String handle_collect(@RequestBody String info) {
@@ -63,4 +64,9 @@ public class HelloController {
 		return "---------post any------------";
 		
 	}
+
+	@GetMapping("/getResourceData")
+    public void getResourceData() {
+	    restCollectService.getResourceData();
+    }
 }
