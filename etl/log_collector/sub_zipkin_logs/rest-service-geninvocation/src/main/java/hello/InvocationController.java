@@ -9,11 +9,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class InvocationController {
 
     @RequestMapping("/hello1")
-    public void hello1() {
-//        (new String[]{"invocation_id", "trace_id", "session_id", "req_duration", "req_service", "req_api",
-//                "req_param_*", "exec_duration", "exec_logs", "rest_status_code", "res_body_*", "res_duration", "error_or_not"});
+    public String hello1() {
+        System.out.println("================hello==============");
+        return "hello test success";
+    }
 
-
-
+    @RequestMapping("/hdfsapi")
+    public void testHDFS(){
+        System.out.println("===============begin hdfs ==============");
+        new HDFSApiDemo().testHDFS();
+        System.out.println("=============== hdfs  end==============");
     }
 }

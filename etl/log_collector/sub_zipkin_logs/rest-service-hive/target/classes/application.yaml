@@ -1,0 +1,5 @@
+server:
+  port: 18802
+spring:
+  application:
+    name: ai-ops-test2
