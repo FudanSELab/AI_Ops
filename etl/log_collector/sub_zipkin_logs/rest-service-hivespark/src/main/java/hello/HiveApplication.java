@@ -1,19 +1,14 @@
 package hello;
 
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.sql.*;
-import java.util.Arrays;
 
 @EnableAutoConfiguration
 @SpringBootApplication
-public class ImpalaApplication {
+public class HiveApplication {
 
     public static void hiveSql() throws SQLException {
         // String url = "jdbc:hive2://10.141.211.173:10000/default;auth=noSasl";
@@ -36,13 +31,6 @@ public class ImpalaApplication {
         ResultSet res2 = stmt.executeQuery(sql2);
 
         while (res2.next()) {
-
-//               "trace_id",            "span_id", "span_name",            "parent_id",  "span_timestamp", "span_duration", 6
-//               "anno_cs_timestamp", "anno_cs", "anno_cs_servicename", "anno_cs_ip", "anno_cs_port",  11
-//               "anno_cr_timestamp", "anno_cr", "anno_cr_servicename", "anno_cr_ip", "anno_cr_port",  16
-//               "anno_sr_timestamp", "anno_sr", "anno_sr_servicename", "anno_sr_ip", "anno_sr_port", 21
-//               "anno_ss_timestamp", "anno_ss", "anno_ss_servicename", "anno_ss_ip", "anno_ss_port"  26
-
             Invocation tempInvocation = new Invocation();
             tempInvocation.trace_id =  res2.getString(1);
             tempInvocation.exec_duration = res2.getString(6);
@@ -81,7 +69,7 @@ public class ImpalaApplication {
     }
 
     public static void main(String[] args) throws Exception {
-        SpringApplication.run(ImpalaApplication.class, args);
+        SpringApplication.run(HiveApplication.class, args);
          hiveSql();
     }
 }

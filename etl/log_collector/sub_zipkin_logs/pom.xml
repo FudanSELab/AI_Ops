@@ -13,7 +13,8 @@
         <module>rest-service-1</module>
         <module>rest-service-end</module>
         <module>rest-service-collect</module>
-        <module>rest-service-geninvocation</module>
+        <!--<module>rest-service-geninvocation</module>-->
+        <!--<module>rest-service-hivespark</module>-->
         <module>apiserver</module>
     </modules>
 
