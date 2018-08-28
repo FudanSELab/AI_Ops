@@ -1,24 +1,16 @@
 package hello;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicLong;
-
-import com.google.gson.Gson;
-import hello.domain.Trace;
+import hello.services.RestCollectService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.AsyncRestTemplate;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.web.client.RestTemplate;
 
-@RestController
+@RestController("/")
 public class HelloController {
 
 	private static final Logger log = LoggerFactory.getLogger(Application.class);
@@ -32,6 +24,9 @@ public class HelloController {
 	@Autowired
 	private KafkaTemplate kafkaTemplate;
 
+	@Autowired
+    private RestCollectService restCollectService;
+
 	@RequestMapping(value = "api/v1/spans", method ={RequestMethod.POST,RequestMethod.GET})
 	public String handle_collect(@RequestBody String info) {
 		System.out.println("[===] HelloController - handle_collect");
@@ -40,14 +35,11 @@ public class HelloController {
 
 		System.out.println("==========================");
 
-
 		ListenableFuture future = kafkaTemplate.send("app_log", info);
 		future.addCallback(o -> System.out.println("send-success: " + "--"),
 				throwable -> System.out.println("failed: " + "--"));
 
-		System.out.println("============app_log  ==============");
 		return "---------post------------";
-		
 	}
 
 
@@ -72,4 +64,9 @@ public class HelloController {
 		return "---------post any------------";
 		
 	}
+
+	@GetMapping("/getResourceData")
+    public void getResourceData() {
+	    restCollectService.getResourceData();
+    }
 }

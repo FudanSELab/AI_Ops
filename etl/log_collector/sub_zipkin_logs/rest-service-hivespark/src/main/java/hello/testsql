@@ -1,0 +1,128 @@
+    public static void impalaJdbc(){
+             Connection con = null;
+             try {
+                 Class.forName("org.apache.hive.jdbc.HiveDriver");
+                 con = DriverManager.getConnection("jdbc:hive2://10.141.211.178:21050/;auth=noSasl");
+                 Statement stmt = con.createStatement();
+                 ResultSet rs = stmt.executeQuery("show tables");
+
+                 while (rs.next()){
+                     System.out.println("id:" + rs.getString(1));
+                 }
+
+                 String sql22 = "select * from b_test1";
+                 ResultSet res22 = stmt.executeQuery(sql22);
+                 System.out.println(res22 + "==-----");
+                 while(res22.next()){
+                     System.out.println(res22.getString("trace_id"));
+                 }
+
+                 System.out.println("=======================================");
+
+                 String sql2 = "select count(1) from weather_data";
+                 ResultSet res2 = stmt.executeQuery(sql2);
+
+                 while(res2.next()){
+                     System.out.println(res2.getString(1));
+                 }
+                 String sql3 = "select * from weather_data";
+                 ResultSet res3 = stmt.executeQuery(sql3);
+                 int col = res3.getMetaData().getColumnCount();
+                 System.out.println(col);
+
+
+                 String sql4 = "select * from traces_anno22";
+                 ResultSet res4 = stmt.executeQuery(sql4);
+
+     //            while(res3.next()){
+     //                for(int i=1; i<=col; i++)
+     //                    System.out.print(res3.getString(i));
+     //                System.out.print("\n");
+     //            }
+             } catch (Exception e) {
+                 e.printStackTrace();
+             }finally {
+                 try {
+                     con.close();
+                 } catch (SQLException e) {
+                     e.printStackTrace();
+                 }
+             }
+         }
+
+
+
+             public static void impalaJdbc(ResultSet res3){
+                 Connection con = null;
+                 try {
+                     Class.forName("org.apache.hive.jdbc.HiveDriver");
+                     con = DriverManager.getConnection("jdbc:hive2://10.141.211.178:21050/;auth=noSasl");
+                     Statement stmt = con.createStatement();
+         //
+         //            stmt.execute("create table if not exists invocation2(invocation_id string , trace_id string, session_id string, " +
+         //                    " req_duration string, req_service string , req_api string, req_params string, exec_duration string," +
+         //                    "exec_logs string, res_status_code string, res_body string, res_duration string, is_error string) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\\t' LINES TERMINATED BY '\\n'");
+
+                     System.out.println("================ begin =======================");
+         //            String sql2 = "select * from traces_anno_test";
+         //            ResultSet res2 = stmt.executeQuery(sql2);
+                     while (res3.next()) {
+
+         //               "trace_id",            "span_id", "span_name",            "parent_id",  "span_timestamp", "span_duration", 6
+         //               "anno_cs_timestamp", "anno_cs", "anno_cs_servicename", "anno_cs_ip", "anno_cs_port",  11
+         //               "anno_cr_timestamp", "anno_cr", "anno_cr_servicename", "anno_cr_ip", "anno_cr_port",  16
+         //               "anno_sr_timestamp", "anno_sr", "anno_sr_servicename", "anno_sr_ip", "anno_sr_port", 21
+         //               "anno_ss_timestamp", "anno_ss", "anno_ss_servicename", "anno_ss_ip", "anno_ss_port"  26
+
+                         Invocation tempInvocation = new Invocation();
+                         tempInvocation.trace_id =  res3.getString(1);
+                         tempInvocation.exec_duration = res3.getString(6);
+                         tempInvocation.req_api = res3.getString(3);
+                         System.out.println(tempInvocation.req_api +"====-----------");
+
+                         String anno_cr = res3.getString(8);
+
+                         if (!"".equals(anno_cr)) {
+                             tempInvocation.req_duration = Long.parseLong(res3.getString(17)) - Long.parseLong(res3.getString(7))+"";
+                             tempInvocation.req_service = res3.getString(9);
+
+
+                             tempInvocation.res_duration = Long.parseLong(res3.getString(12)) - Long.parseLong(res3.getString(22)) +"";
+                             System.out.println( tempInvocation.req_duration + "==---------------------" + tempInvocation.res_duration);
+                         }
+
+
+                         String invocation_id = "'"+ tempInvocation.getInvocation_id()+"'";
+                         String trace_id = "'"+tempInvocation.getTrace_id()+"'";
+                         String session_id = "'"+tempInvocation.getSession_id()+"'";
+                         String req_duration = "'"+tempInvocation.getReq_duration()+"'";
+                         String req_service = "'"+tempInvocation.getReq_service()+"'";
+                         String req_api = "'"+tempInvocation.getReq_api()+"'";
+                         String req_param = "'"+tempInvocation.getReq_param()+"'";
+                         String exec_duration = "'"+tempInvocation.getExec_duration()+"'";
+                         String exec_logs = "'"+tempInvocation.getExec_logs()+"'";
+                         String res_status_code = "'"+tempInvocation.getRes_status_code()+"'";
+                         String res_body = "'"+tempInvocation.getRes_body()+"'";
+                         String res_duration = "'"+tempInvocation.getRes_duration()+"'";
+                         String is_error = "'"+tempInvocation.getIs_error()+"'";
+
+                         System.out.println(tempInvocation.toString());
+                         String insertSQL= "insert into invocation2(invocation_id, trace_id ,session_id, req_duration, req_service, req_api, req_params,exec_duration, exec_logs, res_status_code, res_body, res_duration, is_error) values ("+
+                                 invocation_id+","+ trace_id+","+ session_id+","+
+                                 req_duration+","+req_service+","+req_api+","+
+                                 req_param+","+exec_duration+","+exec_logs+","+
+                                 res_status_code+","+res_body+","+res_duration+","+is_error+")";
+                         stmt.execute(insertSQL);
+                         System.out.println("==============  end =========2================");
+                     }
+                     System.out.println("==============  end =========================");
+                 } catch (Exception e) {
+                     e.printStackTrace();
+                 }finally {
+                     try {
+                         con.close();
+                     } catch (SQLException e) {
+                         e.printStackTrace();
+                     }
+                 }
+             }
