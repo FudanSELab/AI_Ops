@@ -22,6 +22,4 @@ public class AsyncTask {
         return new AsyncResult<>(response);
     }
 
-
-
 }  
