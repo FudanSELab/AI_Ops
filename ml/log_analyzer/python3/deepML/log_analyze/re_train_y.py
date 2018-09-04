@@ -6,10 +6,17 @@ import argparse
 import data_load
 import columns
 
-
 parser = argparse.ArgumentParser()
-parser.add_argument('--batch_size', default=100, type=int, help='batch size')
-parser.add_argument('--train_steps', default=1000, type=int, help='number of training steps')
+parser.add_argument('--batch_size', default=5, type=int, help='batch size')
+parser.add_argument('--train_steps', default=1, type=int, help='number of training steps')
+
+
+def get_data_to_be_re_train():
+    features, label = data_load.load_data_original_with_label(
+        "data/y3.csv",
+        columns.CSV_FEATURE_AND_VERIFIED_RESULT,
+        "y1")
+    return features, label
 
 
 def train_input_fn(features, labels, batch_size):
@@ -23,23 +30,10 @@ def train_input_fn(features, labels, batch_size):
 
 
 def main(argv):
-
     args = parser.parse_args(argv[1:])
 
-    # Load training data from data/y1.csv
-    train_x, train_y = data_load.load_data_original_with_label(
-        "data/y1.csv",
-        columns.CSV_FEATURE_AND_LABEL_RESULT,
-        "y1")
-
-    print("=====[View Train Data]=====")
-    print(train_x.head())
-    print("===========================")
-
-    # Get Feature Columns just from original_features.csv
-    # because original_features.csv only include features and feature_id
+    # Get Feature Columns
     feature_columns = data_load.get_feature_column("data/original_features.csv")
-
     # Build 2 hidden layer DNN with 20, 20 units respectively.
     checkpointing_config = tf.estimator.RunConfig(
         save_checkpoints_secs=60,  # Save checkpoints every 60 seconds.
@@ -54,24 +48,14 @@ def main(argv):
         # The model must choose between 2 classes.
         n_classes=2)
 
+    train_x, train_y = get_data_to_be_re_train()
     # Train the Model.
     classifier.train(
         input_fn=lambda: train_input_fn(train_x, train_y,
                                         args.batch_size),
         steps=args.train_steps)
 
-    # Print where the model saved.
-    print("[Check Point]" + classifier.latest_checkpoint())
-
 
 if __name__ == '__main__':
     tf.logging.set_verbosity(tf.logging.INFO)
     tf.app.run(main)
-
-
-
-
-
-
-
-

@@ -715,7 +715,7 @@ node {
             size: 1
           }
         }
-        int64_val: 0
+        int64_val: 1
       }
     }
   }
@@ -18046,7 +18046,7 @@ node {
         dtype: DT_STRING
         tensor_shape {
         }
-        string_val: "_temp_6cfdb29e8bd24bb4a291bee5be24cfa1/part"
+        string_val: "_temp_9c0b080c7ee2473eb882ab1d3072d6dc/part"
       }
     }
   }

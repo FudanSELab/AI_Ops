@@ -4,10 +4,11 @@ from __future__ import print_function
 import tensorflow as tf
 import argparse
 import data_load
+import data_save
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', default=100, type=int, help='batch size')
-parser.add_argument('--train_steps', default=1000, type=int, help='number of training steps')
+parser.add_argument('--train_steps', default=5, type=int, help='number of training steps')
 
 
 def get_features_to_be_predicted():
@@ -50,30 +51,36 @@ def main(argv):
 
     data_to_be_predicted, feature_id = get_features_to_be_predicted()
 
-    print(data_to_be_predicted)
-    print(feature_id)
-
     predictions = classifier.predict(
         input_fn=lambda: predict_input_fn(data_to_be_predicted,
                                           batch_size=args.batch_size)
     )
 
-    # The below is just to print the result, no more other meanings.
-    expected = [0,1]
-    template = '\nPrediction is "{}" ({:.1f}%), expected "{}"'
+    predictions = list(predictions)
 
-    for pred_dict, expec in zip(predictions, expected):
-        class_id = pred_dict['class_ids'][0]
-        probability = pred_dict['probabilities'][class_id]
-        print(template.format(class_id,
-                              100 * probability, expec))
+    data_set = []
 
-    for pre in predictions:
-        print(pre.get("probabilities"))
+    for i in range(0, len(predictions)):
+        features = data_to_be_predicted.values[i]
+        f_id = feature_id[i]
+        pre = predictions[i].get("class_ids")[0]
+        new_data_item = [f_id]
+        for feature_item in features:
+            new_data_item.append(feature_item)
+        new_data_item.append(pre)
+        data_set.append(new_data_item)
+        print(new_data_item)
+
+    print(data_set)
+
+    data_save.write_to_csv(
+        "data/y2.csv",
+        data=data_set,
+        header=None)
+    #
+    # for i range len(predictions_list:
+    #     print(pre.get("class_ids")[0])
     # Write the predictions into the y2.csv
-
-
-
 
 
 if __name__ == '__main__':

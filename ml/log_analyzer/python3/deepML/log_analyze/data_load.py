@@ -6,7 +6,7 @@ import tensorflow as tf
 def load_feature_original_without_label(csv_path):
     original_feature = pd.read_csv(csv_path, names=columns.CSV_FEATURE_ORIGINAL, header=0)
     # feature_id is not a part of feature. So drop it.
-    feature_id = original_feature.pop("feature_id")
+    feature, feature_id = original_feature, original_feature.pop("feature_id")
     return original_feature, feature_id
 
 
