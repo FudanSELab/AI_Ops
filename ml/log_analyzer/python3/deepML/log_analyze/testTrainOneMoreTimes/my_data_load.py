@@ -8,9 +8,9 @@ CSV_COLUMN_NAMES_PREDICT = ["service1_inst", "service2_inst", "service3_inst", "
 
 
 
-def load_data(y_name='result'):
+def load_data(trainName, y_name='result'):
     """Returns the iris dataset as (train_x, train_y), (test_x, test_y)."""
-    train_path, test_path = "train.csv", "test.csv";
+    train_path, test_path = trainName, "test.csv";
 
     train = pd.read_csv(train_path, names=CSV_COLUMN_NAMES, header=0)
     train_x, train_y = train, train.pop(y_name)
