@@ -2,10 +2,16 @@
 
 ML Plan:
 LR
-DT
+NB
 SVM
-RNN
+DT or GBT
+RF
 DNN
 GAN
+
+
+
+
+
 
 
