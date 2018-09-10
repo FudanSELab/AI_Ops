@@ -25,7 +25,7 @@ def main(argv):
 	(train_x, train_y), (test_x, test_y) = my_data_load.load_data()
 
 	# print(train_x, train_y)
-
+	print(train_x.head())
 	# Feature columns describe how to use the input.
 	my_feature_columns = []
 	for key in train_x.keys():

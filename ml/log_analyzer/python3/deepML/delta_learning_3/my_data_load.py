@@ -97,6 +97,5 @@ def csv_input_fn(csv_path, batch_size):
 
 
 
-print(load_data())
 
 

@@ -1,0 +1,7 @@
+,service1_inst,service2_inst,service3_inst,service1_mem,service2_mem,service3_mem,time_span,result
+0,9,9,4,23,170,557,below 3,1
+1,1,3,7,116,305,414,below 10,0
+2,8,6,0,462,435,432,below 1,0
+3,3,9,0,83,495,399,below 6,1
+4,2,6,8,452,102,523,below 3,1
+5,7,0,7,434,288,365,above 10,1

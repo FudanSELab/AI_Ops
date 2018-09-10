@@ -37,13 +37,15 @@ public class RestCollectServiceImpl implements RestCollectService {
     private static final String LIMIT_MEMORY = "l_memory";
     private static final String TIME = "time";
 
+    private Boolean flag = true;
+
     @Autowired
     private MsgSender msgSender;
 
     @Override
     public void getResourceData() {
 
-        while (true) {
+        while (flag) {
 
             try {
                 msgSender.sendLoginInfoToSso(System.currentTimeMillis());
@@ -54,6 +56,13 @@ public class RestCollectServiceImpl implements RestCollectService {
                 break;
             }
         }
+    }
+
+    @Override
+    public String stopCollectResourceData() {
+        flag = false;
+
+        return "Stop collecting resource data succeed!";
     }
 
     public void getCpuMemoryLogInReceiver(long requestTime) {
