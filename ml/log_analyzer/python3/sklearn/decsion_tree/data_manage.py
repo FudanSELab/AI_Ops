@@ -55,6 +55,7 @@ train["time_span"] = train["time_span"].map(time_span_mapping)
 
 print(train)
 
+# 特征有大小无意义采用独热编码
 
 train = pd.read_csv(train_path,
                     names=CSV_COLUMN_NAMES,
@@ -64,6 +65,8 @@ df = pd.get_dummies(train, prefix=['time_span'])
 
 df.to_csv('dummy_train.csv')
 
+# 区间编码
+
 bin = [0, 100, 200, 300, 1500]
 
 train = pd.read_csv(train_path,
@@ -71,6 +74,17 @@ train = pd.read_csv(train_path,
                     header=0)
 
 
-train["service1_mem"]=  pd.cut(train["service1_mem"], bin)
+
+# train["service1_mem"] = pd.cut(train["service1_mem"], bin)
+#
+# print(train["service1_mem"])
+
+# 区间编码分区并打label
+
+train["service1_mem"] = pd.cut(train["service1_mem"], bin, labels=['Low', 'Middle', 'High', 'Senior'])
+
 
 print(train["service1_mem"])
+
+print(train["service1_mem"].values)
+
