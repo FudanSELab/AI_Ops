@@ -69,4 +69,10 @@ public class HelloController {
     public void getResourceData() {
 	    restCollectService.getResourceData();
     }
+
+    @GetMapping("/stopCollectData")
+    public String stopCollectResourceData()
+    {
+        return restCollectService.stopCollectResourceData();
+    }
 }

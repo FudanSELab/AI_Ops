@@ -1,0 +1,6 @@
+server:
+  port: 16278
+
+spring:
+  application:
+    name: scenario_test

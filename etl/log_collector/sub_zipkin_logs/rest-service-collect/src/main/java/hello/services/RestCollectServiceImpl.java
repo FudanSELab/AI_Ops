@@ -37,13 +37,15 @@ public class RestCollectServiceImpl implements RestCollectService {
     private static final String LIMIT_MEMORY = "l_memory";
     private static final String TIME = "time";
 
+    private Boolean flag = true;
+
     @Autowired
     private MsgSender msgSender;
 
     @Override
     public void getResourceData() {
 
-        while (true) {
+        while (flag) {
 
             try {
                 msgSender.sendLoginInfoToSso(System.currentTimeMillis());
@@ -56,9 +58,17 @@ public class RestCollectServiceImpl implements RestCollectService {
         }
     }
 
+    @Override
+    public String stopCollectResourceData() {
+        flag = false;
+
+        return "Stop collecting resource data succeed!";
+    }
+
     public void getCpuMemoryLogInReceiver(long requestTime) {
 
 
+        boolean contentFlag = false;
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         OkHttpClient okHttpClient = new OkHttpClient();
 
@@ -87,15 +97,18 @@ public class RestCollectServiceImpl implements RestCollectService {
 
                         // create the header of the csv table
                         LinkedHashMap<String, String> headMap = new LinkedHashMap<String, String>();
-                        for (Map.Entry<String, String> entry : exportData.get(0).entrySet()) {
-                            headMap.put(entry.getKey(), entry.getKey());
-                        }
 
-                        CSVUtils.createCSVFile(exportData, headMap, "/home", "CpuMemoryTelemetry");
+                        // construct the CSV Table header
+                        constructCSVTableHeader(headMap, exportData, contentFlag);
+
+                        // create the CSV File
+                        CSVUtils.createCSVFile(exportData, headMap, "/home", "CpuMemoryTelemetry", contentFlag);
                     }
                 }
 
+                // write CSV file to HDFS
                 writeToHDFS();
+
                 System.out.println("End write time: " + dateFormat.format(System.currentTimeMillis()));
             }
         } catch (Exception e) {
@@ -103,6 +116,29 @@ public class RestCollectServiceImpl implements RestCollectService {
         }
     }
 
+    /**
+     *
+     * @param headMap the header map of CSV table
+     * @param exportData the data of service returned by call k8s API
+     * @param contentFlag true: one service data from one remote call write in one row
+     *                   false: all service data from one remote call write in one row
+     */
+    private void constructCSVTableHeader(LinkedHashMap<String, String> headMap, LinkedList<LinkedHashMap<String, String>> exportData, boolean contentFlag) {
+
+        if (contentFlag) {
+            for (Map.Entry<String, String> entry : exportData.get(0).entrySet()) {
+                headMap.put(entry.getKey(), entry.getKey());
+            }
+        }
+        else {
+            for (int i = 0; i < exportData.size(); i++) {
+                String serviceName = exportData.get(i).get("serviceName");
+                for (Map.Entry<String, String> entry : exportData.get(i).entrySet()) {
+                    headMap.put(serviceName + "-" + entry.getKey(), entry.getKey());
+                }
+            }
+        }
+    }
 
     private LinkedHashMap<String, String> jsonToMap(JSONObject serviceData, long requestTime) {
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -121,7 +157,7 @@ public class RestCollectServiceImpl implements RestCollectService {
         }
 
         // according to calculate, the request to K8S is about 2 seconds.
-        serviceDataMap.put(TIME, dateFormat.format((requestTime + 2000)));
+        serviceDataMap.put(TIME, requestTime + 2000 + "");
         return serviceDataMap;
     }
 
