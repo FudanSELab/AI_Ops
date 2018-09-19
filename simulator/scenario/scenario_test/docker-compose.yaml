@@ -1,0 +1,35 @@
+version: '3'
+services:
+
+  scenario_test:
+    build: .
+    image: scenario_test
+    restart: always
+    ports:
+    - 16278:16278
+    - 12590:12590
+    networks:
+    - my-network
+
+  chrome:
+    image: selenium/node-chrome:3.14.0-dubnium
+    volumes:
+    - /dev/shm:/dev/shm
+    depends_on:
+    - hub
+    environment:
+      HUB_HOST: hub
+    networks:
+    - my-network
+
+  hub:
+    image: selenium/hub:3.14.0-dubnium
+    ports:
+    - 4444:4444
+    networks:
+    - my-network
+
+networks:
+  my-network:
+    # driver: overlay
+    driver: bridge
