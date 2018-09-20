@@ -131,10 +131,10 @@ public class RestCollectServiceImpl implements RestCollectService {
             }
         }
         else {
-            for (int i = 0; i < exportData.size(); i++) {
-                String serviceName = exportData.get(i).get("serviceName");
-                for (Map.Entry<String, String> entry : exportData.get(i).entrySet()) {
-                    headMap.put(serviceName + "-" + entry.getKey(), entry.getKey());
+            for (LinkedHashMap<String, String> anExportData : exportData) {
+                String serviceName = anExportData.get("serviceName").replaceAll("-", "_");
+                for (Map.Entry<String, String> entry : anExportData.entrySet()) {
+                    headMap.put(serviceName + "_" + entry.getKey(), entry.getKey());
                 }
             }
         }
