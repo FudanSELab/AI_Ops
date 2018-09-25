@@ -1,9 +1,8 @@
 import pandas as pd
 import tensorflow as tf
-import numpy as np
-from sklearn import tree
-from sklearn.externals.six import StringIO
-import pydotplus
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 
 train_columns = [
     "trace_id",
@@ -22,12 +21,6 @@ train_columns = [
     "service_3_inst_delta",
     "service_3_conf_mem_limit_delta",
     "service_3_conf_cpu_limit_delta",
-    "service_4_inst_delta",
-    "service_4_conf_mem_limit_delta",
-    "service_4_conf_cpu_limit_delta",
-    "service_5_inst_delta",
-    "service_5_conf_mem_limit_delta",
-    "service_5_conf_cpu_limit_delta",
     "y_is_error_lazy",
     "y_is_error_predict",
     "y_is_error",
@@ -66,14 +59,20 @@ train.pop("entry_timestamp")
 train.pop("y_is_error_lazy")
 train.pop("y_is_error_predict")
 train.pop("y_is_error")
-train_y_ms = train.pop("y_issue_ms")
-train_y_issue_dimension = train.pop("y_issue_dimension")
+
 
 train["testcase_id"], testcase_id_mapping = convertStrToNumber("testcase_id", train)
 train["entry_service"], entry_service_mapping = convertStrToNumber("entry_service", train)
 train["entry_api"], entry_service_mapping = convertStrToNumber("entry_api", train)
+train["y_issue_ms"], y_issue_ms_mapping = convertStrToNumber("y_issue_ms", train)
+train["y_issue_dimension"], y_issue_dimension_mapping = convertStrToNumber("y_issue_dimension", train)
+
+train_y_ms = train.pop("y_issue_ms")
+train_y_issue_dimension = train.pop("y_issue_dimension")
 
 train_x = train
+
+print(train_x)
 
 # Feature columns describe how to use the input.
 my_feature_columns = []
@@ -93,7 +92,8 @@ for key in train_x.keys():
     #     my_feature_columns.append(tf.feature_column.indicator_column(vocabulary_feature_column));
     else:
         my_feature_columns.append(tf.feature_column.numeric_column(key=key))
-        print("none")
+
+print(my_feature_columns)
 
 # Build 2 hidden layer DNN with 10, 10 units respectively.
 checkpointing_config = tf.estimator.RunConfig(
@@ -106,9 +106,9 @@ classifier_ms = tf.estimator.DNNClassifier(
     config=checkpointing_config,
     feature_columns=my_feature_columns,
     # Two hidden layers of 10 nodes each.
-    hidden_units=[10, 10],
+    hidden_units=[50, 50],
     # The model must choose between 3 classes.
-    n_classes=2)
+    n_classes=3)
 
 # Train the Model.
 classifier_ms.train(
@@ -121,9 +121,9 @@ classifier_issued_dimension = tf.estimator.DNNClassifier(
     config=checkpointing_config,
     feature_columns=my_feature_columns,
     # Two hidden layers of 10 nodes each.
-    hidden_units=[10, 10],
+    hidden_units=[50, 50],
     # The model must choose between 3 classes.
-    n_classes=2)
+    n_classes=3)
 
 # Train the Model.
 classifier_issued_dimension.train(

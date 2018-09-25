@@ -15,6 +15,8 @@ data1 = pd.Series(np.random.randint(0,10,data_size));
 data2 = pd.Series(np.random.randint(0,10,data_size));
 data3 = pd.Series(np.random.randint(0,10,data_size));
 
+print(data1)
+
 data4 = pd.Series(np.random.randint(0,600,data_size));
 data5 = pd.Series(np.random.randint(0,600,data_size));
 data6 = pd.Series(np.random.randint(0,600,data_size));
