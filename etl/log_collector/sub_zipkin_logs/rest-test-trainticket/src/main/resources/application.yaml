@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: rest-test-trainticket
+  rabbitmq:
+    host: rabbitmq
+    listener:
+      retry:
+        enabled: false
+        max-attempts: 1
+    template:
+      retry:
+        enabled: false
+        max-attempts: 1
+  cloud:
+    stream:
+      bindings:
+        output:
+          # group: ts-return-cancel
+          destination: rest-service-collect-exchange
+          contentType: text/plain
+          binder: rabbit
+        input:
+          group: rest-service-collect
+          destination: rest-service-collect-exchange
+          contentType: text/plain
+          binder: rabbit
+
+server:
+  port: 16009
