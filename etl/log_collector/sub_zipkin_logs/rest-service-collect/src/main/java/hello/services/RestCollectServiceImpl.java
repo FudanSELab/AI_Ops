@@ -87,8 +87,9 @@ public class RestCollectServiceImpl implements RestCollectService {
             Response responsePod = okHttpClient.newCall(requestPod).execute();
             Response responseNode = okHttpClient.newCall(requestNode).execute();
             long responseTime = System.currentTimeMillis();
+            //System.out.println(responseService.body() + "---" + responsePod.body() + "---" + responseNode.body());
 
-            if (null != responseService.body() && null != requestPod.body() && null != responseNode.body()) {
+            if (null != responseService.body() && null != responsePod.body() && null != responseNode.body()) {
                 JSONObject responseServiceData = JSONObject.fromObject(responseService.body().string());
                 JSONObject responseNodeData = JSONObject.fromObject(responseNode.body().string());
                 JSONObject responsePodData = JSONObject.fromObject(responsePod.body().string());
