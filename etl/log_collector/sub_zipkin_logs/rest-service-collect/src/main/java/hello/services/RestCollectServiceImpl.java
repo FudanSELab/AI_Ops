@@ -2,17 +2,13 @@ package hello.services;
 
 import hello.queue.MsgSender;
 import hello.utils.CSVUtils;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 import org.apache.commons.collections.MapUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -43,6 +39,9 @@ public class RestCollectServiceImpl implements RestCollectService {
     @Autowired
     private MsgSender msgSender;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
     @Override
     public void getResourceData() {
 
@@ -68,37 +67,27 @@ public class RestCollectServiceImpl implements RestCollectService {
 
     public void getCpuMemoryLogInReceiver(long requestTime) {
 
-
         boolean contentFlag = false;
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-        // create http request
-        OkHttpClient okHttpClient = new OkHttpClient();
         // request to get service config data
-        Request requestService = new Request.Builder().url("http://10.141.212.21:18898/api/getServicesAndConfig/cluster2").build();
+        LinkedHashMap<String, Object> responseServiceData = restTemplate.getForObject("http://10.141.212.21:18898/api/getServicesAndConfig/cluster2", LinkedHashMap.class);
         // request to get service pod data
-        Request requestPod = new Request.Builder().url("http://10.141.212.21:18898/api/podMetrics/cluster2").build();
+        LinkedHashMap<String, Object> responsePodData = restTemplate.getForObject("http://10.141.212.21:18898/api/podMetrics/cluster2", LinkedHashMap.class);
         // request to get node data
-        Request requestNode = new Request.Builder().url("http://10.141.212.21:18898/api/nodeMetrics/cluster2").build();
+        LinkedHashMap<String, Object> responseNodeData = restTemplate.getForObject("http://10.141.212.21:18898/api/nodeMetrics/cluster2", LinkedHashMap.class);
 
 
         try {
-            Response responseService = okHttpClient.newCall(requestService).execute();
-            Response responsePod = okHttpClient.newCall(requestPod).execute();
-            Response responseNode = okHttpClient.newCall(requestNode).execute();
             long responseTime = System.currentTimeMillis();
-            //System.out.println(responseService.body() + "---" + responsePod.body() + "---" + responseNode.body());
 
-            if (null != responseService.body() && null != responsePod.body() && null != responseNode.body()) {
-                JSONObject responseServiceData = JSONObject.fromObject(responseService.body().string());
-                JSONObject responseNodeData = JSONObject.fromObject(responseNode.body().string());
-                JSONObject responsePodData = JSONObject.fromObject(responsePod.body().string());
+            if (MapUtils.isNotEmpty(responseServiceData) && MapUtils.isNotEmpty(responsePodData) && MapUtils.isNotEmpty(responseNodeData)) {
 
                 System.out.println("Request time: " + dateFormat.format(requestTime));
                 System.out.println("Response time: " + dateFormat.format(responseTime));
 
                 if (responseServiceData.get(STATUS).toString().equals(Boolean.TRUE.toString())) {
-                    JSONArray servicesData = JSONArray.fromObject(responseServiceData.get(SERVICES));
+                    List<HashMap<String, Object>> servicesData = (List<HashMap<String, Object>>) responseServiceData.get(SERVICES);
                     createCSVTableAndWriteHDFSFile(constructServiceData(servicesData, requestTime, responseTime), SERVICE_CONFIG_DATA, contentFlag);
                 }
 
@@ -110,7 +99,6 @@ public class RestCollectServiceImpl implements RestCollectService {
                     constructServiceInstanceData(podsData, nodesData, serviceInstanceData, requestTime, responseTime);
                     createCSVTableAndWriteHDFSFile(serviceInstanceData, SERVICE_INSTANCE_DATA, contentFlag);
                 }
-
 
                 System.out.println("End write time: " + dateFormat.format(System.currentTimeMillis()));
             } else {
@@ -145,7 +133,7 @@ public class RestCollectServiceImpl implements RestCollectService {
             }
 
             // add the node data
-            for (HashMap nodeItem : nodesData) {
+            for (HashMap<String, Object> nodeItem : nodesData) {
                 if (podItem.get("nodeId").toString().equals(nodeItem.get("nodeId"))) {
                     Map<String, String> nodeUsage = (Map<String, String>) nodeItem.get("usage");
                     Map<String, String> nodeConfig = (Map<String, String>) nodeItem.get("usage");
@@ -170,7 +158,7 @@ public class RestCollectServiceImpl implements RestCollectService {
             }
 
             podData.put(serviceName + "_collect_" + START_TIME, requestTime + "");
-            podData.put(serviceName + "_collect_" +END_TIME, responseTime +"" );
+            podData.put(serviceName + "_collect_" + END_TIME, responseTime + "");
             serviceInstanceData.add(podData);
         }
     }
@@ -179,16 +167,30 @@ public class RestCollectServiceImpl implements RestCollectService {
      * Construct the service data with "LinkedList<LinkedHashMap<String, String>>"
      *
      * @param servicesData service config data
-     * @param requestTime the request time
+     * @param requestTime  the request time
      * @param responseTime the response time
      * @return the result list
      */
-    private LinkedList<LinkedHashMap<String, String>> constructServiceData(JSONArray servicesData, long requestTime, long responseTime) {
+    private LinkedList<LinkedHashMap<String, String>> constructServiceData(List<HashMap<String, Object>> servicesData, long requestTime, long responseTime) {
         LinkedList<LinkedHashMap<String, String>> exportData = new LinkedList<LinkedHashMap<String, String>>();
 
-        // convert the json array to the list
-        for (Object serviceData : servicesData) {
-            LinkedHashMap<String, String> serviceDataMap = jsonToMap(JSONObject.fromObject(serviceData), requestTime, responseTime);
+        for (HashMap<String, Object> serviceData : servicesData) {
+            LinkedHashMap<String, String> serviceDataMap = new LinkedHashMap<>();
+
+            for (String key : serviceData.keySet()) {
+                if (SERVICE_NAME.equals(key) || INSTANCE_NUMBER.equals(key)) {
+                    serviceDataMap.put(key, serviceData.get(key).toString());
+                }
+//            else if (REQUESTS.equals(key)) {
+//                extractLimitsAndRequests(serviceData.getJSONObject(key), REQUESTS, serviceDataMap);
+//            }
+                else if (LIMITS.equals(key)) {
+                    extractLimitsAndRequests((LinkedHashMap<String, String>) serviceData.get(key), LIMITS, serviceDataMap);
+                }
+            }
+
+            serviceDataMap.put(START_TIME, requestTime + "");
+            serviceDataMap.put(END_TIME, responseTime + "");
             exportData.add(serviceDataMap);
         }
 
@@ -229,8 +231,7 @@ public class RestCollectServiceImpl implements RestCollectService {
                     for (Map.Entry<String, String> entry : anExportData.entrySet()) {
                         headMap.put(serviceName + "_" + entry.getKey(), entry.getKey());
                     }
-                }
-                else {
+                } else {
                     for (Map.Entry<String, String> entry : anExportData.entrySet()) {
                         headMap.put(entry.getKey(), entry.getKey());
                     }
@@ -239,31 +240,8 @@ public class RestCollectServiceImpl implements RestCollectService {
         }
     }
 
-    private LinkedHashMap<String, String> jsonToMap(JSONObject serviceData, long requestTime, long responseTime) {
-        final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        LinkedHashMap<String, String> serviceDataMap = new LinkedHashMap<String, String>();
-
-        Iterator<?> iterator = serviceData.keys();
-        while (iterator.hasNext()) {
-            String key = (String) iterator.next();
-            if (SERVICE_NAME.equals(key) || INSTANCE_NUMBER.equals(key)) {
-                serviceDataMap.put(key, serviceData.getString(key));
-            }
-//            else if (REQUESTS.equals(key)) {
-//                extractLimitsAndRequests(serviceData.getJSONObject(key), REQUESTS, serviceDataMap);
-//            }
-            else if (LIMITS.equals(key)) {
-                extractLimitsAndRequests(serviceData.getJSONObject(key), LIMITS, serviceDataMap);
-            }
-        }
-
-        serviceDataMap.put(START_TIME, requestTime + "");
-        serviceDataMap.put(END_TIME, responseTime + "");
-        return serviceDataMap;
-    }
-
-    private void extractLimitsAndRequests(JSONObject jsonObject, String resourceType, LinkedHashMap<String, String> serviceDataMap) {
-        if (jsonObject.isEmpty()) {
+    private void extractLimitsAndRequests(LinkedHashMap<String, String> dataMap, String resourceType, LinkedHashMap<String, String> serviceDataMap) {
+        if (dataMap.isEmpty()) {
             if (REQUESTS.equals(resourceType)) {
                 serviceDataMap.put(REQUEST_CPU, "");
                 serviceDataMap.put(REQUEST_MEMORY, "");
@@ -273,11 +251,11 @@ public class RestCollectServiceImpl implements RestCollectService {
             }
         } else {
             if (REQUESTS.equals(resourceType)) {
-                serviceDataMap.put(REQUEST_CPU, jsonObject.getString(CPU));
-                serviceDataMap.put(REQUEST_MEMORY, jsonObject.getString(MEMORY));
+                serviceDataMap.put(REQUEST_CPU, dataMap.get(CPU));
+                serviceDataMap.put(REQUEST_MEMORY, dataMap.get(MEMORY));
             } else if (LIMITS.equals(resourceType)) {
-                serviceDataMap.put(LIMIT_CPU, jsonObject.getString(CPU));
-                serviceDataMap.put(LIMIT_MEMORY, jsonObject.getString(MEMORY));
+                serviceDataMap.put(LIMIT_CPU, dataMap.get(CPU));
+                serviceDataMap.put(LIMIT_MEMORY, dataMap.get(MEMORY));
             }
         }
     }
