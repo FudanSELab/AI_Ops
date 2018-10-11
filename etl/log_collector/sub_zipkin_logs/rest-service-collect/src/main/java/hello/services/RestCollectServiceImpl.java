@@ -241,7 +241,7 @@ public class RestCollectServiceImpl implements RestCollectService {
     }
 
     private void extractLimitsAndRequests(LinkedHashMap<String, String> dataMap, String resourceType, LinkedHashMap<String, String> serviceDataMap) {
-        if (dataMap.isEmpty()) {
+        if (MapUtils.isEmpty(dataMap)) {
             if (REQUESTS.equals(resourceType)) {
                 serviceDataMap.put(REQUEST_CPU, "");
                 serviceDataMap.put(REQUEST_MEMORY, "");
