@@ -115,9 +115,19 @@ public class RestCollectServiceImpl implements RestCollectService {
             LinkedHashMap<String, String> podData = new LinkedHashMap<>();
 
             // get service name
-            String serviceName = podItem.get("podId").toString().contains("mongo")
-                    ? (podItem.get("podId").toString().split("mongo")[0] + "mongo").replaceAll("-", "_")
-                    : (podItem.get("podId").toString().split("service")[0] + "service").replaceAll("-", "_");
+            String serviceName = podItem.get("podId").toString();
+            if (serviceName.contains("mongo")) {
+                serviceName = (podItem.get("podId").toString().split("mongo")[0] + "mongo").replaceAll("-", "_");
+            }
+            else if (serviceName.contains("dashboard")) {
+                serviceName = (podItem.get("podId").toString().split("dashboard")[0] + "dashboard" ).replaceAll("-", "_");
+            }
+            else if (serviceName.contains("mysql")) {
+                serviceName = (podItem.get("podId").toString().split("mysql")[0] + "mysql" ).replaceAll("-", "_");
+            }
+            else if (serviceName.contains("service")){
+                serviceName = (podItem.get("podId").toString().split("service")[0] + "service").replaceAll("-", "_");
+            }
 
             // add the pod data
             podData.put(serviceName + "_inst_id", podItem.get("podId").toString());
@@ -157,8 +167,8 @@ public class RestCollectServiceImpl implements RestCollectService {
                 }
             }
 
-            podData.put(serviceName + "_collect_" + START_TIME, requestTime + "");
-            podData.put(serviceName + "_collect_" + END_TIME, responseTime + "");
+            podData.put(serviceName + "_inst_collect_" + START_TIME, requestTime + "");
+            podData.put(serviceName + "_inst_collect_" + END_TIME, responseTime + "");
             serviceInstanceData.add(podData);
         }
     }
@@ -219,6 +229,9 @@ public class RestCollectServiceImpl implements RestCollectService {
      */
     private void constructCSVTableHeader(LinkedHashMap<String, String> headMap, LinkedList<LinkedHashMap<String, String>> exportData, boolean contentFlag) {
 
+        // record the pod count. key: service name of pod, value: count of pod
+        Map<String, Integer> podCount = new HashMap<>();
+
         if (contentFlag) {
             for (Map.Entry<String, String> entry : exportData.get(0).entrySet()) {
                 headMap.put(entry.getKey(), entry.getKey());
@@ -232,8 +245,32 @@ public class RestCollectServiceImpl implements RestCollectService {
                         headMap.put(serviceName + "_" + entry.getKey(), entry.getKey());
                     }
                 } else {
+                    // get the service name from the first element of the map
+                    serviceName = anExportData.keySet().toArray(new String[0])[0].split("_inst")[0];
+
+                    // record the pod count
+                    if (!podCount.containsKey(serviceName)) {
+                        podCount.put(serviceName, 1);
+                    }
+
+                    // flag to recognize if the service has several pods
+                    boolean sameFlag = false;
+
                     for (Map.Entry<String, String> entry : anExportData.entrySet()) {
-                        headMap.put(entry.getKey(), entry.getKey());
+                        // the service has several pods
+                        if (headMap.containsKey(entry.getKey())) {
+                            String[] tempKey = entry.getKey().split("_inst");
+                            // add the index
+                            headMap.put(tempKey[0] + "_inst_" + podCount.get(tempKey[0]) + tempKey[1], entry.getKey());
+                            sameFlag = true;
+                        } else {
+                            headMap.put(entry.getKey(), entry.getKey());
+                        }
+                    }
+
+                    // add the count of pod
+                    if (sameFlag) {
+                        podCount.put(serviceName, podCount.get(serviceName) + 1);
                     }
                 }
             }
