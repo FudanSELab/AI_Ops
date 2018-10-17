@@ -66,13 +66,14 @@ public class HelloController {
 	}
 
 	@GetMapping("/getResourceData")
-    public void getResourceData() {
-	    restCollectService.getResourceData();
-    }
+	public void getResourceData() {
+		// get cpu and memory
+		System.out.println("-=========================================---------------");
+		restCollectService.getResourceData();
+	}
 
-    @GetMapping("/stopCollectData")
-    public String stopCollectResourceData()
-    {
-        return restCollectService.stopCollectResourceData();
-    }
+	@GetMapping("/stopCollectData")
+	public String stopCollectResourceData() {
+		return restCollectService.stopCollectResourceData();
+	}
 }

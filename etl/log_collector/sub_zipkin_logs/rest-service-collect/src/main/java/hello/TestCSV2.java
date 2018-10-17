@@ -64,7 +64,7 @@ public class TestCSV2 {
 
         System.out.println("==========================");
     }
-    public static void main(String [] args) throws IOException {
-        test();
-    }
+//    public static void main(String [] args) throws IOException {
+//        test();
+//    }
 }

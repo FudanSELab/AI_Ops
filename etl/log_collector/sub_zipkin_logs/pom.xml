@@ -15,6 +15,7 @@
         <module>rest-service-collect</module>
         <!--<module>rest-service-geninvocation</module>-->
         <!--<module>rest-service-hivespark</module>-->
+		<module>rest-test-trainticket</module>
         <module>apiserver</module>
     </modules>
 
