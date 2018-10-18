@@ -1,6 +1,9 @@
 package hello;
 
 import com.google.gson.Gson;
+import hello.bean.NewAnno;
+import hello.bean.NewCsvFilePrinter;
+import hello.bean.NewTrace;
 import hello.domain.Annotation;
 import hello.domain.NewAnnoation;
 import hello.domain.Trace;
@@ -14,19 +17,12 @@ import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 @Component
 public class KafkaConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(Application.class);
-
-//	public KafkaListenerContainerFactory<?> batchFactory() {
-//        ConcurrentKafkaListenerContainerFactory<Integer,String> factory =
-//                new ConcurrentKafkaListenerContainerFactory<>();
-//        factory.setConcurrency(8);
-//        factory.setBatchListener(true);
-//	    return factory;
-//    }
 
     /**
      * reader
@@ -38,84 +34,71 @@ public class KafkaConsumer {
         System.out.println("==========KafkaConsumer - consumer============");
 
         Gson gson = new Gson();
-        Trace[] traces = gson.fromJson(message, Trace[].class);
+        NewTrace[] traces = gson.fromJson(message, NewTrace[].class);
 
-        String annoCsvFile = "/parquet/traces_anno.csv";
-        String binnoCsvFile = "/parquet/traces_binno.csv";
+        String spanCsvFile = "/parquet/new_span_trace.csv";
 
-        CsvFilePrinter annoPrint = new CsvFilePrinter(annoCsvFile, true, true);
-        CsvFilePrinter binnoPrint = new CsvFilePrinter(binnoCsvFile, true, false);
+        NewCsvFilePrinter annoPrint = new NewCsvFilePrinter(spanCsvFile, true, true);
 
-        for (int i = 0; i < traces.length; i++) {
-            ParquetUtil.parquetWriter(traces[i]);
-        }
 
         for (int i = 0; i < traces.length; i++) {
+            if("Report".equals(traces[i].getName())){
+                continue;
+            }
+            if("rest-service-collect".equals(traces[i].getAnnotations()[0].getEndpoint().getServiceName())){
+                continue;
+            }
+            NewAnno[] newAnnoations = new NewAnno[2];
+            newAnnoations[0] = new NewAnno();
+            newAnnoations[1] = new NewAnno();
 
-//            {"trace_id", "span_id", "span_name","parent_id", "span_timestamp", "span_duration",
-//            "anno_cs_timestamp", "anno_cs", "anno_cs_servicename", "anno_cs_ip", "anno_cs_port",
-//                    "anno_cr_timestamp", "anno_cr", "anno_cr_servicename", "anno_cr_ip", "anno_cr_port",
-//                    "anno_sr_timestamp", "anno_sr", "anno_sr_servicename", "anno_sr_ip", "anno_sr_port",
-//                    "anno_ss_timestamp", "anno_ss", "anno_ss_servicename", "anno_ss_ip", "anno_ss_port"
-
-            NewAnnoation[] newAnnoations = new NewAnnoation[4];
+            // Annotations  2
             for (int j = 0; traces[i].getAnnotations() != null && j < traces[i].getAnnotations().length; j++) {
-                Annotation tempAnno = traces[i].getAnnotations()[j];
-                if(tempAnno.getValue().equals("cs")){
-                    newAnnoations[0] = new NewAnnoation(tempAnno.getTimestamp(),tempAnno.getValue(),tempAnno.getEndpoint().getServiceName(),
-                            tempAnno.getEndpoint().getIpv4(),tempAnno.getEndpoint().getPort());
-                }
-                if(tempAnno.getValue().equals("cr")){
-                    newAnnoations[1] = new NewAnnoation(tempAnno.getTimestamp(),tempAnno.getValue(),tempAnno.getEndpoint().getServiceName(),
-                            tempAnno.getEndpoint().getIpv4(),tempAnno.getEndpoint().getPort());
-                }
-                if(tempAnno.getValue().equals("sr")){
-                    newAnnoations[2] = new NewAnnoation(tempAnno.getTimestamp(),tempAnno.getValue(),tempAnno.getEndpoint().getServiceName(),
-                            tempAnno.getEndpoint().getIpv4(),tempAnno.getEndpoint().getPort());
-                }
-                if(tempAnno.getValue().equals("ss")){
-                    newAnnoations[3] = new NewAnnoation(tempAnno.getTimestamp(),tempAnno.getValue(),tempAnno.getEndpoint().getServiceName(),
-                            tempAnno.getEndpoint().getIpv4(),tempAnno.getEndpoint().getPort());
-                }
+                newAnnoations[j] = traces[i].getAnnotations()[j];
             }
 
-            for (int j = 0; traces[i].getAnnotations() != null && j < traces[i].getAnnotations().length; j++) {
-                //写入 anno csv
-                annoPrint.write(new String[]{
-                        traces[i].getTraceId(),
-                        traces[i].getId(),
-                        traces[i].getName(),
-                        traces[i].getParentId(),
-                        "" + traces[i].getTimestamp(),
-                        "" + traces[i].getDuration(),
-                        "" + traces[i].getAnnotations()[j].getTimestamp(),
-                        traces[i].getAnnotations()[j].getValue(),
-                        traces[i].getAnnotations()[j].getEndpoint().getServiceName(),
-                        traces[i].getAnnotations()[j].getEndpoint().getIpv4(),
-                        "" + traces[i].getAnnotations()[j].getEndpoint().getPort()
-                });
-            }
+            //写入  csv
+            annoPrint.write(new String[]{
+                    traces[i].getTraceId(),
+                    traces[i].getName(),
+                    traces[i].getId(),
+                    traces[i].getParentId(),
+                    "" + traces[i].getTimestamp(),
+                    "" + traces[i].getDuration(),
 
-            for (int j = 0; traces[i].getBinaryAnnotations() != null && j < traces[i].getBinaryAnnotations().length; j++) {
-                //写入 binno csv
-                binnoPrint.write(new String[]{
-                        traces[i].getId(),
-                        traces[i].getBinaryAnnotations()[j].getKey(),
-                        traces[i].getBinaryAnnotations()[j].getValue(),
-                        traces[i].getBinaryAnnotations()[j].getEndpoint().getServiceName(),
-                        traces[i].getBinaryAnnotations()[j].getEndpoint().getIpv4(),
-                        "" + traces[i].getBinaryAnnotations()[j].getEndpoint().getPort(),
-                });
-            }
+                    "" + newAnnoations[0].getTimestamp(),
+                    newAnnoations[0].getValue(),
+                    newAnnoations[0].getEndpoint().getIpv4(),
+                    newAnnoations[0].getEndpoint().getPort()+"",
+                    newAnnoations[0].getEndpoint().getServiceName(),
+
+                    "" + newAnnoations[1].getTimestamp(),
+                    newAnnoations[1].getValue(),
+                    newAnnoations[1].getEndpoint().getIpv4(),
+                    newAnnoations[1].getEndpoint().getPort()+"",
+                    newAnnoations[1].getEndpoint().getServiceName(),
+
+                    traces[i].getBinaryAnnotations()[1].getValue(),
+                    traces[i].getBinaryAnnotations()[2].getValue(),
+                    traces[i].getBinaryAnnotations()[3].getValue(),
+                    traces[i].getBinaryAnnotations()[4].getValue(),
+                    traces[i].getBinaryAnnotations()[6].getValue(),
+                    traces[i].getBinaryAnnotations()[8].getValue(),
+                    traces[i].getBinaryAnnotations()[9].getValue(),
+                    traces[i].getBinaryAnnotations()[10].getValue(),
+                    traces[i].getBinaryAnnotations()[11].getValue(),
+                    traces[i].getBinaryAnnotations()[12].getValue(),
+                    traces[i].getBinaryAnnotations()[13].getValue()
+            });
+
         }
-
         log.info("[===] The size of traces: " + traces.length);
         log.info("[===] The TRACE-ID of traces: " + traces[0].getTraceId());
+
         System.out.println("==========================");
     }
 
     public void genInvocationCSV() {
         System.out.println("======== generate invocation =======");
-
     }
 }
