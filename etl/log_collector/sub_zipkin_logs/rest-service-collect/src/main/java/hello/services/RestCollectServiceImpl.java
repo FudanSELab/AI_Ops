@@ -132,6 +132,7 @@ public class RestCollectServiceImpl implements RestCollectService {
             // add the pod data
             podData.put(serviceName + "_inst_id", podItem.get("podId").toString());
             podData.put(serviceName + "_inst_node_id", podItem.get("nodeId").toString());
+            podData.put(serviceName + "_inst_service_version", podItem.get("serviceVersion").toString());
 
             Map<String, String> podUsage = (Map<String, String>) podItem.get("usage");
             if (MapUtils.isNotEmpty(podUsage)) {
