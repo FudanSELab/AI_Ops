@@ -1,0 +1,127 @@
+    // auto  tag  is_error (1)  or not(0)
+        JavaRDD<TraceAnnotation> multipleNumberRDD = originalRdd.map(new Function<TraceAnnotation, TraceAnnotation>() {
+            @Override
+            public TraceAnnotation call(TraceAnnotation traceAnnotation) throws Exception {
+                System.out.println("============------------" + traceAnnotation.getStatus_code() + "--------" + traceAnnotation.getRes_status_desc());
+                if (!"200".equals(traceAnnotation.getStatus_code()) || !"0".equals(traceAnnotation.getRes_status_desc())) {
+                    traceAnnotation.setIs_error("1");
+                }else{
+                    traceAnnotation.setIs_error("0");
+                }
+                return traceAnnotation;
+            }
+        });
+
+
+
+    Parsing command: original_span_table
+    18/10/22 23:28:59 INFO execution.SparkSqlParser: Parsing command: select a.trace_id, a.span_name, a.span_id, a.parent_id, a.span_timestamp, a.span_duration, a.a_a1_timestamp cs_timestamp, a.a_a1_ipv4 cs_ipv4, a.a_a1_servicename cs_servicename, a.anno_a2_timestamp cr_timestamp, a.a_a2_ipv4 cr_ipv4, a.a_a2_servicename cr_servicename, b.a_a1_timestamp sr_timestamp, b.a_a1_ipv4 sr_ipv4, b.a_a1_servicename sr_servicename, b.a_a2_timestamp ss_timestamp, b.a_a2_ipv4 ss_ipv4, b.a_a2_servicename ss_servicename, a.bnno_node_id c_node_id, b.bnno_node_id s_node_id, a.bnno_httpurl req_api, a.test_trace_id, a.test_case_id, a.bnno_status_code status_code from  original_span_table a, original_span_table b where (a.span_id == b.span_id And a.parent_id == b.parent_id And a.anno_a1_value == 'cs' And a.parent_id  != '') or (a.span_id == b.span_id And a.parent_id == b.parent_id And a.anno_a1_value == 'sr' And a.parent_id  == '')
+    Exception in thread "main" org.apache.spark.sql.AnalysisException: cannot resolve '`a.anno_a1_value`' given input columns: [span_duration, bnno_node_id, bnno_request_size, bnno_http_method, span_name, parent_id, a_a2_ipv4, a_a1_timestamp, bnno_node_id, bnno_upstream_cluster, bnno_upstream_cluster, a_a2_value, a_a2_port, test_trace_id, a_a1_value, span_name, trace_id, a_a1_timestamp, a_a2_timestamp, span_id, a_a1_value, bnno_response_flags, a_a1_port, span_id, a_a1_port, parent_id, bnno_status_code, bnno_request_size, trace_id, a_a2_servicename, span_duration, bnno_response_size, span_timestamp, a_a1_servicename, a_a1_servicename, a_a2_value, bnno_xrequest_id, a_a1_ipv4, span_timestamp, test_case_id, test_trace_id, bnno_httpurl, bnno_httpurl, a_a1_ipv4, bnno_status_code, a_a2_ipv4, bnno_http_method, test_case_id, a_a2_port, a_a2_servicename, bnno_xrequest_id, a_a2_timestamp, bnno_response_size, bnno_response_flags]; line 1 pos 698;
+    'Project ['a.trace_id, 'a.span_name, 'a.span_id, 'a.parent_id, 'a.span_timestamp, 'a.span_duration, 'a.a_a1_timestamp AS cs_timestamp#65, 'a.a_a1_ipv4 AS cs_ipv4#66, 'a.a_a1_servicename AS cs_servicename#67, 'a.anno_a2_timestamp AS cr_timestamp#68, 'a.a_a2_ipv4 AS cr_ipv4#69, 'a.a_a2_servicename AS cr_servicename#70, 'b.a_a1_timestamp AS sr_timestamp#71, 'b.a_a1_ipv4 AS sr_ipv4#72, 'b.a_a1_servicename AS sr_servicename#73, 'b.a_a2_timestamp AS ss_timestamp#74, 'b.a_a2_ipv4 AS ss_ipv4#75, 'b.a_a2_servicename AS ss_servicename#76, 'a.bnno_node_id AS c_node_id#77, 'b.bnno_node_id AS s_node_id#78, 'a.bnno_httpurl AS req_api#79, 'a.test_trace_id, 'a.test_case_id, 'a.bnno_status_code AS status_code#80]
+    +- 'Filter ((((span_id#30 = span_id#102) && (parent_id#28 = parent_id#100)) && (('a.anno_a1_value = cs) && NOT (parent_id#28 = ))) || (((span_id#30 = span_id#102) && (parent_id#28 = parent_id#100)) && (('a.anno_a1_value = sr) && (parent_id#28 = ))))
+       +- Join Inner
+          :- SubqueryAlias a
+          :  +- SubqueryAlias original_span_table
+          :     +- LogicalRDD [a_a1_ipv4#9, a_a1_port#10, a_a1_servicename#11, a_a1_timestamp#12, a_a1_value#13, a_a2_ipv4#14, a_a2_port#15, a_a2_servicename#16, a_a2_timestamp#17, a_a2_value#18, bnno_http_method#19, bnno_httpurl#20, bnno_node_id#21, bnno_request_size#22, bnno_response_flags#23, bnno_response_size#24, bnno_status_code#25, bnno_upstream_cluster#26, bnno_xrequest_id#27, parent_id#28, span_duration#29, span_id#30, span_name#31, span_timestamp#32, test_case_id#33, test_trace_id#34, trace_id#35]
+          +- SubqueryAlias b
+             +- SubqueryAlias original_span_table
+                +- LogicalRDD [a_a1_ipv4#81, a_a1_port#82, a_a1_servicename#83, a_a1_timestamp#84, a_a1_value#85, a_a2_ipv4#86, a_a2_port#87, a_a2_servicename#88, a_a2_timestamp#89, a_a2_value#90, bnno_http_method#91, bnno_httpurl#92, bnno_node_id#93, bnno_request_size#94, bnno_response_flags#95, bnno_response_size#96, bnno_status_code#97, bnno_upstream_cluster#98, bnno_xrequest_id#99, parent_id#100, span_duration#101, span_id#102, span_name#103, span_timestamp#104, test_case_id#105, test_trace_id#106, trace_id#107]
+
+root
+ |-- trace_id: string (nullable = true)
+ |-- span_name: string (nullable = true)
+ |-- span_id: string (nullable = true)
+ |-- parent_id: string (nullable = true)
+ |-- span_timestamp: string (nullable = true)
+
+ |-- span_duration: string (nullable = true)
+
+ |-- cs_timestamp: string (nullable = true)
+ |-- cs_ipv4: string (nullable = true)
+ |-- cs_servicename: string (nullable = true)
+
+ |-- cr_timestamp: string (nullable = true)
+ |-- cr_ipv4: string (nullable = true)
+ |-- cr_servicename: string (nullable = true)
+
+ |-- sr_timestamp: string (nullable = true)
+ |-- sr_ipv4: string (nullable = true)
+ |-- sr_servicename: string (nullable = true)
+
+ |-- ss_timestamp: string (nullable = true)
+ |-- ss_ipv4: string (nullable = true)
+ |-- ss_servicename: string (nullable = true)
+
+ |-- c_node_id: string (nullable = true)
+ |-- s_node_id: string (nullable = true)
+
+ |-- req_api: string (nullable = true)
+
+ |-- test_trace_id: string (nullable = true)
+ |-- test_case_id: string (nullable = true)
+ |-- status_code: string (nullable = true)
+
+
+ 运行Spark的时候把数据分成了很多份（partition），每个partition都把自己的数据保存成partxxx文件形式。
+ data.coalesce(1,true).saveAsTextFile()
+ 也或者
+ data.repartition(1).saveAsTextFile( )
+
+ // 把一个目录下的多个partion 合并到一个文件
+ hadoop fs -getmerge /hdfs/output   /local/file.txt
+
+
+   Dataset<Row> df = spark.read().option("header", "true").option("inferSchema", true).csv("hdfs://10.141.211.173:8020/user/admin/traces_anno.csv");
+         df.printSchema();
+         System.out.println("--------------spark sql --------------");
+         df.createOrReplaceTempView("trace_anno");
+
+ // 保存出parquet
+ Dataset<Row> usersDF = spark.read().load("examples/src/main/resources/users.parquet");
+ usersDF.select("name", "favorite_color").write().save("namesAndFavColors.parquet");
+
+ Dataset<Row> sqlDF =  spark.sql("SELECT * FROM parquet.`examples/src/main/resources/users.parquet`");
+
+ Dataset<Row> peopleDFCsv = spark.read().format("csv")
+   .option("sep", ";")
+   .option("inferSchema", "true")
+   .option("header", "true")
+   .load("examples/src/main/resources/people.csv");
+
+ Dataset<Row> peopleDF = spark.read().format("json").load("examples/src/main/resources/people.json");
+ peopleDF.select("name", "age").write().format("parquet").save("namesAndAges.parquet");
+
+
+
+
+ //  RDD  ->  dataset
+ //        Dataset<Row> traceDF = spark.createDataFrame(traceRdd, TraceAnnotation.class);
+ //        traceDF.createOrReplaceTempView("trace_anno");
+ //        //select 0, trace_id, 0, span_duration , anno_cs_servicename,span_name, 0, anno_sr_timestamp -anno_cs_timestamp, 0, res_status_code,res_status_desc,res_exception, 0, anno_ss_timestamp - anno_cr_timestamp, 0 from trace_anno");
+ //
+ //        Dataset<Row> tempTraceAnno = spark.sql("select span_id invocation_id, trace_id, 0 session_id, anno_sr_timestamp - anno_cs_timestamp  req_duration, anno_cs_servicename req_service,span_name req_api, 0 req_param, span_duration exec_duration, 0 exec_logs, status_code res_status_code,res_status_desc,res_exception, 0 res_body,anno_cr_timestamp - anno_ss_timestamp res_duration, 0  is_error FROM trace_anno");
+ //        tempTraceAnno.show();
+ //        tempTraceAnno.where(col("status") ).show();
+
+
+ //        JavaPairRDD<String, Integer> mapToPair = multipleNumberRDD.mapToPair(
+ //                new PairFunction<TraceAnnotation, String, Integer>() {
+ //                    @Override
+ //                    public Tuple2<String, Integer> call(TraceAnnotation traceAnnotation) throws Exception {
+ //                        return new Tuple2<String, Integer>(traceAnnotation);
+ //                    }
+ //                });
+
+
+
+
+         //  where trace_id == trace_id && span_name == span_name
+         System.out.println("------------------  sql contact");
+         Dataset<Row> tempTraceAn =
+                 spark.sql(
+                         "SELECT  trace_id, span_name,concat_ws(':', collect_set(span_id)) as span_id ,concat_ws(':', collect_set(parent_id)) as parent_id , concat_ws(':', collect_set(span_timestamp)) as span_timestamp , concat_ws(':', collect_set(span_duration)) as span_duration , concat_ws(':', collect_set(anno_cs_timestamp)) as anno_cs_timestamp , concat_ws(':', collect_set(anno_cs)) as anno_cs , concat_ws(':', collect_set(anno_cs_servicename)) as anno_cs_servicename , concat_ws(':', collect_set(anno_cs_ip)) as anno_cs_ip , concat_ws(':', collect_set(anno_cs_port)) as anno_cs_port , concat_ws(':', collect_set(anno_cr_timestamp)) as anno_cr_timestamp , concat_ws(':', collect_set(anno_cr)) as anno_cr ,concat_ws(':', collect_set(anno_cr_servicename)) as anno_cr_servicename , concat_ws(':', collect_set(anno_cr_ip)) as anno_cr_ip , concat_ws(':', collect_set(anno_cr_port)) as anno_cr_port , concat_ws(':', collect_set(anno_sr_timestamp)) as anno_sr_timestamp ,concat_ws(':', collect_set(anno_sr)) as anno_sr , concat_ws(':', collect_set(anno_sr_servicename)) as anno_sr_servicename , concat_ws(':', collect_set(anno_sr_ip)) as anno_sr_ip ,concat_ws(':', collect_set(anno_sr_port)) as anno_sr_port , concat_ws(':', collect_set(anno_ss_timestamp)) as anno_ss_timestamp , concat_ws(':', collect_set(anno_ss)) as anno_ss , concat_ws(':', collect_set(anno_ss_servicename)) as anno_ss_servicename , concat_ws(':', collect_set(anno_ss_ip)) as anno_ss_ip , concat_ws(':', collect_set(anno_ss_port)) as anno_ss_port , concat_ws(':', collect_set(status_code)) as status_code , concat_ws(':', collect_set(res_status_desc)) as res_status_desc , concat_ws(':', collect_set(res_exception)) as res_exception , concat_ws(':', collect_set(is_error)) as is_error FROM trace_ann GROUP BY  trace_id, span_name having count(*) == 2");
+         tempTraceAn.show();
+         System.out.println("------------------  show sql contact");
+
+
+
