@@ -115,32 +115,35 @@ public class RestCollectServiceImpl implements RestCollectService {
             LinkedHashMap<String, String> podData = new LinkedHashMap<>();
 
             // get service name
-            String serviceName = podItem.get("podId").toString();
-            if (serviceName.contains("mongo")) {
-                serviceName = (podItem.get("podId").toString().split("mongo")[0] + "mongo").replaceAll("-", "_");
-            }
-            else if (serviceName.contains("dashboard")) {
-                serviceName = (podItem.get("podId").toString().split("dashboard")[0] + "dashboard" ).replaceAll("-", "_");
-            }
-            else if (serviceName.contains("mysql")) {
-                serviceName = (podItem.get("podId").toString().split("mysql")[0] + "mysql" ).replaceAll("-", "_");
-            }
-            else if (serviceName.contains("service")){
-                serviceName = (podItem.get("podId").toString().split("service")[0] + "service").replaceAll("-", "_");
-            }
+//            String serviceName = podItem.get("podId").toString();
+//            if (serviceName.contains("mongo")) {
+//                serviceName = (podItem.get("podId").toString().split("mongo")[0] + "mongo").replaceAll("-", "_");
+//            }
+//            else if (serviceName.contains("dashboard")) {
+//                serviceName = (podItem.get("podId").toString().split("dashboard")[0] + "dashboard" ).replaceAll("-", "_");
+//            }
+//            else if (serviceName.contains("mysql")) {
+//                serviceName = (podItem.get("podId").toString().split("mysql")[0] + "mysql" ).replaceAll("-", "_");
+//            }
+//            else if (serviceName.contains("service")){
+//                serviceName = (podItem.get("podId").toString().split("service")[0] + "service").replaceAll("-", "_");
+//            }
+
+            String serviceId = podItem.get("serviceId").toString();
 
             // add the pod data
-            podData.put(serviceName + "_inst_id", podItem.get("podId").toString());
-            podData.put(serviceName + "_inst_node_id", podItem.get("nodeId").toString());
-            podData.put(serviceName + "_inst_service_version", podItem.get("serviceVersion").toString());
+            podData.put(serviceId + "_inst_id", podItem.get("podId").toString());
+            podData.put(serviceId + "_inst_node_id", podItem.get("nodeId").toString());
+            podData.put(serviceId + "_inst_service_version", podItem.get("serviceVersion").toString());
+            podData.put(serviceId + "_inst_service_id", serviceId);
 
             Map<String, String> podUsage = (Map<String, String>) podItem.get("usage");
             if (MapUtils.isNotEmpty(podUsage)) {
-                podData.put(serviceName + "_inst_cpu", null == podUsage.get("cpu") ? "" : podUsage.get("cpu"));
-                podData.put(serviceName + "_inst_memory", null == podUsage.get("memory") ? "" : podUsage.get("memory"));
+                podData.put(serviceId + "_inst_cpu", null == podUsage.get("cpu") ? "" : podUsage.get("cpu"));
+                podData.put(serviceId + "_inst_memory", null == podUsage.get("memory") ? "" : podUsage.get("memory"));
             } else {
-                podData.put(serviceName + "_inst_cpu", "");
-                podData.put(serviceName + "_inst_memory", "");
+                podData.put(serviceId + "_inst_cpu", "");
+                podData.put(serviceId + "_inst_memory", "");
             }
 
             // add the node data
@@ -149,27 +152,27 @@ public class RestCollectServiceImpl implements RestCollectService {
                     Map<String, String> nodeUsage = (Map<String, String>) nodeItem.get("usage");
                     Map<String, String> nodeConfig = (Map<String, String>) nodeItem.get("usage");
                     if (MapUtils.isNotEmpty(nodeUsage)) {
-                        podData.put(serviceName + "_inst_node_cpu", null == nodeUsage.get("cpu") ? "" : nodeUsage.get("cpu"));
-                        podData.put(serviceName + "_inst_node_memory", null == nodeUsage.get("memory") ? "" : nodeUsage.get("memory"));
+                        podData.put(serviceId + "_inst_node_cpu", null == nodeUsage.get("cpu") ? "" : nodeUsage.get("cpu"));
+                        podData.put(serviceId + "_inst_node_memory", null == nodeUsage.get("memory") ? "" : nodeUsage.get("memory"));
                     } else {
-                        podData.put(serviceName + "_inst_node_cpu", "");
-                        podData.put(serviceName + "_inst_node_memory", "");
+                        podData.put(serviceId + "_inst_node_cpu", "");
+                        podData.put(serviceId + "_inst_node_memory", "");
                     }
 
                     if (MapUtils.isNotEmpty(nodeConfig)) {
-                        podData.put(serviceName + "_inst_node_cpu_limit", null == nodeConfig.get("cpu") ? "" : nodeConfig.get("cpu"));
-                        podData.put(serviceName + "_inst_node_memory_limit", null == nodeConfig.get("memory") ? "" : nodeConfig.get("memory"));
+                        podData.put(serviceId + "_inst_node_cpu_limit", null == nodeConfig.get("cpu") ? "" : nodeConfig.get("cpu"));
+                        podData.put(serviceId + "_inst_node_memory_limit", null == nodeConfig.get("memory") ? "" : nodeConfig.get("memory"));
                     } else {
-                        podData.put(serviceName + "_inst_node_cpu_limit", "");
-                        podData.put(serviceName + "_inst_node_memory_limit", "");
+                        podData.put(serviceId + "_inst_node_cpu_limit", "");
+                        podData.put(serviceId + "_inst_node_memory_limit", "");
                     }
 
                     break;
                 }
             }
 
-            podData.put(serviceName + "_inst_collect_" + START_TIME, requestTime + "");
-            podData.put(serviceName + "_inst_collect_" + END_TIME, responseTime + "");
+            podData.put(serviceId + "_inst_collect_" + START_TIME, requestTime + "");
+            podData.put(serviceId + "_inst_collect_" + END_TIME, responseTime + "");
             serviceInstanceData.add(podData);
         }
     }
