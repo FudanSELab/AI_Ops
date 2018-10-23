@@ -3,13 +3,13 @@ package hello.hello;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 
 @RestController
+@RequestMapping("/rest1")
 public class HelloController {
 
     private static final Logger log = LoggerFactory.getLogger(Rest1Application.class);
@@ -19,9 +19,16 @@ public class HelloController {
     @Autowired
     private AsyncRestTemplate asyncRestTemplate;
 
-    @RequestMapping("/hello1")
-    public Value hello1(@RequestParam(value = "cal", defaultValue = "50") String cal) {
-
+    @RequestMapping("/test1")
+    public String getTest1(@RequestHeader HttpHeaders headers){
+        log.info(headers.toString());
+        return "===" + headers.toString();
+    }
+    @RequestMapping(value = "/hello1" )
+    public Value hello1(@RequestParam(value = "cal", defaultValue = "50") String cal,@RequestHeader HttpHeaders headers ) {
+        System.out.println("================ print header  ==============");
+        log.info(headers.toString());
+        System.out.println("================ print header end ==============");
         double cal2 = Math.log10(Double.valueOf(cal)) * 50;
         log.info(String.valueOf(cal2));
 
@@ -29,7 +36,7 @@ public class HelloController {
         Value value = new Value();
 
 
-        String str = restTemplate.getForObject("http://rest-service-end:16006/test?cal=" + cal2, String.class);
+        String str = restTemplate.getForObject("http://rest-service-end:16006/rest2/test?cal=" + cal2, String.class);
         System.out.println(str);
 
 //		ListenableFuture<ResponseEntity<String>> future = asyncRestTemplate

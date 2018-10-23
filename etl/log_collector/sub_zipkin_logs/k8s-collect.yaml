@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rest-service-collect
+  labels:
+    app: rest-service-collect
+spec:
+  type: NodePort
+  ports:
+    - port: 16411
+  selector:
+    app: rest-service-collect
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: rest-service-collect
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: rest-service-collect
+        version: v1
+    spec:
+      containers:
+      - name: rest-service-collect
+        image: liuzozo/rest-service-collect9411aws9092
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 16411
+        volumeMounts:
+        - name: collect
+          subPath: collectzipkin
+          mountPath: /home/parquet
+      volumes:
+      - name: collect
+        hostPath:
+          path: /home/parquet

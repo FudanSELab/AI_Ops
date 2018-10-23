@@ -7,12 +7,15 @@ import org.apache.parquet.column.ParquetProperties;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.example.data.GroupFactory;
 import org.apache.parquet.example.data.simple.SimpleGroupFactory;
+import org.apache.parquet.format.converter.ParquetMetadataConverter;
+import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.hadoop.ParquetFileWriter;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.example.ExampleParquetWriter;
 import org.apache.parquet.hadoop.example.GroupReadSupport;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
+import org.apache.parquet.hadoop.metadata.ParquetMetadata;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
 
@@ -25,15 +28,26 @@ public class ParquetUtil {
         ParquetReader.Builder<Group> reader= ParquetReader.builder(readSupport, new Path(inPath));
         ParquetReader<Group> build = reader.build();
         Group line=null;
+
         while((line=build.read())!=null){
 //            Group time = line.getGroup("traceId", 0);
             System.out.println("==================   begin parquet ======= ==== ");
+
             System.out.println(line.getString("id", 0) + "\t" +
                     line.getString("name", 0) + "\t" +
-                    line.getLong("timestamp", 0) + "\t"+
+                    line.getLong("timestamp", 0) + "\n"+
+
                      line.getGroup("annotation", 0));
 
+            Group annotation0  = line.getGroup("annotation", 0);
 
+
+            System.out.println( "---eeeee----");
+            System.out.println(annotation0.getLong("timestamp",0) + "-------");
+            System.out.println(annotation0.getString("value",0) + "-------");
+            System.out.println(annotation0.getString("endpoint_serviceName",0) + "-------");
+            System.out.println(annotation0.getString("endpoint_ipv4",0) + "-------");
+            System.out.println(annotation0.getInteger("endpoint_port",0) + "-------");
         }
         System.out.println("==================   end  parquet ======= ==== ");
         System.out.println("读取结束");

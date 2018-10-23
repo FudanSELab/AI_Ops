@@ -3,6 +3,7 @@ package testcase;
 import com.Ostermiller.util.Browser;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.Select;
@@ -55,15 +56,18 @@ public class TestFlowFour {
 //        System.setProperty("webdriver.chrome.driver", "D:/Program/chromedriver_win32/chromedriver.exe");
 //        driver = new ChromeDriver();
 
-          driver = new RemoteWebDriver(new URL("http://hub:4444/wd/hub"),
-                DesiredCapabilities.chrome());
+//          driver = new RemoteWebDriver(new URL("http://hub:4444/wd/hub"),
+//                DesiredCapabilities.chrome());
+//          baseUrl = "http://10.141.211.161:31380";
 
+        System.setProperty("webdriver.chrome.driver", "G:\\dailywork\\chromedriver.exe");
+
+        ChromeOptions co = new ChromeOptions();
+        co.addArguments("downstream_cluster","weeeeeeeee");
+        co.addArguments("downstream_cluster23323","weeeeeeeee");
+        driver = new ChromeDriver(co);
 
         baseUrl = "http://10.141.211.161:31380";
-
-//        System.setProperty("webdriver.chrome.driver", "G:\\dailywork\\chromedriver.exe");
-//        driver = new ChromeDriver();
-//        baseUrl = "http://10.141.211.161:31380";
 
         driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
     }

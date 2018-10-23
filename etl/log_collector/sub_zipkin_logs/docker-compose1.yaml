@@ -1,0 +1,141 @@
+version: '3'
+services:
+#  kafka:
+#    container_name: kafka
+#    image: spotify/kafka:latest
+#    ports:
+#     - 2181:2181
+#     - 9092:9092
+#    networks:
+#      - my-network
+#
+#  zipkin:
+#    image: openzipkin/zipkin
+#    ports:
+#      - 9411:9411
+#    deploy:
+#      replicas: 1
+#      restart_policy:
+#        condition: on-failure
+#    networks:
+#      - my-network
+#
+#  rest-service-collect:
+#    build: rest-service-collect
+#    image: liuzozo/rest-service-collect
+#    # image: 10.141.212.25:5555/my-rest-service-collector
+#    restart: always
+#    ports:
+#      - 9413:9413
+#    volumes:
+#      - /home/parquet:/parquet
+#    deploy:
+#      replicas: 1
+#      restart_policy:
+#        condition: on-failure
+#    networks:
+#      - my-network
+#
+#  rest-service-1:
+#    build: rest-service-1
+#    image: liuzozo/rest-service-1
+#    # image: 10.141.212.25:5555/my-rest-service-1
+#    restart: always
+#    ports:
+#      - 16005:16005
+#    deploy:
+#      replicas: 3
+#      restart_policy:
+#        condition: on-failure
+#    networks:
+#      - my-network
+#
+#
+#  rest-service-2:
+#    build: rest-service-2
+#    image: liuzozo/rest-service-2
+#    # image: 10.141.212.25:5555/my-rest-service-1
+#    restart: always
+#    ports:
+#      - 16007:16007
+#    deploy:
+#      replicas: 3
+#      restart_policy:
+#        condition: on-failure
+#    networks:
+#      - my-network
+#
+#  rest-service-end:
+#    build: rest-service-end
+#    image: liuzozo/rest-service-end
+#    # image: 10.141.212.25:5555/my-rest-service-end
+#    restart: always
+#    ports:
+#      - 16006:16006
+#    deploy:
+#      replicas: 3
+#      restart_policy:
+#        condition: on-failure
+#    networks:
+#      - my-network
+
+#  rest-service-geninvocation:
+#    build: rest-service-geninvocation
+#    image: liuzozo/rest-service-geninvocation
+#    # image: 10.141.212.25:5555/my-rest-service-end
+#    restart: always
+#    ports:
+#      - 16007:16007
+#    volumes:
+#      - /home/parquet:/parquet
+#    deploy:
+#      replicas: 1
+#      restart_policy:
+#        condition: on-failure
+#    networks:
+#      - my-network
+
+  rest-test-trainticket:
+    build: rest-test-trainticket
+    image: liuzozo/rest-test-trainticket
+    # image: 10.141.212.25:5555/my-rest-service-end
+    restart: always
+    ports:
+      - 16009:16009
+    volumes:
+      - /home/parquet:/parquet
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - my-network
+
+  rabbitmq:
+    image: rabbitmq:management
+    ports:
+    - 5672:5672
+    - 15672:15672
+    networks:
+    - my-network
+  chrome:
+      image: selenium/node-chrome:3.11.0-californium
+      volumes:
+        - /dev/shm:/dev/shm
+      depends_on:
+        - hub
+      environment:
+        HUB_HOST: hub
+      networks:
+        - my-network
+
+  hub:
+    image: selenium/hub:3.11.0-californium
+    ports:
+      - 4444:4444
+    networks:
+      - my-network
+networks:
+  my-network:
+    # driver: overlay
+    driver: bridge

@@ -11,7 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.io.*;
 
-@SpringBootApplication
+
 public class TestCSV2 {
 
     private static final Logger log = LoggerFactory.getLogger(Application.class);
@@ -64,7 +64,5 @@ public class TestCSV2 {
 
         System.out.println("==========================");
     }
-//    public static void main(String [] args) throws IOException {
-//        test();
-//    }
+
 }

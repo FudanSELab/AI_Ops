@@ -1,6 +1,6 @@
 spring:
   application:
-    name: rest-service-1
+    name: rest-service-2
 
   zipkin:
 #    baseUrl: http://zipkin:9411/
@@ -10,4 +10,4 @@ spring:
       percentage: 1.0
 
 server:
-  port: 16005
+  port: 16007

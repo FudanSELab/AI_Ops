@@ -1,5 +1,6 @@
 package hello;
 
+
 import com.google.gson.Gson;
 import hello.bean.NewAnno;
 import hello.bean.NewCsvFilePrinter;
@@ -8,47 +9,55 @@ import hello.domain.Annotation;
 import hello.domain.NewAnnoation;
 import hello.domain.Trace;
 import hello.storage.CsvFilePrinter;
-import hello.storage.ParquetUtil;
-import hello.util.RemoteExecuteCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.config.KafkaListenerContainerFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 
-@Component
-public class KafkaConsumer {
+@SpringBootApplication
+public class TestNewCSV {
 
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
-    /**
-     * reader
-     */
-//    @KafkaListener(topics = {"app_log"} , containerFactory = "batchFactory")
-    @KafkaListener(topics = {"app_log"})
-    public void consumer(String message) throws IOException {
-        System.out.println("[===] KafkaConsumer - consumer");
+
+    public static void readToBuffer(StringBuffer buffer, String filePath) throws IOException {
+        InputStream is = new FileInputStream(filePath);
+        String line; // 用来保存每行读取的内容
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        line = reader.readLine(); // 读取第一行
+        while (line != null) { // 如果 line 为空说明读完了
+            buffer.append(line); // 将读到的内容添加到 buffer 中
+            buffer.append("\n"); // 添加换行符
+            line = reader.readLine(); // 读取下一行
+        }
+        reader.close();
+        is.close();
+    }
+
+    public static void test() throws IOException {
         System.out.println("==========KafkaConsumer - consumer============");
 
+        StringBuffer sb = new StringBuffer();
+        String filePath = "C:\\Users\\Thinkpad\\Desktop\\json\\newspan.json";
+        readToBuffer(sb, filePath);
+
         Gson gson = new Gson();
-        NewTrace[] traces = gson.fromJson(message, NewTrace[].class);
+        NewTrace[] traces = gson.fromJson(sb.toString(), NewTrace[].class);
 
-        String spanCsvFile = "/parquet/new_span_trace.csv";
-
+        String spanCsvFile = "C:\\Users\\Thinkpad\\Desktop\\json\\span_csv.csv";
         NewCsvFilePrinter annoPrint = new NewCsvFilePrinter(spanCsvFile, true, true);
 
-        // 遍历收集到的span, 过滤isito的
+
         for (int i = 0; i < traces.length; i++) {
-            if ("Report".equals(traces[i].getName())) {
+            if("Report".equals(traces[i].getName())){
                 continue;
             }
-            if ("rest-service-collect".equals(traces[i].getAnnotations()[0].getEndpoint().getServiceName())) {
+            if("rest-service-collect".equals(traces[i].getAnnotations()[0].getEndpoint().getServiceName())){
                 continue;
             }
+
             NewAnno[] newAnnoations = new NewAnno[2];
             newAnnoations[0] = new NewAnno();
             newAnnoations[1] = new NewAnno();
@@ -58,8 +67,6 @@ public class KafkaConsumer {
                 newAnnoations[j] = traces[i].getAnnotations()[j];
             }
 
-            //  sidecar~10.244.4.70~ts-config-service-646c4b8dc5-z6cv2.default~default.svc.cluster.local
-            //
             //写入  csv
             annoPrint.write(new String[]{
                     traces[i].getTraceId(),
@@ -72,26 +79,20 @@ public class KafkaConsumer {
                     "" + newAnnoations[0].getTimestamp(),
                     newAnnoations[0].getValue(),
                     newAnnoations[0].getEndpoint().getIpv4(),
-                    newAnnoations[0].getEndpoint().getPort() + "",
+                    newAnnoations[0].getEndpoint().getPort()+"",
                     newAnnoations[0].getEndpoint().getServiceName(),
 
                     "" + newAnnoations[1].getTimestamp(),
                     newAnnoations[1].getValue(),
                     newAnnoations[1].getEndpoint().getIpv4(),
-                    newAnnoations[1].getEndpoint().getPort() + "",
+                    newAnnoations[1].getEndpoint().getPort()+"",
                     newAnnoations[1].getEndpoint().getServiceName(),
 
-                    traces[i].getBinaryAnnotations()[0].getValue(),
                     traces[i].getBinaryAnnotations()[1].getValue(),
                     traces[i].getBinaryAnnotations()[2].getValue(),
                     traces[i].getBinaryAnnotations()[3].getValue(),
                     traces[i].getBinaryAnnotations()[4].getValue(),
-                    traces[i].getBinaryAnnotations()[5].getValue(),
-                    //traces[i].getBinaryAnnotations()[6].getValue(), // user_agent
-                    "test_trace_id" + i,
-                    "test_case_id" + i,
-
-                    traces[i].getBinaryAnnotations()[7].getValue(),
+                    traces[i].getBinaryAnnotations()[6].getValue(),
                     traces[i].getBinaryAnnotations()[8].getValue(),
                     traces[i].getBinaryAnnotations()[9].getValue(),
                     traces[i].getBinaryAnnotations()[10].getValue(),
@@ -106,7 +107,7 @@ public class KafkaConsumer {
         System.out.println("==========================");
     }
 
-    public void genInvocationCSV() {
-        System.out.println("======== generate invocation =======");
-    }
+//    public static void main(String[] args) throws IOException {
+//        test();
+//    }
 }

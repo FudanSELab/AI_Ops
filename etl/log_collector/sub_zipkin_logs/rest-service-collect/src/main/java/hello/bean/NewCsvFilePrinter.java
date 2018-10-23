@@ -26,12 +26,16 @@ public class NewCsvFilePrinter {
 
     public void init(boolean annotationOrNot) throws IOException {
         if (annotationOrNot)
-            write(new String[]{"trace_id", "span_name", "span_id", "parent_id", "span_timestamp", "span_duration",
+            write(new String[]{
+                    "trace_id", "span_name", "span_id", "parent_id", "span_timestamp", "span_duration",
                     "anno_a1_timestamp", "anno_a1_value", "anno_a1_ipv4", "anno_a1_port", "anno_a1_servicename",
                     "anno_a2_timestamp", "anno_a2_value", "anno_a2_ipv4", "anno_a2_port", "anno_a2_servicename",
-                    "bnno_node_id", "bnno_xrequist_id", "bnno_httpurl", "bnno_http_method", "bnno_user_agent",
-                    "bnno_request_size", "bnno_upstream_cluster",
-                    "bnno_status_code", "bnno_response_size", "bnno_response_flags" , "bnno_is_error"
+                    "bnno_component", "bnno_node_id", "bnno_xrequist_id", "bnno_httpurl",
+                    "bnno_http_method", "bnno_downstream_cluster",
+                    "test_trace_id", "test_case_id",
+                    "bnno_http_protocol",
+                    "bnno_request_size", "bnno_upstream_cluster", "bnno_status_code",
+                    "bnno_response_size", "bnno_response_flags"
             });
         else
             write(new String[]{"spanId", "bin_key", "bin_value", "bin_serviceName", "bin_ipv4", "bin_port"});

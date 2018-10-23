@@ -1,6 +1,5 @@
 package hello;
 
-import hello.services.RestCollectService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,70 +9,53 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 
-@RestController("/")
+@RestController
 public class HelloController {
 
-	private static final Logger log = LoggerFactory.getLogger(Application.class);
-	@Autowired
-	private RestTemplate restTemplate;
+    private static final Logger log = LoggerFactory.getLogger(Application.class);
+    @Autowired
+    private RestTemplate restTemplate;
 
-	@Autowired
-	private AsyncRestTemplate asyncRestTemplate;
-
-
-	@Autowired
-	private KafkaTemplate kafkaTemplate;
-
-	@Autowired
-    private RestCollectService restCollectService;
-
-	@RequestMapping(value = "api/v1/spans", method ={RequestMethod.POST,RequestMethod.GET})
-	public String handle_collect(@RequestBody String info) {
-		System.out.println("[===] HelloController - handle_collect");
-		System.out.println("==========HelloController - handle_collect============");
-		System.out.println(info);
-
-		System.out.println("==========================");
-
-		ListenableFuture future = kafkaTemplate.send("app_log", info);
-		future.addCallback(o -> System.out.println("send-success: " + "--"),
-				throwable -> System.out.println("failed: " + "--"));
-
-		return "---------post------------";
-	}
+    @Autowired
+    private AsyncRestTemplate asyncRestTemplate;
 
 
-	@RequestMapping(value = {"api/**", "**/spans"}, method ={RequestMethod.POST,RequestMethod.GET})
-	public String handle_collect_2(@RequestBody String info) {
-		System.out.println("[===] HelloController - handle_collect_2");
-		System.out.println("==========HelloController - handle_collect_2============");
-		System.out.println(info);
-		System.out.println("==========================");
-		return "---------post span any------------";
-		
-	}
+    @Autowired
+    private KafkaTemplate kafkaTemplate;
+
+    @RequestMapping(value = "api/v1/spans", method = {RequestMethod.POST, RequestMethod.GET})
+    public String handle_collect(@RequestBody String info) {
+        System.out.println("[===] HelloController - handle_collect");
+        System.out.println("==========HelloController - handle_collect============");
+        System.out.println(info);
+
+        System.out.println("==========================");
+
+        ListenableFuture future = kafkaTemplate.send("app_log", info);
+        future.addCallback(o -> System.out.println("send-success: " + "--"),
+                throwable -> System.out.println("failed: " + "--"));
+
+        return "---------post------------";
+    }
 
 
+    @RequestMapping(value = {"api/**", "**/spans"}, method = {RequestMethod.POST, RequestMethod.GET})
+    public String handle_collect_2(@RequestBody String info) {
+        System.out.println("[===] HelloController - handle_collect_2");
+        System.out.println("==========HelloController - handle_collect_2============");
+        System.out.println(info);
+        System.out.println("==========================");
+        return "---------post span any------------";
 
-	@RequestMapping(value = "**", method ={RequestMethod.POST,RequestMethod.GET})
-	public String handle_collect_any(@RequestBody String info) {
-		System.out.println("[===] HelloController - handle_collect_any");
-		System.out.println("==========HelloController - handle_collect_any============");
-		System.out.println(info);
-		System.out.println("==========================");
-		return "---------post any------------";
-		
-	}
+    }
 
-	@GetMapping("/getResourceData")
-	public void getResourceData() {
-		// get cpu and memory
-		System.out.println("-=========================================---------------");
-		restCollectService.getResourceData();
-	}
 
-	@GetMapping("/stopCollectData")
-	public String stopCollectResourceData() {
-		return restCollectService.stopCollectResourceData();
-	}
+    @RequestMapping(value = "**", method = {RequestMethod.POST, RequestMethod.GET})
+    public String handle_collect_any(@RequestBody String info) {
+        System.out.println("[===] HelloController - handle_collect_any");
+        System.out.println("==========HelloController - handle_collect_any============");
+        System.out.println(info);
+        System.out.println("==========================");
+        return "---------post any------------";
+    }
 }

@@ -1,33 +1,8 @@
 spring:
   application:
     name: rest-service-collect
-
-  rabbitmq:
-    host: rabbitmq
-    listener:
-      retry:
-        enabled: false
-        max-attempts: 1
-    template:
-      retry:
-        enabled: false
-        max-attempts: 1
-  cloud:
-    stream:
-      bindings:
-        output:
-          # group: ts-return-cancel
-          destination: rest-service-collect-exchange
-          contentType: text/plain
-          binder: rabbit
-        input:
-          group: rest-service-collect
-          destination: rest-service-collect-exchange
-          contentType: text/plain
-          binder: rabbit
-
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: awslbdnsname:9092
     producer:
       retries: 0
       batch-size: 16384
@@ -41,6 +16,5 @@ spring:
       auto-commit-interval: 100
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
-
 server:
-  port: 9413
+  port: 9411

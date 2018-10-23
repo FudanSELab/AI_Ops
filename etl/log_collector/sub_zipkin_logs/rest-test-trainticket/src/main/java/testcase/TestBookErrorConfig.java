@@ -95,7 +95,7 @@ public class TestBookErrorConfig {
         else
             System.out.println("Failed to Login! Status:"+statusLogin);
         Assert.assertEquals(statusLogin.startsWith("Success"),true);
-        TestResponse response = testResult(scenario_desc, entry_service, entry_api);
+      //  TestResponse response = testResult(scenario_desc, entry_service, entry_api);
     }
 
     @Test (dependsOnMethods = {"testLogin"})

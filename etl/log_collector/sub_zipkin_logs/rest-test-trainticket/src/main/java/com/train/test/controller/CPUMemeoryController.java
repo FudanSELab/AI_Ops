@@ -19,4 +19,10 @@ public class CPUMemeoryController {
         restCollectService.getResourceData();
         return "[GET CPU AND MEMORY]";
     }
+
+    @GetMapping("/stopCollectData")
+    public String stopCollectResourceData() {
+        return restCollectService.stopCollectResourceData();
+    }
+
 }

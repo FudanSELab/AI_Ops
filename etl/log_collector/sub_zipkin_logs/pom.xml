@@ -10,13 +10,8 @@
     <version>1.0-0</version>
 
     <modules>
-        <module>rest-service-1</module>
-        <module>rest-service-end</module>
-        <module>rest-service-collect</module>
-        <!--<module>rest-service-geninvocation</module>-->
-        <!--<module>rest-service-hivespark</module>-->
-		<module>rest-test-trainticket</module>
-        <module>apiserver</module>
+        <!--<module>rest-service-collect</module>-->
+        <module>rest-test-trainticket</module>
     </modules>
 
 
@@ -34,17 +29,37 @@
 
     <dependencies>
 
+        <!-- <dependency>
+          <groupId>org.springframework.cloud</groupId>
+          <artifactId>spring-cloud-sleuth-zipkin</artifactId>
+          <version>1.2.2.BUILD-SNAPSHOT</version>
+          <scope>system</scope>
+          <systemPath>${project.basedir}/../dependencies/spring-cloud-sleuth-zipkin-1.2.2.BUILD-SNAPSHOT.jar</systemPath>
+      </dependency>  -->
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-sleuth-core</artifactId>
+            <version>1.2.2.BUILD-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-sleuth-zipkin</artifactId>
+            <version>1.2.2.BUILD-SNAPSHOT</version>
+        </dependency>
+
+
         <dependency>
             <groupId>myproject.microservices</groupId>
             <artifactId>micro-service-monitoring-core</artifactId>
             <version>1.2.2.BUILD-SNAPSHOT</version>
         </dependency>
+
         <dependency>
             <groupId>myproject.microservices</groupId>
             <artifactId>micro-service-monitoring-zipkin</artifactId>
             <version>1.2.2.BUILD-SNAPSHOT</version>
         </dependency>
-
 
 
         <dependency>
@@ -66,10 +81,6 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
-        </dependency>
 
     </dependencies>
 

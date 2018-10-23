@@ -1,0 +1,33 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: rest-service-1
+spec:
+  host: rest-service-1  # service name in the service registry or ServiceEntries
+  subsets:
+  - name: v1
+    labels:
+      version:  v1
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: rest-service-collect
+spec:
+  host: rest-service-collect  # service name in the service registry or ServiceEntries
+  subsets:
+  - name: v1
+    labels:
+      version:  v1
+
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: rest-service-end
+spec:
+  host: rest-service-end  # service name in the service registry or ServiceEntries
+  subsets:
+  - name: v1
+    labels:
+      version:  v1

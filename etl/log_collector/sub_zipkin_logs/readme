@@ -1,0 +1,12 @@
+kubectl create -f <(istioctl kube-inject -f k8s-services.yaml)
+
+istioctl create -f k8s-isito-gateway.yaml
+
+
+kubectl  delete -f  k8s-isito-gateway.yaml
+kubectl  delete -f   k8s-services.yaml
+
+
+ <module>rest-service-geninvocation</module>
+        <module>rest-service-hivespark</module>
+        <module>rest-test-trainticket</module>

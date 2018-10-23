@@ -1,0 +1,42 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: liuservice-gateway
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: liuservice
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - liuservice-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /rest1
+    route:
+    - destination:
+        host: rest-service-1
+        port:
+          number: 16005
+  - match:
+    - uri:
+        prefix: /rest2
+    route:
+    - destination:
+        host: rest-service-end
+        port:
+          number: 16006

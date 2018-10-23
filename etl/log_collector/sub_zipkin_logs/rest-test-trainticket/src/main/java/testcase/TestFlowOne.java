@@ -1,7 +1,9 @@
 package testcase;
 
+import com.Ostermiller.util.Browser;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.Select;
@@ -46,13 +48,23 @@ public class TestFlowOne {
 //        driver = new ChromeDriver();
 //        baseUrl = "http://10.141.211.180:30776";
 
-        driver = new RemoteWebDriver(new URL("http://hub:4444/wd/hub"),
-                DesiredCapabilities.chrome());
-        baseUrl = "http://10.141.211.161:31380";
-
-//        System.setProperty("webdriver.chrome.driver", "G:\\dailywork\\chromedriver.exe");
-//        driver = new ChromeDriver();
+//        driver = new RemoteWebDriver(new URL("http://hub:4444/wd/hub"),
+//                DesiredCapabilities.chrome());
 //        baseUrl = "http://10.141.211.161:31380";
+
+        System.setProperty("webdriver.chrome.driver", "G:\\dailywork\\chromedriver.exe");
+     //   driver = new ChromeDriver();
+
+        ChromeOptions co = new ChromeOptions();
+
+        co.addArguments("--lang=zh-CN");
+        co.addArguments("--downstream-cluster=uuidhead44343ers");
+        co.addArguments("--user-agent=2dsdds3232233");
+        co.addArguments("--x-requested-with=123454");
+        co.addArguments("--http_proxy=118.18.188.188");
+        driver = new ChromeDriver(co);
+
+        baseUrl = "http://10.141.211.161:31380";
 
         trainType = "0";//all
         driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
@@ -61,7 +73,6 @@ public class TestFlowOne {
     //Test Flow Preserve Step 1: - Login
     public void testLogin()throws Exception{
         driver.get(baseUrl + "/");
-
         //define username and password
         String username = "fdse_microservices@163.com";
         String password = "DefaultPassword";
@@ -83,6 +94,7 @@ public class TestFlowOne {
     @Test (dependsOnMethods = {"testLogin"})
     //test Flow Preserve Step 2: - Ticket Booking
     public void testBooking() throws Exception{
+
         //locate booking startingPlace input
         WebElement elementBookingStartingPlace = driver.findElement(By.id("travel_booking_startingPlace"));
         elementBookingStartingPlace.clear();
@@ -114,7 +126,7 @@ public class TestFlowOne {
         //locate Train search button
         WebElement elementBookingSearchBtn = driver.findElement(By.id("travel_booking_button"));
         elementBookingSearchBtn.click();
-        Thread.sleep(1000);
+        Thread.sleep(1000000);
 
         List<WebElement> ticketsList = driver.findElements(By.xpath("//table[@id='tickets_booking_list_table']/tbody/tr"));
         //Confirm ticket selection

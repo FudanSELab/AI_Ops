@@ -72,8 +72,4 @@ public class TestCaseController {
     public TestResponse testServiceRoute() throws IOException, ClassNotFoundException {
         return testCaseService.testServiceRoute();
     }
-
-
-
-
 }
