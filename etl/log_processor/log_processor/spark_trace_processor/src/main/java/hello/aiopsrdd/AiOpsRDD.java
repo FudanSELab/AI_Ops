@@ -1,9 +1,14 @@
 package hello.aiopsrdd;
 
 import hello.domain.TraceAnnotation;
+import hello.domain.TracePassServcie;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.MapFunction;
 import org.apache.spark.sql.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class AiOpsRDD {
@@ -24,6 +29,8 @@ public class AiOpsRDD {
         System.out.println("==============spark sql closed====");
     }
 
+
+    // real_trace_pass_view   real_cpu_memory_view
     private static void filter(SparkSession spark) {
 
         // step 1 : read original span logs as RDD
@@ -100,64 +107,106 @@ public class AiOpsRDD {
         String[] duplicasKey = new String[]{"span_id"};
         realSpanDataset = realSpanDataset.dropDuplicates(duplicasKey);
 
-       //step 5 :  create real span cs  cr  ss  sr
-        realSpanDataset.printSchema();
+        //step 5 :  create real span cs  cr  ss  sr
+       // realSpanDataset.printSchema();
         realSpanDataset.createOrReplaceTempView("real_span_trace");
-       // realSpanDataset.write().saveAsTable("real_span_trace");
+        // realSpanDataset.write().saveAsTable("real_span_trace");
         System.out.println("---------------  real_span_trace table created ---------------");
 
-       // step 6 : create invocation
+
+        // step   : get trace pass service , user real_span_trace , gen tempView  real_trace_pass
+        // real_trace_pass_view
+        calTracePassService(spark);
+
+        // step 6 : create real_invocation_view
+        // real_invocation_view
+        genRealInvocation(spark);
+
+        // trace and trace pass service
+        // before_trace_view
+        genBeforeTrace(spark);
+
+
+        // real_cpu_memory_view
+        cpuMemory(spark);
+
+        genRealTrace(spark);
+
+    }
+
+
+    public static void genRealInvocation(SparkSession spark) {
         Dataset<Row> invocationDataset = spark.sql(TempSQL.genInvocation);
-        invocationDataset.show();
-        invocationDataset.printSchema();
-        invocationDataset.write().saveAsTable("real_invocation");
+        //invocationDataset.show();
+        //invocationDataset.printSchema();
+        invocationDataset.createOrReplaceTempView("real_invocation_view");
+        //invocationDataset.write().saveAsTable("real_invocation");
         System.out.println("---------------  real_invocation table created ---------------");
+    }
 
+    public static Dataset<TracePassServcie> calTracePassService(SparkSession spark) {
+        //  read trace passby service, gen new trace_pass_service   by  real_span_trace
+        Dataset<Row> tracePassService = spark.sql(TempSQL.getTracePassService);
+        Encoder<TracePassServcie> TracePassEncoder = Encoders.bean(TracePassServcie.class);
+        Dataset<TracePassServcie> tracePassDataset = tracePassService.map(new MapFunction<Row, TracePassServcie>() {
+            @Override
+            public TracePassServcie call(Row row) throws Exception {
+                String trace_id = row.getAs("trace_id");
+                String[] cr_pass_service = row.getAs("ts_ui_dashboard_included").toString().split(",");
+                String[] sr_pass_service = row.getAs("ts_login_service_included").toString().split(",");
+                Map<String, String> passServiceMap = new HashMap<>();
+                for (int i = 0; i < cr_pass_service.length; i++) {
+                    if (!passServiceMap.containsKey(cr_pass_service[i]))
+                        passServiceMap.put(cr_pass_service[i], cr_pass_service[i]);
+                }
+                for (int i = 0; i < sr_pass_service.length; i++) {
+                    if (!passServiceMap.containsKey(sr_pass_service[i]))
+                        passServiceMap.put(sr_pass_service[i], sr_pass_service[i]);
+                }
+                return new TracePassServcie(trace_id, passServiceMap);
+            }
+        }, TracePassEncoder);
+       // tracePassDataset.printSchema();
+     //   tracePassDataset.show();
+        tracePassDataset.createOrReplaceTempView("real_trace_pass_view");
+        return tracePassDataset;
+    }
 
+    // service_config_data, service_instance_data ===> real_cpu_memory_view
+    private static void cpuMemory(SparkSession spark) {
         // read service config data
         Dataset<Row> serviceConfigData = spark.read().option("header", "true").option("inferSchema", true).csv("hdfs://10.141.211.173:8020/user/admin/serviceConfigData.csv");
-        serviceConfigData.printSchema();
+        //serviceConfigData.printSchema();
         System.out.println("--------------print servcie config schema --------------");
         serviceConfigData.createOrReplaceTempView("service_config_data");
 
         // read service instance data
-        Dataset<Row> serviceInstanceData = spark.read().option("header", "true").option("inferSchema", true).csv("hdfs://10.141.211.173:8020/user/admin/serviceConfigData.csv");
-        serviceInstanceData.printSchema();
+        Dataset<Row> serviceInstanceData = spark.read().option("header", "true").option("inferSchema", true).csv("hdfs://10.141.211.173:8020/user/admin/serviceInstanceData.csv");
+        //serviceInstanceData.printSchema();
         System.out.println("--------------print servcie instance schema --------------");
-        serviceConfigData.createOrReplaceTempView("service_instance_data");
+        serviceInstanceData.createOrReplaceTempView("service_instance_data");
 
+        Dataset<Row> combineCpuMemory = spark.sql(TempSQL.genCpuMemory);
+        //  combineCpuMemory.printSchema();
+        // combineCpuMemory.show();
+        // combineCpuMemory.write().saveAsTable("real_cpu_memory");
+        combineCpuMemory.createOrReplaceTempView("real_cpu_memory_view");
+    }
 
+    // real_invocation_view   real_trace_pass_view ,  before_trace_view
+    public static void genBeforeTrace(SparkSession spark) {
+        Dataset<Row> beforeTraceDataset = spark.sql(TempSQL.genBeforeTrace);
+        //beforeTraceDataset.show();
+        //beforeTraceDataset.printSchema();
+        beforeTraceDataset.createOrReplaceTempView("before_trace_view");
+    }
 
-//        Dataset<Row> invocation = spark.sql("select (ts_account_mongo_time + 100000) - (ts_consign_mongo_time) from cpu_memory");
-//        invocation.show();
-
-
-
-//        // regist temp table   trace_anno  span
-//        Dataset<Row> traceDF2 = spark.createDataFrame(multipleNumberRDD, TraceAnnotation.class);
-//        traceDF2.createOrReplaceTempView("trace_anno");
-//        System.out.println("--------------  schema ----------------");
-//        traceDF2.printSchema();
-//
-//        // config  span cs cr ss sr  use origin  trace_anno
-//        Dataset<Row> tempIn = spark.sql(TempSQL.configSpanSql);
-//        System.out.println("===========================temp show ===========");
-//         tempIn.createOrReplaceTempView("temp_trace_anno");
-////        tempIn.write().saveAsTable("temp_trace_anno");
-//
-//        // gen invocation  use  temp_trace_anno
-//        Dataset<Row> invocation = spark.sql(TempSQL.genInvocation);
-//        invocation.createOrReplaceTempView("temp_invocation");
-//        invocation.write().saveAsTable("temp_invocation");
-//        Dataset<Row> cpuMemory = spark.read().option("header", "true").option("inferSchema", true).csv("hdfs://10.141.211.173:8020/user/admin/CpuMemoryTelemetry.csv");
-//        cpuMemory.printSchema();
-//        System.out.println("--------------cpu_memory --------------");
-//        cpuMemory.createOrReplaceTempView("temp_cpu_memory");
-//
-//        cpuMemory.write().saveAsTable("cpu_memory");
-//        System.out.println("-------------- gen trace--------------");
-//        Dataset<Row> trace = spark.sql(TempSQL.genTrace);
-//        trace.show();
-//        trace.write().saveAsTable("trace3");
+    public static void genRealTrace(SparkSession spark){
+        Dataset<Row> realTraceDataset = spark.sql(TempSQL.genRealTrace);
+        realTraceDataset.printSchema();
+        realTraceDataset.show();
+        String[] duplicasKey = new String[]{"trace_id"};
+        realTraceDataset = realTraceDataset.dropDuplicates(duplicasKey);
+        realTraceDataset.write().saveAsTable("real_trace");
     }
 }

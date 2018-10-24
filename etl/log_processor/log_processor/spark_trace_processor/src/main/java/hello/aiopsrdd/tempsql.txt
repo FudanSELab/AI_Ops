@@ -125,3 +125,72 @@ root
 
 
 
+      JavaSparkContext javaSparkContext = new JavaSparkContext(sparkConf);
+        SQLContext sqlContext = new SQLContext(javaSparkContext);
+
+        List<String> list = new ArrayList<String>();
+        list.add("1,1");
+        list.add("2,11");
+        list.add("2,111");
+        list.add("2,111");
+        list.add("3,1111");
+        list.add("3,11111");
+
+        JavaRDD<String> rdd_str = javaSparkContext.parallelize(list, 5);
+
+        JavaRDD<Row> rdd_row = rdd_str.map(new Function<String, Row>() {
+            @Override
+            public Row call(String v1) throws Exception {
+                String ary[] = v1.split(",");
+                return RowFactory.create(ary[0], Long.parseLong(ary[1]));
+            }
+        });
+
+        List<StructField> fieldList = new ArrayList<StructField>();
+        fieldList.add(DataTypes.createStructField("name", DataTypes.StringType, true));
+        fieldList.add(DataTypes.createStructField("sc", DataTypes.LongType, true));
+        StructType tmp = DataTypes.createStructType(fieldList);
+
+        DataFrame df = sqlContext.createDataFrame(rdd_row, tmp);
+        df.registerTempTable("tmp_sc");
+
+        DataFrame df_agg = sqlContext.sql("select name,count(distinct(sc)) from tmp_sc group by name");//去重后分组求和统计
+
+        df_agg.show();
+
+
+
+
+        // ================ begin  trace ===================== //
+       // Dataset<Row> traceDataset = spark.sql(TempSQL.getTracePassService);
+
+//        Dataset<Row> invocation = spark.sql("select (ts_account_mongo_time + 100000) - (ts_consign_mongo_time) from cpu_memory");
+//        invocation.show();
+
+
+//        // regist temp table   trace_anno  span
+//        Dataset<Row> traceDF2 = spark.createDataFrame(multipleNumberRDD, TraceAnnotation.class);
+//        traceDF2.createOrReplaceTempView("trace_anno");
+//        System.out.println("--------------  schema ----------------");
+//        traceDF2.printSchema();
+//
+//        // config  span cs cr ss sr  use origin  trace_anno
+//        Dataset<Row> tempIn = spark.sql(TempSQL.configSpanSql);
+//        System.out.println("===========================temp show ===========");
+//         tempIn.createOrReplaceTempView("temp_trace_anno");
+////        tempIn.write().saveAsTable("temp_trace_anno");
+//
+//        // gen invocation  use  temp_trace_anno
+//        Dataset<Row> invocation = spark.sql(TempSQL.genInvocation);
+//        invocation.createOrReplaceTempView("temp_invocation");
+//        invocation.write().saveAsTable("temp_invocation");
+//        Dataset<Row> cpuMemory = spark.read().option("header", "true").option("inferSchema", true).csv("hdfs://10.141.211.173:8020/user/admin/CpuMemoryTelemetry.csv");
+//        cpuMemory.printSchema();
+//        System.out.println("--------------cpu_memory --------------");
+//        cpuMemory.createOrReplaceTempView("temp_cpu_memory");
+//
+//        cpuMemory.write().saveAsTable("cpu_memory");
+//        System.out.println("-------------- gen trace--------------");
+//        Dataset<Row> trace = spark.sql(TempSQL.genTrace);
+//        trace.show();
+//        trace.write().saveAsTable("trace3");

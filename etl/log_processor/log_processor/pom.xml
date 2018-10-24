@@ -10,8 +10,6 @@
     <version>1.0-0</version>
 
     <modules>
-        <module>ts_log_processor</module>
-        <module>ts_log_processor</module>
         <module>spark_trace_processor</module>
     </modules>
 

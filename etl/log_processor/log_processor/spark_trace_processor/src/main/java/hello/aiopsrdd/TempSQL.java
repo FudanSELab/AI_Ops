@@ -17,13 +17,43 @@ public class TempSQL {
 
     //  由临时表 real_span_trace 产生 invocation
     public static String genInvocation =
-            "select  trace_id, span_id, test_trace_id, test_case_id," +
+            "select  trace_id, span_id, span_timestamp, test_trace_id, test_case_id," +
                     "abs(sr_timestamp - cs_timestamp)  req_latency, parent_id, cs_servicename req_service," +
                     "req_api, c_node_id req_inst_id ,cs_ipv4 req_inst_ip, span_duration duration," +
                     "status_code res_status_code, 0 res_status_desc," +
-                    "0 res_exception, abs(ss_timestamp - cr_timestamp)  res_latency," +
+                    "0 res_exception, \""+"abs(ss_timestamp - cr_timestamp)" +"\" res_latency," +
                     "0 req_param, 0 exec_logs, 0 res_body " +
                     "from real_span_trace";
+
+    //  由 service_config_data 和 service_instance_data  产生 cpu_memory_view
+    public static String genCpuMemory =
+            "select a.*, b.*  from service_config_data a, service_instance_data b " +
+                    "where (a.ts_travel_service_start_time == b.ts_cancel_service_inst_collect_start_time)";
+
+    // 由real_span_trace表 查询出一个服务经过的service
+    public static String getTracePassService =
+            "select trace_id, concat_ws(',', collect_set(cr_servicename)) ts_ui_dashboard_included, concat_ws(',', collect_set(sr_servicename)) ts_login_service_included from real_span_trace group by trace_id";
+
+    // 合并invocation 和 trace_pass_service
+    public static String genBeforeTrace =
+            "select a.test_trace_id, a.test_case_id, a.req_service entry_service, " +
+                    " a.req_api entry_api, a.span_timestamp  entry_timestamp, (a.span_timestamp + a.duration) exit_timestamp, " +
+                    " a.duration , b.* from real_invocation_view a, real_trace_pass_view b  " +
+                    "where a.trace_id == b.trace_id And a.req_latency == '0' And a.parent_id == ''";
+
+
+    // real_invocation_view ,  cpu_memory_view , real_trace_pass_view  产生 Trace 表
+    public static String genRealTrace  =
+            "select a.*, b.* , 0 y_exec_result, 0 y_issue_dim_type, 0 y_issue_dim_content  from  before_trace_view a, real_cpu_memory_view  b  " +
+                    "where (a.entry_timestamp + 60000) > b.ts_travel_service_start_time";
+
+
+
+
+
+
+
+
 
 
     public static String configSpanSql = "select a.trace_id, a.span_id , a.span_name," +
