@@ -12,7 +12,7 @@ public class CPUMemeoryController {
     @Autowired
     private RestCollectService restCollectService;
 
-    @GetMapping("/getResourceData")
+    @GetMapping("/getCpuMemoryData")
     public String getResourceData() {
         // get cpu and memory
         System.out.println("-=========================================---------------");
@@ -20,7 +20,7 @@ public class CPUMemeoryController {
         return "[GET CPU AND MEMORY]";
     }
 
-    @GetMapping("/stopCollectData")
+    @GetMapping("/stopCpuMemoryData")
     public String stopCollectResourceData() {
         return restCollectService.stopCollectResourceData();
     }

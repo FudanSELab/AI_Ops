@@ -22,7 +22,7 @@ public class RestCollectServiceImpl implements RestCollectService {
     private static final String SERVICE_NAME = "serviceName";
     private static final String REQUESTS = "requests";
     private static final String LIMITS = "limits";
-    private static final String INSTANCE_NUMBER = "instanceNumber";
+    private static final String CONF_NUMBER = "confNumber";
     private static final String CPU = "cpu";
     private static final String MEMORY = "memory";
     private static final String REQUEST_CPU = "r_cpu";
@@ -171,8 +171,8 @@ public class RestCollectServiceImpl implements RestCollectService {
                 }
             }
 
-            podData.put(serviceId + "_inst_collect_" + START_TIME, requestTime + "");
-            podData.put(serviceId + "_inst_collect_" + END_TIME, responseTime + "");
+            podData.put(serviceId + "_inst_" + START_TIME, requestTime + "");
+            podData.put(serviceId + "_inst_" + END_TIME, responseTime + "");
             serviceInstanceData.add(podData);
         }
     }
@@ -192,7 +192,7 @@ public class RestCollectServiceImpl implements RestCollectService {
             LinkedHashMap<String, String> serviceDataMap = new LinkedHashMap<>();
 
             for (String key : serviceData.keySet()) {
-                if (SERVICE_NAME.equals(key) || INSTANCE_NUMBER.equals(key)) {
+                if (SERVICE_NAME.equals(key) || CONF_NUMBER.equals(key)) {
                     serviceDataMap.put(key, serviceData.get(key).toString());
                 }
 //            else if (REQUESTS.equals(key)) {
