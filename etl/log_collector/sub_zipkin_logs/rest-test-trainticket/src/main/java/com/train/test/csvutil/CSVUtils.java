@@ -100,7 +100,7 @@ public class CSVUtils {
                 Object row = iterator.next();
                 for (Iterator propertyIterator = headerMap.entrySet().iterator(); propertyIterator.hasNext(); ) {
                     Map.Entry propertyEntry = (Map.Entry) propertyIterator.next();
-                    fileWriter.write(BeanUtils.getProperty(row, (String) propertyEntry.getKey()));
+                    fileWriter.write(BeanUtils.getProperty(row, (String) propertyEntry.getKey()) + "");
                     if (propertyIterator.hasNext()) {
                         fileWriter.write(",");
                     }

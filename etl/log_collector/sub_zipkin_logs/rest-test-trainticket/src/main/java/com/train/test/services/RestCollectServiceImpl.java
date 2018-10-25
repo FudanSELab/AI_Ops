@@ -71,11 +71,11 @@ public class RestCollectServiceImpl implements RestCollectService {
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         // request to get service config data
-        LinkedHashMap<String, Object> responseServiceData = restTemplate.getForObject("http://10.141.212.140:18898/api/getServicesAndConfig/cluster2", LinkedHashMap.class);
+        LinkedHashMap<String, Object> responseServiceData = restTemplate.getForObject("http://10.141.212.140:18898/api/getServicesAndConfig/cluster1", LinkedHashMap.class);
         // request to get service pod data
-        LinkedHashMap<String, Object> responsePodData = restTemplate.getForObject("http://10.141.212.140:18898/api/podMetrics/cluster2", LinkedHashMap.class);
+        LinkedHashMap<String, Object> responsePodData = restTemplate.getForObject("http://10.141.212.140:18898/api/podMetrics/cluster1", LinkedHashMap.class);
         // request to get node data
-        LinkedHashMap<String, Object> responseNodeData = restTemplate.getForObject("http://10.141.212.140:18898/api/nodeMetrics/cluster2", LinkedHashMap.class);
+        LinkedHashMap<String, Object> responseNodeData = restTemplate.getForObject("http://10.141.212.140:18898/api/nodeMetrics/cluster1", LinkedHashMap.class);
 
 
         try {

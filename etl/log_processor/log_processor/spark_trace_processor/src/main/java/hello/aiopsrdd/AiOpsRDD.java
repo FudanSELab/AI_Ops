@@ -113,7 +113,6 @@ public class AiOpsRDD {
         // realSpanDataset.write().saveAsTable("real_span_trace");
         System.out.println("---------------  real_span_trace table created ---------------");
 
-
         // step   : get trace pass service , user real_span_trace , gen tempView  real_trace_pass
         // real_trace_pass_view
         calTracePassService(spark);
@@ -175,13 +174,13 @@ public class AiOpsRDD {
     // service_config_data, service_instance_data ===> real_cpu_memory_view
     private static void cpuMemory(SparkSession spark) {
         // read service config data
-        Dataset<Row> serviceConfigData = spark.read().option("header", "true").option("inferSchema", true).csv("hdfs://10.141.211.173:8020/user/admin/serviceConfigData.csv");
+        Dataset<Row> serviceConfigData = spark.read().option("header", "true").csv("hdfs://10.141.211.173:8020/user/admin/serviceConfigData.csv");
         //serviceConfigData.printSchema();
         System.out.println("--------------print servcie config schema --------------");
         serviceConfigData.createOrReplaceTempView("service_config_data");
 
         // read service instance data
-        Dataset<Row> serviceInstanceData = spark.read().option("header", "true").option("inferSchema", true).csv("hdfs://10.141.211.173:8020/user/admin/serviceInstanceData.csv");
+        Dataset<Row> serviceInstanceData = spark.read().option("header", "true").csv("hdfs://10.141.211.173:8020/user/admin/serviceInstanceData.csv");
         //serviceInstanceData.printSchema();
         System.out.println("--------------print servcie instance schema --------------");
         serviceInstanceData.createOrReplaceTempView("service_instance_data");
@@ -190,7 +189,7 @@ public class AiOpsRDD {
         //  combineCpuMemory.printSchema();
         // combineCpuMemory.show();
         // combineCpuMemory.write().saveAsTable("real_cpu_memory");
-        combineCpuMemory.createOrReplaceTempView("real_cpu_memory_view");
+         combineCpuMemory.createOrReplaceTempView("real_cpu_memory_view");
     }
 
     // real_invocation_view   real_trace_pass_view ,  before_trace_view
@@ -203,10 +202,10 @@ public class AiOpsRDD {
 
     public static void genRealTrace(SparkSession spark){
         Dataset<Row> realTraceDataset = spark.sql(TempSQL.genRealTrace);
-        realTraceDataset.printSchema();
-        realTraceDataset.show();
+        //realTraceDataset.printSchema();
+       // realTraceDataset.show();
         String[] duplicasKey = new String[]{"trace_id"};
         realTraceDataset = realTraceDataset.dropDuplicates(duplicasKey);
-        realTraceDataset.write().saveAsTable("real_trace");
+        realTraceDataset.write().saveAsTable("real_trace2");
     }
 }

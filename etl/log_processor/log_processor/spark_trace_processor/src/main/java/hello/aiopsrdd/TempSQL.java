@@ -21,14 +21,14 @@ public class TempSQL {
                     "abs(sr_timestamp - cs_timestamp)  req_latency, parent_id, cs_servicename req_service," +
                     "req_api, c_node_id req_inst_id ,cs_ipv4 req_inst_ip, span_duration duration," +
                     "status_code res_status_code, 0 res_status_desc," +
-                    "0 res_exception, \""+"abs(ss_timestamp - cr_timestamp)" +"\" res_latency," +
+                    "0 res_exception, abs(ss_timestamp - cr_timestamp) res_latency," +
                     "0 req_param, 0 exec_logs, 0 res_body " +
                     "from real_span_trace";
 
     //  由 service_config_data 和 service_instance_data  产生 cpu_memory_view
     public static String genCpuMemory =
             "select a.*, b.*  from service_config_data a, service_instance_data b " +
-                    "where (a.ts_travel_service_start_time == b.ts_cancel_service_inst_collect_start_time)";
+                    "where (a.ts_travel_service_start_time == b.ts_order_service_inst_start_time)";
 
     // 由real_span_trace表 查询出一个服务经过的service
     public static String getTracePassService =
