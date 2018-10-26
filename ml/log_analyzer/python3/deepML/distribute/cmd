@@ -1,0 +1,16 @@
+
+
+cd ../opt/distribute; python3 distribute_nn.py --ps_hosts=10.141.211.175:2222 --worker_hosts=10.141.211.162:2222,10.141.212.23:2222 --job_name=ps --task_index=0
+
+cd ../opt/distribute; python3 distribute_nn.py --ps_hosts=10.141.211.175:2222 --worker_hosts=10.141.211.162:2222,10.141.212.23:2222 --job_name=worker --task_index=0
+
+cd ../opt/distribute; python3 distribute_nn.py --ps_hosts=10.141.211.175:2222 --worker_hosts=10.141.211.162:2222,10.141.212.23:2222 --job_name=worker --task_index=1
+
+
+cd ../opt/distribute
+
+cd ../opt/distribute; python3 distribute_nn.py --ps_hosts=localhost:2222 --worker_hosts=localhost:2223,localhost:2224 --job_name=ps --task_index=0
+
+cd ../opt/distribute; python3 distribute_nn.py --ps_hosts=localhost:2222 --worker_hosts=localhost:2223,localhost:2224 --job_name=worker --task_index=0
+
+cd ../opt/distribute; python3 distribute_nn.py --ps_hosts=localhost:2222 --worker_hosts=localhost:2223,localhost:2224 --job_name=worker --task_index=1

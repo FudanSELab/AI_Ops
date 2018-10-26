@@ -27,7 +27,7 @@ train_columns = [
     "y_issue_dimension"
 ]
 
-data_size = 300
+data_size = 3000
 
 trace_ids = []
 session_ids = []
@@ -101,6 +101,7 @@ for i in range(data_size):
             service_1_inst_deltas.append(np.random.randint(1, 5))
             service_1_conf_mem_limit_deltas.append(np.random.randint(200, 1024))
             service_1_conf_cpu_limit_deltas.append(np.random.randint(10, 30))
+
         service_2_inst_deltas.append(np.random.randint(1, 5))
         service_3_inst_deltas.append(np.random.randint(1, 5))
         service_2_conf_mem_limit_deltas.append(np.random.randint(200, 1024))
@@ -120,6 +121,7 @@ for i in range(data_size):
             service_2_inst_deltas.append(np.random.randint(1, 5))
             service_2_conf_mem_limit_deltas.append(np.random.randint(200, 1024))
             service_2_conf_cpu_limit_deltas.append(np.random.randint(10, 30))
+
         service_1_inst_deltas.append(np.random.randint(1, 5))
         service_3_inst_deltas.append(np.random.randint(1, 5))
         service_1_conf_mem_limit_deltas.append(np.random.randint(200, 1024))
@@ -139,6 +141,7 @@ for i in range(data_size):
             service_3_inst_deltas.append(np.random.randint(1, 5))
             service_3_conf_mem_limit_deltas.append(np.random.randint(200, 1024))
             service_3_conf_cpu_limit_deltas.append(np.random.randint(10, 30))
+
         service_1_inst_deltas.append(np.random.randint(1, 5))
         service_2_inst_deltas.append(np.random.randint(1, 5))
         service_1_conf_mem_limit_deltas.append(np.random.randint(200, 1024))

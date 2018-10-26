@@ -3,8 +3,7 @@ import tensorflow as tf
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-
-train_columns = [
+predict_columns = [
     "trace_id",
     "session_id",
     "testcase_id",
@@ -29,6 +28,24 @@ train_columns = [
 ]
 
 
+def eval_input_fn(features, labels, batch_size):
+    """An input function for evaluation or prediction"""
+    features = dict(features)
+    if labels is None:
+        # No labels, use only features.
+        inputs = features
+    else:
+        inputs = (features, labels)
+
+    # Convert the inputs to a Dataset.
+    dataset = tf.data.Dataset.from_tensor_slices(inputs)
+    # Batch the examples
+    assert batch_size is not None, "batch_size must not be None"
+    dataset = dataset.batch(batch_size)
+    # Return the dataset.
+    return dataset
+
+
 def convertStrToNumber(name, data):
     mapping_keys = data[name].drop_duplicates().values
     mapping = {}
@@ -37,20 +54,11 @@ def convertStrToNumber(name, data):
     return data[name].map(mapping), mapping
 
 
-def train_input_fn(features, labels, batch_size):
-    """An input function for training"""
-    # Convert the inputs to a Dataset.
-    dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))
-    # Shuffle, repeat, and batch the examples.
-    dataset = dataset.shuffle(100).repeat().batch(batch_size)
-    # Return the dataset.
-    return dataset
-
-
-train_path = "mock.csv"
-train = pd.read_csv(train_path,
-                    names=train_columns,
+predict_path = "mock.csv"
+train = pd.read_csv(predict_path,
+                    names=predict_columns,
                     header=0)
+
 
 train.pop("trace_id")
 train.pop("session_id")
@@ -59,7 +67,6 @@ train.pop("entry_timestamp")
 train.pop("y_is_error_lazy")
 train.pop("y_is_error_predict")
 train.pop("y_is_error")
-
 
 train["testcase_id"], testcase_id_mapping = convertStrToNumber("testcase_id", train)
 train["entry_service"], entry_service_mapping = convertStrToNumber("entry_service", train)
@@ -71,8 +78,6 @@ train_y_ms = train.pop("y_issue_ms")
 train_y_issue_dimension = train.pop("y_issue_dimension")
 
 train_x = train
-
-print(train_x)
 
 # Feature columns describe how to use the input.
 my_feature_columns = []
@@ -93,8 +98,6 @@ for key in train_x.keys():
     else:
         my_feature_columns.append(tf.feature_column.numeric_column(key=key))
 
-print(my_feature_columns)
-
 # Build 2 hidden layer DNN with 10, 10 units respectively.
 checkpointing_config = tf.estimator.RunConfig(
     save_checkpoints_secs=60,  # Save checkpoints every 60 seconds.
@@ -110,24 +113,10 @@ classifier_ms = tf.estimator.DNNClassifier(
     # The model must choose between 3 classes.
     n_classes=3)
 
-# Train the Model.
-classifier_ms.train(
-    input_fn=lambda: train_input_fn(train_x, train_y_ms, batch_size=10),
-    steps=30000)
 
+# Evaluate the model.
+eval_result = classifier_ms.evaluate(
+    input_fn=lambda: eval_input_fn(train_x, train_y_ms, 10))
 
-classifier_issued_dimension = tf.estimator.DNNClassifier(
-    model_dir="model/test_dnn_issued_dimension",
-    config=checkpointing_config,
-    feature_columns=my_feature_columns,
-    # Two hidden layers of 10 nodes each.
-    hidden_units=[20, 20],
-    # The model must choose between 3 classes.
-    n_classes=3)
-
-# Train the Model.
-classifier_issued_dimension.train(
-    input_fn=lambda: train_input_fn(train_x, train_y_issue_dimension, batch_size=10),
-    steps=100)
-
+print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
 
