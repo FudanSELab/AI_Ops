@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 train_columns = []
-column_size = 3
+column_size = 10
 
 train_datas = []
 datas_length = 100
@@ -18,7 +18,7 @@ for i in range(column_size):
     train_datas.append(data_column)
 y1_column = []
 for i in range(datas_length):
-    y1_column.append(np.random.randint(0, 10))
+    y1_column.append(1)
 train_datas.append(y1_column)
 
 # data gen
@@ -27,4 +27,4 @@ train_data_final = pd.DataFrame(dict(zip(train_columns, train_datas)))
 train_data_final = train_data_final.loc[:, train_columns]
 
 # write csv
-train_data_final.to_csv("mock4.csv")
+train_data_final.to_csv("mock.csv")
