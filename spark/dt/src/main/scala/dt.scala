@@ -1,10 +1,17 @@
-import org.apache.spark.ml.classification.{LinearSVC, OneVsRest}
-import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 import org.apache.spark.ml.feature.VectorAssembler
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{DataFrame,SparkSession}
+import org.apache.spark.ml.Pipeline
+import org.apache.spark.ml.classification.DecisionTreeClassificationModel
+import org.apache.spark.ml.classification.DecisionTreeClassifier
+import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 
-object svm {
+
+object dt {
+
   def main(args: Array[String]): Unit = {
+
+    println("Decision Main")
+
     val spark = SparkSession
       .builder()
       .appName("Spark SQL basic example")
@@ -36,38 +43,35 @@ object svm {
 
     val Array(trainingData, testData) = featureAndLabel.randomSplit(Array(0.8, 0.2))
 
-    val lsvc = new LinearSVC()
-      .setMaxIter(10)
-      .setRegParam(0.1)
+    val dt = new DecisionTreeClassifier()
       .setLabelCol("y1")
       .setFeaturesCol("features")
+      .setImpurity("gini")
+      .setMaxDepth(30)
 
-//    // Fit the model
-//    val lsvcModel = lsvc.fit(trainingData)
+    println("DecisionTreeClassifier parameters:\n" + dt.explainParams() + "\n")
 
-    // instantiate the One Vs Rest Classifier.
-    val ovr = new OneVsRest()
-      .setClassifier(lsvc)
-      .setLabelCol("y1")
-      .setFeaturesCol("features")
+    val pipeline = new Pipeline().setStages(Array(dt))
 
-    // train the multiclass model.
-    val ovrModel = ovr.fit(trainingData)
+    val model = pipeline.fit(trainingData)
 
-    // score the model on test data.
-    val predictions = ovrModel.transform(testData)
+    val predictions = model.transform(testData)
 
-    // obtain evaluator.
-    val evaluator = new MulticlassClassificationEvaluator()
-      .setMetricName("accuracy")
-      .setLabelCol("y1")
+    predictions.show(5)
 
-    // compute the classification error on test data.
+    val evaluator = new MulticlassClassificationEvaluator().setLabelCol("y1").setPredictionCol("prediction")
+
     val accuracy = evaluator.evaluate(predictions)
-    println(s"Test Error = ${1 - accuracy}")
 
+    println("Test Error = " + (1.0 - accuracy))
+
+    val treeModel = model.stages(0).asInstanceOf[DecisionTreeClassificationModel]
+
+    println("Learned classification tree model:\n" + treeModel.toDebugString)
 
 
 
   }
+
+
 }
