@@ -1,29 +1,9 @@
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.ml.feature.VectorAssembler
+import org.apache.spark.sql.{DataFrame,SparkSession}
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.classification.DecisionTreeClassificationModel
 import org.apache.spark.ml.classification.DecisionTreeClassifier
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
-import org.apache.spark.ml.feature.{IndexToString, StringIndexer, VectorAssembler, VectorIndexer}
-import org.apache.spark.sql.{DataFrame,SparkSession}
-import org.apache.spark.ml.{Pipeline,PipelineModel}
-import org.apache.spark.ml.classification.DecisionTreeClassificationModel
-import org.apache.spark.ml.classification.DecisionTreeClassifier
-import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
-import org.apache.spark.ml.feature.{IndexToString, StringIndexer, VectorIndexer,HashingTF, Tokenizer}
-import org.apache.spark.mllib.linalg.{Vector,Vectors}
-import org.apache.spark.sql.Row
-import org.apache.spark.mllib.stat.{MultivariateStatisticalSummary, Statistics}
-import org.apache.spark.SparkConf
-import org.apache.spark.SparkContext
-import org.apache.spark.sql.SQLContext
-import org.apache.spark.ml.{Pipeline,PipelineModel}
-import org.apache.spark.ml.classification.DecisionTreeClassificationModel
-import org.apache.spark.ml.classification.DecisionTreeClassifier
-import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
-import org.apache.spark.ml.feature.{IndexToString, StringIndexer, VectorIndexer,HashingTF, Tokenizer}
-import org.apache.spark.mllib.linalg.{Vector,Vectors}
-import org.apache.spark.sql.Row
-import org.apache.spark.mllib.stat.{MultivariateStatisticalSummary, Statistics}
 
 
 object WordCount {
