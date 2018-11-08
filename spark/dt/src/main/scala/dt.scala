@@ -79,8 +79,8 @@ object dt {
     println("Learned classification tree model:\n" + treeModel.toDebugString)
 
     //模型的读取与存储
-    pipelineModel.save("model/pipeline_model")
-    val samePipelineModel = PipelineModel.load("model/pipeline_model")
+    pipelineModel.save("model/dt/pipeline_model")
+    val samePipelineModel = PipelineModel.load("model/dt/pipeline_model")
 
     // 寻找最佳超参数：一下部分用于寻找最优超参数
     // We use a ParamGridBuilder to construct a grid of parameters to search over.
