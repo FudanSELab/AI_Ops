@@ -56,10 +56,11 @@ def main(_):
     # 构建双层神经网络
     x = tf.placeholder(tf.float32, shape=[None, num_input], name="x")
     layer_1_output = tf.layers.dense(x, n_hidden_1,
-                                     activation=tf.nn.relu)
+                                     activation=tf.nn.sigmoid)
     layer_2_output = tf.layers.dense(layer_1_output, n_hidden_2,
-                                     activation=tf.nn.relu)
-    output_layer_output = tf.layers.dense(layer_2_output, num_classes)
+                                     activation=tf.nn.sigmoid)
+    output_layer_output = tf.layers.dense(layer_2_output, num_classes,
+                                          activation=tf.nn.relu)
 
     y_ = tf.placeholder(tf.int32, name="y_")
 

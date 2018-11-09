@@ -33,10 +33,11 @@ def main(_):
     # 构建双层神经网络
     x = tf.placeholder(tf.float32, shape=[None, num_input], name="x")
     layer_1_output = tf.layers.dense(x, n_hidden_1,
-                                     activation=tf.nn.relu)
+                                     activation=tf.nn.sigmoid)
     layer_2_output = tf.layers.dense(layer_1_output, n_hidden_2,
-                                     activation=tf.nn.relu)
-    output_layer_output = tf.layers.dense(layer_2_output, num_classes)
+                                     activation=tf.nn.sigmoid)
+    output_layer_output = tf.layers.dense(layer_2_output, num_classes,
+                                          activation=tf.nn.relu)
 
     y_ = tf.placeholder(tf.int32, name="y_")
 
@@ -55,14 +56,16 @@ def main(_):
     train_x, train_y = load_data_original_with_label(
         "mock4.csv")
 
-    print("session前")
-
     with tf.Session() as sess:
-        print("准备restore")
+        # 恢复之前保存的模型
         saver.restore(sess, check_point_save_dir)
-        print("准备run")
         result = sess.run(output_layer_output, feed_dict={x: train_x.values})
         print(result)
+
+        # 计算模型的准确率
+        correct_prediction = tf.equal(tf.argmax(result, 1), train_y.values)
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        print(sess.run(accuracy))
 
         sess.close()
 
