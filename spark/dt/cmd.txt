@@ -1,0 +1,1 @@
+spark2-submit --master yarn-client --class com.spark.DT spark-dt-1.0.jar

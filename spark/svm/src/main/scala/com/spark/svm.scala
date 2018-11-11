@@ -1,21 +1,21 @@
-import org.apache.spark.ml.{Pipeline, PipelineModel}
+package com.spark
+
 import org.apache.spark.ml.classification.{LinearSVC, OneVsRest, OneVsRestModel}
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.ml.tuning.{ParamGridBuilder, TrainValidationSplit}
+import org.apache.spark.ml.{Pipeline, PipelineModel}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import scala.util.Random
 
-object svm {
-
-  def main(args: Array[String]): Unit = {
+object DT extends App {
 
     //执行程序之前首先进行以下设定
-    val master = "local"
+    val master = "yarn"
     val appName = "Spark SQL basic example"
-    val filePath = "mock.csv"
+    val filePath = "hdfs://10.141.211.173:8020/user/admin/mock.csv"
 
-    println("[Run]SVM Main")
+    println("[Run]Decision Main")
 
     // 设置Spark运行时的参数
     val spark = SparkSession
@@ -126,5 +126,4 @@ object svm {
     bestPipelineModel.transform(testData)
       .select("features", "y1", "prediction")
       .show()
-  }
 }
