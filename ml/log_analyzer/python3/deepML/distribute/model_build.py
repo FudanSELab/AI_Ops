@@ -6,16 +6,16 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 # 下面是模型的一些超参数，如学习速率、数据学习的轮数
 learning_rate = 0.01
 batch_size = 5
-num_epoch = 50
+num_epoch = 20
 
 # 下面参数是有关模型的输入、隐层节点数与输出种类
-num_input = 1200
+num_input = 1700
 n_hidden_1 = 50
 n_hidden_2 = 50
 num_classes = 10
 
 # 数据集的位置以及check_point存储的位置
-file_path = "mock3.csv"
+file_path = "mock1700.csv"
 check_point_save_dir = "./ckpt/model"
 
 
@@ -23,11 +23,12 @@ def read_data(file_queue):
     reader = tf.TextLineReader(skip_header_lines=1)
     key, value = reader.read(file_queue)
     # 本次读取的文件共有1202列
-    record_defaults = list([0] for i in range(1202))
+    record_defaults = list([0] for i in range(1702))
     row = tf.decode_csv(value,
                         record_defaults=record_defaults)
     # 在总计1202列中，第1列为序号列；中间1200列为属性；第1202列为label列
-    label = row.pop(1200 + 1 + 1 - 1)
+    label = row.pop(1700 + 1 + 1 - 1)
+
     row.pop(0)
     return tf.stack([row]), label
 

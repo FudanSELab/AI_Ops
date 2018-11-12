@@ -2,10 +2,10 @@ import numpy as np
 import pandas as pd
 
 train_columns = []
-column_size = 10
+column_size = 1700
 
 train_datas = []
-datas_length = 100
+datas_length = 50000
 
 for i in range(column_size):
     train_columns.append("column_" + str(i))
@@ -27,4 +27,4 @@ train_data_final = pd.DataFrame(dict(zip(train_columns, train_datas)))
 train_data_final = train_data_final.loc[:, train_columns]
 
 # write csv
-train_data_final.to_csv("mock.csv")
+train_data_final.to_csv("mock1700.csv")
