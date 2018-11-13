@@ -18,6 +18,8 @@ num_classes = 10
 file_path = "mock1700.csv"
 check_point_save_dir = "./ckpt/model"
 
+# 调优 - 正则化、输入数据归一化，数据预处理，batch_normalization
+
 
 def read_data(file_queue):
     reader = tf.TextLineReader(skip_header_lines=1)
