@@ -5,16 +5,16 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fdse.microservice</groupId>
-    <artifactId>spark-dt</artifactId>
+    <artifactId>spark-rf</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
-    <name>spark-dt</name>
+    <name>spark-rf</name>
 
     <!--<parent>-->
-        <!--<groupId>fdse</groupId>-->
-        <!--<artifactId>spark-ml</artifactId>-->
-        <!--<version>1.0</version>-->
-        <!--<relativePath>../</relativePath>-->
+    <!--<groupId>fdse</groupId>-->
+    <!--<artifactId>spark-ml</artifactId>-->
+    <!--<version>1.0</version>-->
+    <!--<relativePath>../</relativePath>-->
     <!--</parent>-->
     <repositories>
         <repository>
@@ -83,5 +83,7 @@
             </plugin>
         </plugins>
     </build>
+
+
 
 </project>
