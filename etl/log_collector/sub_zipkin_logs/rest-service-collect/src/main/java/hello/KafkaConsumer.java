@@ -1,24 +1,15 @@
 package hello;
 
 import com.google.gson.Gson;
-import hello.bean.NewAnno;
-import hello.bean.NewCsvFilePrinter;
-import hello.bean.NewTrace;
-import hello.domain.Annotation;
-import hello.domain.NewAnnoation;
-import hello.domain.Trace;
-import hello.storage.CsvFilePrinter;
-import hello.storage.ParquetUtil;
-import hello.util.RemoteExecuteCommand;
+import hello.domain.NewAnno;
+import hello.domain.NewCsvFilePrinter;
+import hello.domain.NewTrace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 @Component
 public class KafkaConsumer {

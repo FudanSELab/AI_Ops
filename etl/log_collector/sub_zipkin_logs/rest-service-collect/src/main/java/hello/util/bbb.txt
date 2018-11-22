@@ -1,25 +1,309 @@
-dsdsds
-dsdss
-ds
-ds
-ds
-ds
-ds
+//    public static void main(String [] args) throws IOException {
+//        System.out.print("df----------------------------------");
+//        ParquetUtil.parquetReader("C:\\Users\\liuZOZO\\Desktop\\babs_open_data_year_1\\traces.parquet");
+//    }
 
-dsd
-s
-sd
 
-ds
-ds
-df
-f
-gyt
 
-xccxcx
-ytycx
-t
-ytyt
-yt
 
-yt
+private static final Logger log = LoggerFactory.getLogger(Application.class);
+
+
+    public static void readToBuffer(StringBuffer buffer, String filePath) throws IOException {
+        InputStream is = new FileInputStream(filePath);
+        String line; // 用来保存每行读取的内容
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        line = reader.readLine(); // 读取第一行
+        while (line != null) { // 如果 line 为空说明读完了
+            buffer.append(line); // 将读到的内容添加到 buffer 中
+            buffer.append("\n"); // 添加换行符
+            line = reader.readLine(); // 读取下一行
+        }
+        reader.close();
+        is.close();
+    }
+
+    public static void test() throws IOException {
+        System.out.println("==========KafkaConsumer - consumer============");
+
+        StringBuffer sb = new StringBuffer();
+        String filePath = "C:\\Users\\liuZOZO\\Desktop\\babs_open_data_year_1\\basic.json";
+        readToBuffer(sb, filePath);
+
+        Gson gson = new Gson();
+        Trace[] traces = gson.fromJson(sb.toString(), Trace[].class);
+
+        String annoCsvFile = "C:\\Users\\liuZOZO\\Desktop\\babs_open_data_year_1\\traces_anno22.csv";
+        String binnoCsvFile = "C:\\Users\\liuZOZO\\Desktop\\babs_open_data_year_1\\traces_binno22.csv";
+        CsvFilePrinter annoPrint = new CsvFilePrinter(annoCsvFile, true, true);
+        CsvFilePrinter binnoPrint = new CsvFilePrinter(binnoCsvFile, true, false);
+
+        for (int i = 0; i < traces.length; i++) {
+            NewAnnoation[] newAnnoations = new NewAnnoation[4];
+            newAnnoations[0] = new NewAnnoation();
+            newAnnoations[1] = new NewAnnoation();
+            newAnnoations[2] = new NewAnnoation();
+            newAnnoations[3] = new NewAnnoation();
+
+            for (int j = 0; traces[i].getAnnotations() != null && j < traces[i].getAnnotations().length; j++) {
+                Annotation tempAnno = traces[i].getAnnotations()[j];
+                if (tempAnno.getValue().equals("cs")) {
+                    newAnnoations[0] = new NewAnnoation(tempAnno.getTimestamp(), tempAnno.getValue(), tempAnno.getEndpoint().getServiceName(),
+                            tempAnno.getEndpoint().getIpv4(), tempAnno.getEndpoint().getPort());
+                }
+                if (tempAnno.getValue().equals("cr")) {
+                    newAnnoations[1] = new NewAnnoation(tempAnno.getTimestamp(), tempAnno.getValue(), tempAnno.getEndpoint().getServiceName(),
+                            tempAnno.getEndpoint().getIpv4(), tempAnno.getEndpoint().getPort());
+                }
+                if (tempAnno.getValue().equals("sr")) {
+                    newAnnoations[2] = new NewAnnoation(tempAnno.getTimestamp(), tempAnno.getValue(), tempAnno.getEndpoint().getServiceName(),
+                            tempAnno.getEndpoint().getIpv4(), tempAnno.getEndpoint().getPort());
+                }
+                if (tempAnno.getValue().equals("ss")) {
+                    newAnnoations[3] = new NewAnnoation(tempAnno.getTimestamp(), tempAnno.getValue(), tempAnno.getEndpoint().getServiceName(),
+                            tempAnno.getEndpoint().getIpv4(), tempAnno.getEndpoint().getPort());
+                }
+            }
+            String status_code  = "200";
+            String status_desc  = "0";
+            String res_exception = "0";
+            String[] status_codes = {"200","202","203","204","301","302","303","304","305","307","400","401","403","404","405","500","501","502","503","504","505"};
+
+            for (int j = 0; traces[i].getBinaryAnnotations() != null && j < traces[i].getBinaryAnnotations().length; j++) {
+
+                String key = traces[i].getBinaryAnnotations()[j].getKey();
+                String value = traces[i].getBinaryAnnotations()[j].getValue();
+
+                if( key!= null && key.contains("status_code") && Arrays.binarySearch(status_codes,value) >= 0){
+                    status_code = value;
+                }
+
+                if( key != null && key.contains("error")){
+                    status_desc = key;
+                    res_exception = value;
+                }
+
+                //写入 binno csv
+                binnoPrint.write(new String[]{
+                        traces[i].getId(),
+                        traces[i].getBinaryAnnotations()[j].getKey(),
+                        traces[i].getBinaryAnnotations()[j].getValue(),
+                        traces[i].getBinaryAnnotations()[j].getEndpoint().getServiceName(),
+                        traces[i].getBinaryAnnotations()[j].getEndpoint().getIpv4(),
+                        "" + traces[i].getBinaryAnnotations()[j].getEndpoint().getPort(),
+                });
+            }
+
+            //写入 anno csv
+            annoPrint.write(new String[]{
+                    traces[i].getTraceId(),
+                    traces[i].getId(),
+                    traces[i].getName(),
+                    traces[i].getParentId(),
+                    "" + traces[i].getTimestamp(),
+                    "" + traces[i].getDuration(),
+
+                    "" + newAnnoations[0].getTimestamp(),
+                    newAnnoations[0].getValue(),
+                    newAnnoations[0].getServiceName(),
+                    newAnnoations[0].getIpv4(),
+                    "" + newAnnoations[0].getPort(),
+
+                    "" + newAnnoations[1].getTimestamp(),
+                    newAnnoations[1].getValue(),
+                    newAnnoations[1].getServiceName(),
+                    newAnnoations[1].getIpv4(),
+                    "" + newAnnoations[1].getPort(),
+
+
+                    "" + newAnnoations[2].getTimestamp(),
+                    newAnnoations[2].getValue(),
+                    newAnnoations[2].getServiceName(),
+                    newAnnoations[2].getIpv4(),
+                    "" + newAnnoations[2].getPort(),
+
+
+                    "" + newAnnoations[3].getTimestamp(),
+                    newAnnoations[3].getValue(),
+                    newAnnoations[3].getServiceName(),
+                    newAnnoations[3].getIpv4(),
+                    "" + newAnnoations[3].getPort(),
+                    status_code,
+                    status_desc,
+                    res_exception
+            });
+
+        }
+        log.info("[===] The size of traces: " + traces.length);
+        log.info("[===] The TRACE-ID of traces: " + traces[0].getTraceId());
+
+        System.out.println("==========================");
+    }
+
+
+
+
+    public class HDFSApiDemo {
+        private static Boolean flag = true;
+        private static String annoCsvFile = "/parquet/traces_anno.csv";
+        private static String binnoCsvFile = "/parquet/traces_binno.csv";
+
+        public static  void getResourceData() {
+
+            while (flag) {
+                try {
+                    copyAnnoFileToHdfs();
+                    copyBinnoFileToHdfs();
+                    Thread.sleep(300000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    break;
+                }
+            }
+        }
+
+        public static String stopCopyFileToHDFS() {
+            flag = false;
+            return "Stop collecting resource data succeed!";
+        }
+
+        public static void copyAnnoFileToHdfs() {
+
+            try {
+                Configuration conf = new Configuration();
+                conf.set("fs.defaultFS", "hdfs://10.141.211.173:8020");
+                FileSystem fs = FileSystem.get(conf);
+                System.out.println("================  begin create Anno file =============");
+                Path newFile = new Path("hdfs://10.141.211.173:8020/user/admin/traces_anno.csv");
+
+                if (fs.exists(newFile)) {
+                    fs.delete(newFile, false);
+                }
+                fs.copyFromLocalFile(new Path(annoCsvFile), newFile);
+                System.out.println("================  create Anno file end =============");
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                System.out.println("Finally!");
+            }
+        }
+
+        public static void copyBinnoFileToHdfs() {
+
+            try {
+                Configuration conf = new Configuration();
+                conf.set("fs.defaultFS", "hdfs://10.141.211.173:8020");
+                FileSystem fs = FileSystem.get(conf);
+                System.out.println("================  begin create Binno file =============");
+                Path newFile = new Path("hdfs://10.141.211.173:8020/user/admin/traces_binno.csv");
+                if (fs.exists(newFile)) {
+                    fs.delete(newFile, false);
+                }
+                fs.copyFromLocalFile(new Path(binnoCsvFile), newFile);
+                System.out.println("================  create Binno file end =============");
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                System.out.println("Finally!");
+            }
+        }
+public static void parquetReader(String inPath) throws IOException{
+        GroupReadSupport readSupport = new GroupReadSupport();
+        ParquetReader.Builder<Group> reader= ParquetReader.builder(readSupport, new Path(inPath));
+        ParquetReader<Group> build = reader.build();
+        Group line=null;
+
+        while((line=build.read())!=null){
+//            Group time = line.getGroup("traceId", 0);
+            System.out.println("==================   begin parquet ======= ==== ");
+
+            System.out.println(line.getString("id", 0) + "\t" +
+                    line.getString("name", 0) + "\t" +
+                    line.getLong("timestamp", 0) + "\n"+
+
+                     line.getGroup("annotation", 0));
+
+            Group annotation0  = line.getGroup("annotation", 0);
+
+
+            System.out.println( "---eeeee----");
+            System.out.println(annotation0.getLong("timestamp",0) + "-------");
+            System.out.println(annotation0.getString("value",0) + "-------");
+            System.out.println(annotation0.getString("endpoint_serviceName",0) + "-------");
+            System.out.println(annotation0.getString("endpoint_ipv4",0) + "-------");
+            System.out.println(annotation0.getInteger("endpoint_port",0) + "-------");
+        }
+        System.out.println("==================   end  parquet ======= ==== ");
+        System.out.println("读取结束");
+    }
+
+    public static void parquetWriter(Trace trace) throws IOException{
+        MessageType schema = MessageTypeParser.parseMessageType(
+                "message Pair {\n" +
+                            " required binary traceId (UTF8);\n" +
+                            " required binary id (UTF8);\n" +
+                            " required binary name (UTF8);\n" +
+                            " required INT64 timestamp;\n" +
+                            " required INT64 duration;\n" +
+                            " repeated group annotation {\n"+
+                                " required INT64 timestamp;\n" +
+                                " required binary value (UTF8);\n" +
+                                " required binary endpoint_serviceName (UTF8);\n" +
+                                " required binary endpoint_ipv4 (UTF8);\n" +
+                                " required INT32 endpoint_port;\n" +
+                            "}\n"+
+                            " repeated group binaryAnnotation {\n"+
+                                " required binary key (UTF8);\n" +
+                                " required binary value (UTF8);\n" +
+                                " required binary endpoint_serviceName (UTF8);\n" +
+                                " required binary endpoint_ipv4 (UTF8);\n" +
+                                " required INT32 endpoint_port;\n" +
+                            "}\n"+
+                        "}");
+
+        GroupFactory factory = new SimpleGroupFactory(schema);
+
+        Path path = new Path("/parquet/traces.parquet");
+
+        Configuration configuration = new Configuration();
+
+        ExampleParquetWriter.Builder builder = ExampleParquetWriter
+
+                .builder(path).withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
+
+                .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
+
+                .withCompressionCodec(CompressionCodecName.SNAPPY)
+
+                .withConf(configuration).withType(schema);
+        ParquetWriter writer = builder.build();
+
+
+        Group span = factory.newGroup()
+                .append("traceId",trace.getTraceId())
+                .append("id",trace.getId())
+                .append("name",trace.getName())
+                .append("timestamp",trace.getTimestamp())
+                .append("duration",trace.getDuration());
+        for(int i = 0;i < trace.getAnnotations().length;i++){
+            Group annotation = span.addGroup("annotation");
+            annotation.append("timestamp", trace.getAnnotations()[i].getTimestamp());
+            annotation.append("value", trace.getAnnotations()[i].getValue());
+            annotation.append("endpoint_serviceName", trace.getAnnotations()[i].getEndpoint().getServiceName());
+            annotation.append("endpoint_ipv4", trace.getAnnotations()[i].getEndpoint().getIpv4());
+            annotation.append("endpoint_port", trace.getAnnotations()[i].getEndpoint().getPort());
+        }
+        for(int i = 0;i < trace.getBinaryAnnotations().length;i++){
+
+            Group binaryAnnotation = span.addGroup("binaryAnnotation");
+            binaryAnnotation.append("key", trace.getBinaryAnnotations()[i].getKey());
+            binaryAnnotation.append("value", trace.getBinaryAnnotations()[i].getValue());
+            binaryAnnotation.append("endpoint_serviceName", trace.getBinaryAnnotations()[i].getEndpoint().getServiceName());
+            binaryAnnotation.append("endpoint_ipv4", trace.getBinaryAnnotations()[i].getEndpoint().getIpv4());
+            binaryAnnotation.append("endpoint_port", trace.getBinaryAnnotations()[i].getEndpoint().getPort());
+        }
+
+        writer.write(span);
+
+        System.out.println("write end");
+        writer.close();

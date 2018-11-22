@@ -79,4 +79,30 @@ public class TempSQL {
         "0 y_is_valid,  0 y_issue_ms, 0  y_issue_dimension , " +
         "b.* from  temp_trace_anno a , temp_cpu_memory b " +
         "where   ((a.trace_id == a.span_id) And (a.span_timestamp <  b.ts_account_mongo_time) And  (a.span_timestamp+60000 > b.ts_account_mongo_time))";
+
+
+    // genSequencePart: 3 steps
+    public static String genStep1 =
+            "select trace_id ,test_trace_id, test_case_id, sr_timestamp s_time, ss_timestamp e_time, sr_servicename, " +
+                    "cr_servicename caller " +
+                    " from real_span_trace where  sr_servicename != cr_servicename ";
+
+    public static String genStep2 =
+            "select trace_id , caller , " +
+                    " concat_ws(',', collect_set(test_trace_id)) test_trace_id" +
+                    " concat_ws(',', collect_set(test_case_id)) test_case_id" +
+                    " concat_ws(',', collect_set(s_time)) s_time, " +
+                    " concat_ws(',', collect_set(e_time)) e_time, " +
+                    " concat_ws(',', collect_set(sr_servicename)) sr_servicename  " +
+                    " from view_clean_step1 group by trace_id, caller having count(sr_servicename) >= 2";
+
+    public static String genStep3 =
+            "select trace_id , " +
+                    "concat_ws('___' , collect_set(test_trace_id)) test_trace_id, " +
+                    "concat_ws('___' , collect_set(test_case_id)) test_case_id, " +
+                    "concat_ws('___' , collect_set(caller)) caller, " +
+                    " concat_ws('___', collect_set(s_time)) s_time, " +
+                    " concat_ws('___', collect_set(e_time)) e_time, " +
+                    " concat_ws('___', collect_set(sr_servicename)) sr_servicename  " +
+                    " from view_clean_step2  group by trace_id ";
 }

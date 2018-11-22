@@ -1,4 +1,4 @@
-package hello.bean;
+package hello.domain;
 
 public class NewBnno {
     private String key;

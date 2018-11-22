@@ -1,13 +1,20 @@
 package hello.aiopsrdd;
 
+import hello.domain.Copy_2_of_Service;
+import hello.domain.TimeUtil;
 import hello.domain.TraceAnnotation;
 import hello.domain.TracePassServcie;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.MapFunction;
 import org.apache.spark.sql.*;
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.StructType;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -208,4 +215,146 @@ public class AiOpsRDD {
         realTraceDataset = realTraceDataset.dropDuplicates(duplicasKey);
         realTraceDataset.write().saveAsTable("real_trace2");
     }
+
+    private static void genSequencePart(SparkSession spark) {
+        System.out.println("=======begin==============");
+
+        Dataset<Row> step1Dataset = spark.sql(TempSQL.genStep1);
+        String[] duplicasKey = new String[]{"trace_id", "sr_servicename", "caller"};
+        step1Dataset = step1Dataset.dropDuplicates(duplicasKey);
+        step1Dataset = step1Dataset.orderBy("s_time");
+        step1Dataset.createOrReplaceTempView("view_clean_step1");
+        //   step1Dataset.write().saveAsTable("genstep1");
+        System.out.println("====genStep1==-----");
+
+
+        Dataset<Row> step2Dataset = spark.sql(TempSQL.genStep2);
+        step2Dataset.createOrReplaceTempView("view_clean_step2");
+        //  step2Dataset.write().saveAsTable("genstep2");
+        System.out.println("====genStep2==-----");
+
+
+        Dataset<Row> step3Dataset = spark.sql(TempSQL.genStep3);
+        //   step3Dataset.write().saveAsTable("genStep3");
+        System.out.println("====genStep3==-----");
+
+        JavaRDD<Row> step3Rdd = step3Dataset.javaRDD().map(new Function<Row, Row>() {
+            @Override
+            public Row call(Row row) throws Exception {
+                // 最终返回的一行数据
+                List<String> rowDataList = new ArrayList<>();
+
+                // 一次循环一个trace
+                String trace_id = row.getAs("trace_id");
+                rowDataList.add(trace_id);
+
+                // 其他全是逗号分隔的 caller_service 0 对应 s_time 0 的数组
+                String[] test_trace_id = row.getAs("test_trace_id").toString().split("___");
+                String[] test_case_id = row.getAs("test_case_id").toString().split("___");
+                rowDataList.add(test_trace_id[0].split(",")[0]);
+                rowDataList.add(test_case_id[0].split(",")[0]);
+
+
+                String[] caller_service = row.getAs("caller").toString().split("___");
+                //  String [] s_time = row.getAs("s_time").toString().split("||");
+                String[] e_time = row.getAs("e_time").toString().split("___");
+                String[] sr_servicename = row.getAs("sr_servicename").toString().split("___");
+
+                // 保存所有的a_b == 0 or 1
+                Map<String, String> k_v = new HashMap<>();
+                // 总的开始遍历的次数了 =============================================
+                // 1 个trace 里面有多个caller
+                for (int i = 0; i < caller_service.length; i++) {
+                    // 拿到一个caller 经过的所有服务
+                    String[] temp_sr_service = sr_servicename[i].split(",");
+                    String[] temp_e_time = e_time[i].split(",");
+                    Map<String, String> service_etime_map = new HashMap<>();
+                    System.out.println(temp_sr_service.length + "009999------9--" + temp_e_time.length);
+                    // 得到一个list 的两两服务的组合， a_b, a_c, a_d
+                    if (temp_sr_service.length == temp_e_time.length) {
+                        for (int j = 0; j < temp_sr_service.length; j++) {
+                            temp_sr_service[j] = temp_sr_service[j]
+                                    .replaceAll("ts-", "")
+                                    .replaceAll("-", "_");
+                            // 对于一个caller 来将， key 值唯一
+                            service_etime_map.put(temp_sr_service[j], temp_e_time[j]);
+                        }
+                        List<String> map_pair_service = Copy_2_of_Service.callNoDoublePairService(temp_sr_service);
+
+                        // 前面按照开始时间排序了，现在只需要按照结束时间判断
+                        for (String pairSer : map_pair_service) {
+                            // 应该是每一个都会执行的
+                            String[] pairs = pairSer.split("__");
+                            String time1 = service_etime_map.get(pairs[0]);
+                            String time2 = service_etime_map.get(pairs[1]);
+                            k_v.put(pairSer, TimeUtil.compareTime(time1, time2) + "");
+                        }
+                    }
+                }
+
+
+                List<String> callerPairServiceAll = Copy_2_of_Service.callPairService(Copy_2_of_Service.callerServicePart2);
+                // 加 service  pair
+                for (int i = 0; i < callerPairServiceAll.size(); i++) {
+                    // k_v  里面可能没有 所有的，就为0 或 null
+                    String cloumnValue = k_v.get(callerPairServiceAll.get(i));
+                    if (cloumnValue == null || "".equals(cloumnValue))
+                        rowDataList.add("-1"); // 没调的写个0
+                    else
+                        rowDataList.add(cloumnValue);
+                }
+
+                // 加caller service
+                // caller
+                String[] callerServiceAll = Copy_2_of_Service.callerServicePart2;
+                // 每次都重新初始化
+                Map<String, String> columNameAndValueMap = new HashMap<>();
+                // 初始化map, 把所有的列都放进去
+                for (int i = 0; i < callerServiceAll.length; i++) {
+                    columNameAndValueMap.put(callerServiceAll[i], "");
+                }
+
+                for (int i = 0; i < caller_service.length; i++) {
+                    String tempService = caller_service[i].replaceAll("ts-", "")
+                            .replaceAll("-", "_");
+                    // admin_route
+                    if (columNameAndValueMap.containsKey(tempService)) {
+                        columNameAndValueMap.put(tempService, "1"); // 调的写个1
+                    }
+                }
+
+                for (int i = 0; i < callerServiceAll.length; i++) {
+                    String cloumnValue = columNameAndValueMap.get(callerServiceAll[i]);
+                    if (cloumnValue == null || "".equals(cloumnValue))
+                        rowDataList.add("0"); // 没调的写个0
+                    else
+                        rowDataList.add(cloumnValue);
+                }
+                System.out.println(rowDataList.size() + "==============---------------size1");
+                // 遍历 k_v 到list 里面即可
+                return RowFactory.create(rowDataList.toArray());
+            }
+        });
+
+
+        // 根据列名, 构建含有traceid 的seq 和 caller
+        List<String> seqCallerColumsAll = Copy_2_of_Service.execute();
+        // 表头
+        List<StructField> structFields = new ArrayList<>();
+        for (int i = 0; i < seqCallerColumsAll.size(); i++) {
+            structFields.add(DataTypes.createStructField(seqCallerColumsAll.get(i), DataTypes.StringType, true));
+        }
+        StructType structType = DataTypes.createStructType(structFields);
+        Dataset<Row> callerSerDataSet = spark.createDataFrame(step3Rdd, structType);
+        //  callerSerDataSet.printSchema();
+        // callerSerDataSet.select("trace_id").show();
+        //  System.out.println(callerSerDataSet.count() + "===================-----000");
+
+        callerSerDataSet.write().saveAsTable("seq_finall");
+        // callerSerDataSet.createOrReplaceTempView("view_caller_service");
+        System.out.println(seqCallerColumsAll.size() + "==============---------------size2"); // 1765
+        System.out.println("==========over===========");
+        //  return callerSerDataSet;
+    }
+
 }

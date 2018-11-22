@@ -1,4 +1,4 @@
-package hello.bean;
+package hello.domain;
 
 import com.Ostermiller.util.CSVPrint;
 import com.Ostermiller.util.CSVPrinter;

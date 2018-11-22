@@ -1,6 +1,4 @@
-package hello.bean;
-
-import hello.domain.EndPoint;
+package hello.domain;
 
 public class NewAnno {
 

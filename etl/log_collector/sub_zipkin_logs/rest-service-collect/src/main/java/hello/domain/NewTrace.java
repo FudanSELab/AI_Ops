@@ -1,12 +1,11 @@
 package hello.domain;
 
-public class Trace {
-
+public class NewTrace {
     private String traceId;
 
-    private String id;
-
     private String name;
+
+    private String id;
 
     private String parentId;
 
@@ -14,18 +13,17 @@ public class Trace {
 
     private long duration;
 
-    private Annotation[] annotations;
+    private NewAnno[] annotations;
 
-    private BinaryAnnotation[] binaryAnnotations;
+    private NewBnno[] binaryAnnotations;
 
-    public Trace() {
-        //Empty Constructor
+    public NewTrace() {
     }
 
-    public Trace(String traceId, String id, String name, String parentId, long timestamp, long duration, Annotation[] annotations, BinaryAnnotation[] binaryAnnotations) {
+    public NewTrace(String traceId, String name, String id, String parentId, long timestamp, long duration, NewAnno[] annotations, NewBnno[] binaryAnnotations) {
         this.traceId = traceId;
-        this.id = id;
         this.name = name;
+        this.id = id;
         this.parentId = parentId;
         this.timestamp = timestamp;
         this.duration = duration;
@@ -41,20 +39,20 @@ public class Trace {
         this.traceId = traceId;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getParentId() {
@@ -81,19 +79,19 @@ public class Trace {
         this.duration = duration;
     }
 
-    public Annotation[] getAnnotations() {
+    public NewAnno[] getAnnotations() {
         return annotations;
     }
 
-    public void setAnnotations(Annotation[] annotations) {
+    public void setAnnotations(NewAnno[] annotations) {
         this.annotations = annotations;
     }
 
-    public BinaryAnnotation[] getBinaryAnnotations() {
+    public NewBnno[] getBinaryAnnotations() {
         return binaryAnnotations;
     }
 
-    public void setBinaryAnnotations(BinaryAnnotation[] binaryAnnotations) {
+    public void setBinaryAnnotations(NewBnno[] binaryAnnotations) {
         this.binaryAnnotations = binaryAnnotations;
     }
 }

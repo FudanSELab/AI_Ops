@@ -1,28 +1,19 @@
 package hello.domain;
 
-public class EndPoint {
-
-    private String serviceName;
+public class NewEndpoint {
 
     private String ipv4;
 
     private int port;
 
-    public EndPoint() {
-        //Empty Constructor
+    private String serviceName;
+
+    public NewEndpoint() {
     }
 
-    public EndPoint(String serviceName, String ipv4, int port) {
-        this.serviceName = serviceName;
+    public NewEndpoint(String ipv4, int port, String serviceName) {
         this.ipv4 = ipv4;
         this.port = port;
-    }
-
-    public String getServiceName() {
-        return serviceName;
-    }
-
-    public void setServiceName(String serviceName) {
         this.serviceName = serviceName;
     }
 
@@ -40,5 +31,13 @@ public class EndPoint {
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 }
