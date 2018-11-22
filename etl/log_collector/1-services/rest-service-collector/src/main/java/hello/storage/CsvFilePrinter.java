@@ -21,7 +21,6 @@ public class CsvFilePrinter{
                 init();
             }
         }
-
     }
 
     public void init() throws IOException{

@@ -63,7 +63,6 @@ public class CsvFileParser{
         while(parser.hasMore()){
             System.out.print(parser.getByFieldName("time") + " ");//time 系表头数据
             System.out.print(parser.getByFieldName("total") + " ");
-
         }
         parser.close();
     }

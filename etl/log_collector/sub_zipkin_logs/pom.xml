@@ -10,7 +10,7 @@
     <version>1.0-0</version>
 
     <modules>
-        <!--<module>rest-service-collect</module>-->
+        <module>rest-service-collect</module>
         <!--<module>rest-service-hivespark</module>-->
         <module>rest-test-trainticket</module>
     </modules>

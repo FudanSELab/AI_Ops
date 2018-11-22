@@ -1,6 +1,0 @@
-spring:
-  application:
-    name: rest-service-geninvocation
-
-server:
-  port: 16007
