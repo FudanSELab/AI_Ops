@@ -1,14 +1,3 @@
-package com.spark
-
-import org.apache.spark.ml.{Pipeline, PipelineModel}
-import org.apache.spark.ml.classification.{DecisionTreeClassificationModel, RandomForestClassifier}
-import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
-import org.apache.spark.ml.feature.VectorAssembler
-import org.apache.spark.ml.tuning.{ParamGridBuilder, TrainValidationSplit}
-import org.apache.spark.sql.{DataFrame, SparkSession}
-
-import scala.util.Random
-
 object RF extends App {
   println("Hello, World!")
   //执行程序之前首先进行以下设定

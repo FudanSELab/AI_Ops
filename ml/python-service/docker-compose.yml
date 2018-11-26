@@ -4,7 +4,6 @@ services:
   rest-service-y:
     build: rest-service-python
     image: my-service-cluster/rest-service-python
-    # image: 10.141.212.25:5555/rest-service-python
     restart: always
     ports:
       - 16101:16101
