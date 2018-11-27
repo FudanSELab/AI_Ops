@@ -73,7 +73,7 @@ object SVM extends App {
     val accuracy = evaluator.evaluate(predictions)
     println(s"Test Error = ${1 - accuracy}")
 
-    pipelineModel.save("model/svm/pipeline_model")
+    pipelineModel.write.overwrite().save("model/svm/pipeline_model")
     val samePipelineModel = PipelineModel.load("model/svm/pipeline_model")
 
     // We use a ParamGridBuilder to construct a grid of parameters to search over.

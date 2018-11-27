@@ -69,7 +69,7 @@ object DT extends App {
   val treeModel = pipelineModel.stages(0).asInstanceOf[DecisionTreeClassificationModel]
   println("Model:\n" + treeModel.toDebugString)
 
-  pipelineModel.save("model/dt/pipeline_model")
+  pipelineModel.write.overwrite().save("model/dt/pipeline_model")
   val samePipelineModel = PipelineModel.load("model/dt/pipeline_model")
 
   // We use a ParamGridBuilder to construct a grid of parameters to search over.
@@ -78,10 +78,6 @@ object DT extends App {
   val paramGrid = new ParamGridBuilder()
     .addGrid(dt.impurity, Seq("gini", "entropy"))
     .addGrid(dt.maxDepth, Seq(5, 20))
-    .addGrid(dt.maxBins, Seq(40, 200))
-    .addGrid(dt.minInfoGain, Seq(0.0, 0.05))
-    .addGrid(dt.maxDepth, Seq(5, 20))
-    .addGrid(dt.minInstancesPerNode, Seq(10, 30))
     .build()
 
   // In this case the estimator is simply the linear regression.
@@ -114,7 +110,7 @@ object DT extends App {
   // Make predictions on test data. model is the model with combination of parameters
   // that performed best.
   bestPipelineModel.transform(testData)
-    .select("features", "y1", "prediction")
+//    .select("features", "y1", "prediction")
     .show()
 }
 

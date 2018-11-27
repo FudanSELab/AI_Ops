@@ -1,11 +1,12 @@
 package com.spark
 
 import org.apache.spark.ml.{Pipeline, PipelineModel}
-import org.apache.spark.ml.classification.{GBTClassificationModel, GBTClassifier}
+import org.apache.spark.ml.classification.{GBTClassifier, OneVsRest, OneVsRestModel}
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
-import org.apache.spark.ml.feature.{VectorAssembler}
+import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.ml.tuning.{ParamGridBuilder, TrainValidationSplit}
 import org.apache.spark.sql.{DataFrame, SparkSession}
+
 import scala.util.Random
 
 
@@ -37,7 +38,7 @@ object GBTs extends App {
   val only_feature_list = all_columns_list.slice(1, all_columns_list.length-1)
 
   val assembler = new VectorAssembler()
-    .setInputCols(only_feature_list)
+    .setInputCols(only_feature_list)  
     .setOutputCol("features")
   val vecDF: DataFrame = assembler.transform(dataDF)
   vecDF.show(5)
@@ -50,11 +51,18 @@ object GBTs extends App {
   val gbt = new GBTClassifier()
     .setLabelCol("y1")
     .setFeaturesCol("features")
-    .setMaxIter(10)
+    .setMaxIter(3)
     .setFeatureSubsetStrategy("auto")
     .setPredictionCol("prediction")
 
-  val pipeline = new Pipeline().setStages(Array(gbt))
+  // Instantiate the One Vs Rest Classifier.
+  val ovr = new OneVsRest()
+    .setClassifier(gbt)
+    .setLabelCol("y1")
+    .setFeaturesCol("features")
+    .setPredictionCol("prediction")
+
+  val pipeline = new Pipeline().setStages(Array(ovr))
   val pipelineModel = pipeline.fit(trainingData)
 
   val predictions = pipelineModel.transform(testData)
@@ -68,10 +76,8 @@ object GBTs extends App {
   val accuracy = evaluator.evaluate(predictions)
   println("Test Error = " + (1.0 - accuracy))
 
-  val treeModel = pipelineModel.stages(0).asInstanceOf[GBTClassificationModel]
-  println("Learned model:\n" + treeModel.toDebugString)
 
-  pipelineModel.save("model/gbts/pipeline_model")
+  pipelineModel.write.overwrite().save("model/gbts/pipeline_model")
   val samePipelineModel = PipelineModel.load("model/gbts/pipeline_model")
 
   // We use a ParamGridBuilder to construct a grid of parameters to search over.
@@ -100,7 +106,7 @@ object GBTs extends App {
   val validatorModel = trainValidationSplit.fit(trainingData)
 
   val bestPipelineModel = validatorModel.bestModel.asInstanceOf[PipelineModel]
-  val bestTreeModel = bestPipelineModel.stages(0).asInstanceOf[GBTClassificationModel]
+  val bestOVRModel = bestPipelineModel.stages(0).asInstanceOf[OneVsRestModel]
 
   val paramsAndMetrics = validatorModel.validationMetrics
     .zip(validatorModel.getEstimatorParamMaps).sortBy(-_._1)
@@ -113,6 +119,5 @@ object GBTs extends App {
   // Make predictions on test data. model is the model with combination of parameters
   // that performed best.
   bestPipelineModel.transform(testData)
-    .select("features", "y1", "prediction")
     .show()
 }

@@ -69,14 +69,13 @@ object RF extends App {
   val treeModel = pipelineModel.stages(0).asInstanceOf[RandomForestClassificationModel]
   println("Model: \n" + treeModel.toDebugString)
 
-  pipelineModel.save("model/rf/pipeline_model")
+  pipelineModel.write.overwrite().save("model/rf/pipeline_model")
   val samePipelineModel = PipelineModel.load("model/rf/pipeline_model")
 
   // We use a ParamGridBuilder to construct a grid of parameters to search over.
   // TrainValidationSplit will try all combinations of values and determine best model using
   // the evaluator.
   val paramGrid = new ParamGridBuilder()
-    .addGrid(rf.maxDepth, Seq(5, 20))
     .addGrid(rf.maxDepth, Seq(5, 20))
     .build()
 
