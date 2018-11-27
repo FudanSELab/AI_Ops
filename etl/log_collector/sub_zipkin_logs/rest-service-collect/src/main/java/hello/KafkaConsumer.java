@@ -50,7 +50,12 @@ public class KafkaConsumer {
             }
 
             //  sidecar~10.244.4.70~ts-config-service-646c4b8dc5-z6cv2.default~default.svc.cluster.local
+            String user_agent = traces[i].getBinaryAnnotations()[6].getValue();
+            user_agent = user_agent.replaceAll("\\[", "").replaceAll("]", "");
             //
+            if (!user_agent.contains(",")) {
+                continue;
+            }
             //写入  csv
             annoPrint.write(new String[]{
                     traces[i].getTraceId(),
@@ -79,8 +84,10 @@ public class KafkaConsumer {
                     traces[i].getBinaryAnnotations()[4].getValue(),
                     traces[i].getBinaryAnnotations()[5].getValue(),
                     //traces[i].getBinaryAnnotations()[6].getValue(), // user_agent
-                    "test_trace_id" + i,
-                    "test_case_id" + i,
+                    user_agent.split(",")[1],
+                    user_agent.split(",")[0],
+//                    "test_trace_id" + i,
+//                    "test_case_id" + i,
 
                     traces[i].getBinaryAnnotations()[7].getValue(),
                     traces[i].getBinaryAnnotations()[8].getValue(),
@@ -89,7 +96,6 @@ public class KafkaConsumer {
                     traces[i].getBinaryAnnotations()[11].getValue(),
                     traces[i].getBinaryAnnotations()[12].getValue()
             });
-
         }
         log.info("[===] The size of traces: " + traces.length);
         log.info("[===] The TRACE-ID of traces: " + traces[0].getTraceId());

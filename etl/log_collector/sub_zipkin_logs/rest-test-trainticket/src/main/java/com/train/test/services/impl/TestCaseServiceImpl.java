@@ -1,9 +1,10 @@
-package com.train.test.services;
+package com.train.test.services.impl;
 
-import com.train.test.bean.TestFlowReporter;
-import com.train.test.bean.TestResponse;
+import com.train.test.entity.TestFlowReporter;
+import com.train.test.entity.TestResponse;
 import com.train.test.csvutil.CsvFileTest;
 import com.train.test.domain.Testcase;
+import com.train.test.services.TestCaseService;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;

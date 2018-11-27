@@ -1,6 +1,6 @@
 package com.train.test.services;
 
-import com.train.test.bean.TestResponse;
+import com.train.test.entity.TestResponse;
 
 import java.io.IOException;
 

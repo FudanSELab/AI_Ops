@@ -1,6 +1,6 @@
 package com.train.test.domain;
 
-import com.train.test.bean.Order;
+import com.train.test.entity.Order;
 
 import java.util.ArrayList;
 

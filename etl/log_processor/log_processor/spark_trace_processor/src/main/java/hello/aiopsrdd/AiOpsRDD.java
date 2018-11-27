@@ -12,10 +12,7 @@ import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class AiOpsRDD {
@@ -30,11 +27,13 @@ public class AiOpsRDD {
                 .master("yarn")
                 .getOrCreate();
 
-        filter(spark);
+         filter(spark);
+
 
         spark.close();
         System.out.println("==============spark sql closed====");
     }
+
 
 
     // real_trace_pass_view   real_cpu_memory_view
@@ -129,19 +128,25 @@ public class AiOpsRDD {
         genRealInvocation(spark);
 
         // trace and trace pass service
-        // before_trace_view
+        // gen: before_trace_view
         genBeforeTrace(spark);
-
-
         // real_cpu_memory_view
         cpuMemory(spark);
-
+        // real_trace_view
         genRealTrace(spark);
+        // test_traces_view real_trace_view
+        genTestTrace(spark);
+        genFinallTrace(spark);
 
     }
 
+    private static void genTestTrace(SparkSession spark) {
+        Dataset<Row> testTraceDataSet = connectDBUtil(spark, "ai_ops_liutest", "test_trace");
+        testTraceDataSet.createOrReplaceTempView("test_traces_view");
+    }
 
-    public static void genRealInvocation(SparkSession spark) {
+
+    private static void genRealInvocation(SparkSession spark) {
         Dataset<Row> invocationDataset = spark.sql(TempSQL.genInvocation);
         //invocationDataset.show();
         //invocationDataset.printSchema();
@@ -150,7 +155,7 @@ public class AiOpsRDD {
         System.out.println("---------------  real_invocation table created ---------------");
     }
 
-    public static Dataset<TracePassServcie> calTracePassService(SparkSession spark) {
+    private static Dataset<TracePassServcie> calTracePassService(SparkSession spark) {
         //  read trace passby service, gen new trace_pass_service   by  real_span_trace
         Dataset<Row> tracePassService = spark.sql(TempSQL.getTracePassService);
         Encoder<TracePassServcie> TracePassEncoder = Encoders.bean(TracePassServcie.class);
@@ -207,14 +212,25 @@ public class AiOpsRDD {
         beforeTraceDataset.createOrReplaceTempView("before_trace_view");
     }
 
-    public static void genRealTrace(SparkSession spark){
+    private static void genRealTrace(SparkSession spark){
         Dataset<Row> realTraceDataset = spark.sql(TempSQL.genRealTrace);
         //realTraceDataset.printSchema();
        // realTraceDataset.show();
-        String[] duplicasKey = new String[]{"trace_id"};
-        realTraceDataset = realTraceDataset.dropDuplicates(duplicasKey);
-        realTraceDataset.write().saveAsTable("real_trace2");
+       // String[] duplicasKey = new String[]{"trace_id"};
+      //  realTraceDataset = realTraceDataset.dropDuplicates(duplicasKey);
+        realTraceDataset.createOrReplaceTempView("real_trace_view");
+
+      //  realTraceDataset.write().saveAsTable("real_trace2");
     }
+
+    private static void genFinallTrace(SparkSession spark) {
+        Dataset<Row> finallTrace = spark.sql(TempSQL.genFinallTraceSQL);
+        //invocationDataset.write().saveAsTable("real_invocation");
+        System.out.println("---------------  real_invocation table created ---------------");
+    }
+
+
+
 
     private static void genSequencePart(SparkSession spark) {
         System.out.println("=======begin==============");
@@ -355,6 +371,19 @@ public class AiOpsRDD {
         System.out.println(seqCallerColumsAll.size() + "==============---------------size2"); // 1765
         System.out.println("==========over===========");
         //  return callerSerDataSet;
+    }
+
+
+    private static Dataset<Row> connectDBUtil(SparkSession spark, String dbName, String tableName) {
+        String url = "jdbc:mysql://10.141.212.21:3306/"+ dbName +"?useUnicode=true&characterEncoding=utf-8";
+        Dataset<Row> jdbcDF = spark.read().format("jdbc")
+                .option("url",url)
+                .option("dbtable", tableName)
+                .option("user","root")
+                .option("password","root")
+                .load();
+        jdbcDF.printSchema();
+        return jdbcDF;
     }
 
 }

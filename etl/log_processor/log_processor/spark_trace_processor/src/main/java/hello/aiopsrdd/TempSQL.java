@@ -16,6 +16,7 @@ public class TempSQL {
             "from  original_span_table a, original_span_table b where (a.span_id == b.span_id And a.parent_id == b.parent_id And a.anno_a1_value == 'cs' And a.parent_id  != '' And  (b.span_timestamp == ''  or b.span_timestamp == '0')) or (a.span_id == b.span_id And a.parent_id == b.parent_id And a.anno_a1_value == 'sr' And a.parent_id  == '')";
 
     //  由临时表 real_span_trace 产生 invocation
+    // gen real_invocation_view
     public static String genInvocation =
             "select  trace_id, span_id, span_timestamp, test_trace_id, test_case_id," +
                     "abs(sr_timestamp - cs_timestamp)  req_latency, parent_id, cs_servicename req_service," +
@@ -35,6 +36,7 @@ public class TempSQL {
             "select trace_id, concat_ws(',', collect_set(cr_servicename)) ts_ui_dashboard_included, concat_ws(',', collect_set(sr_servicename)) ts_login_service_included from real_span_trace group by trace_id";
 
     // 合并invocation 和 trace_pass_service
+    // gen: before_trace_view
     public static String genBeforeTrace =
             "select a.test_trace_id, a.test_case_id, a.req_service entry_service, " +
                     " a.req_api entry_api, a.span_timestamp  entry_timestamp, (a.span_timestamp + a.duration) exit_timestamp, " +
@@ -44,11 +46,13 @@ public class TempSQL {
 
     // real_invocation_view ,  cpu_memory_view , real_trace_pass_view  产生 Trace 表
     public static String genRealTrace  =
-            "select a.*, b.* , 0 y_exec_result, 0 y_issue_dim_type, 0 y_issue_dim_content  from  before_trace_view a, real_cpu_memory_view  b  " +
+            "select a.*, b.*  from  before_trace_view a, real_cpu_memory_view  b  " +
                     "where (a.entry_timestamp + 60000) > b.ts_travel_service_start_time";
 
-
-
+  // test_traces_view real_trace_view
+   public static String genFinallTraceSQL =
+           "select a.*, b.expected_result , b.is_error y_exec_result , " +
+                   " b.y_issue_ms, b.y_issue_dim_type, b.y_issue_dim_content  from real_trace_view a, test_traces_view b  ";
 
 
 
