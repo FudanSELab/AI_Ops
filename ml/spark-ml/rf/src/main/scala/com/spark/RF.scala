@@ -1,9 +1,18 @@
+import org.apache.spark.ml.{Pipeline, PipelineModel}
+import org.apache.spark.ml.classification.{DecisionTreeClassificationModel, RandomForestClassificationModel, RandomForestClassifier}
+import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
+import org.apache.spark.ml.feature.VectorAssembler
+import org.apache.spark.ml.tuning.{ParamGridBuilder, TrainValidationSplit}
+import org.apache.spark.sql.{DataFrame, SparkSession}
+
+import scala.util.Random
+
 object RF extends App {
   println("Hello, World!")
   //执行程序之前首先进行以下设定
-  val master = "yarn"
+  val master = "local"
+  val filePath = "mock.csv"
   val appName = "Spark Random Forest"
-  val filePath = "hdfs://10.141.211.173:8020/user/admin/mock.csv"
 
   println("[Run]Random Forest Main")
 
@@ -63,10 +72,10 @@ object RF extends App {
   println("Test Error = " + (1.0 - accuracy))
 
   // 把整个Pipeline模型的第一部分拿出来（pipeline根据之前的设定第一个为决策树模型），输出决策树判别细节
-  val treeModel = pipelineModel.stages(0).asInstanceOf[RandomForestClassifier]
+  val treeModel = pipelineModel.stages(0).asInstanceOf[RandomForestClassificationModel]
 
   //模型的读取与存储
-  pipelineModel.save("model/dt/pipeline_model")
+  pipelineModel.save("model/rf/pipeline_model")
   val samePipelineModel = PipelineModel.load("model/rf/pipeline_model")
 
   // 寻找最佳超参数：一下部分用于寻找最优超参数
@@ -97,7 +106,7 @@ object RF extends App {
 
   // 从训练好的Validator中拿到最好的PipelineModel和DTModel
   val bestPipelineModel = validatorModel.bestModel.asInstanceOf[PipelineModel]
-  val bestTreeModel = bestPipelineModel.stages(0).asInstanceOf[DecisionTreeClassificationModel]
+  val bestTreeModel = bestPipelineModel.stages(0).asInstanceOf[RandomForestClassificationModel]
 
   //输出Validor中各个模型的参数
   val paramsAndMetrics = validatorModel.validationMetrics

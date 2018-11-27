@@ -8,12 +8,14 @@ import org.apache.spark.ml.{Pipeline, PipelineModel}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import scala.util.Random
 
-object DT extends App {
+object SVM extends App {
 
     //执行程序之前首先进行以下设定
-    val master = "yarn"
+//    val master = "yarn"
+//    val filePath = "hdfs://10.141.211.173:8020/user/admin/mock.csv"
+    val master = "local"
+    val filePath = "mock.csv"
     val appName = "Spark SQL basic example"
-    val filePath = "hdfs://10.141.211.173:8020/user/admin/mock.csv"
 
     println("[Run]Decision Main")
 

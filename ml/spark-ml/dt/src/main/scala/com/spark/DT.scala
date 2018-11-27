@@ -12,9 +12,11 @@ import scala.util.Random
 object DT extends App {
   println("Hello, World!")
   //执行程序之前首先进行以下设定
-  val master = "yarn"
+//  val master = "yarn"
+//  val filePath = "hdfs://10.141.211.173:8020/user/admin/mock.csv"
+  val master = "local"
+  val filePath = "mock.csv"
   val appName = "Spark Decision Tree"
-  val filePath = "hdfs://10.141.211.173:8020/user/admin/mock.csv"
 
   println("[Run]Decision Main")
 
