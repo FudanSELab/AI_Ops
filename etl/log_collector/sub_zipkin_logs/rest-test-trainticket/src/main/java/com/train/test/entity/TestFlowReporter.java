@@ -1,4 +1,4 @@
-package com.train.test.bean;
+package com.train.test.entity;
 
 import org.testng.*;
 import org.testng.xml.XmlSuite;

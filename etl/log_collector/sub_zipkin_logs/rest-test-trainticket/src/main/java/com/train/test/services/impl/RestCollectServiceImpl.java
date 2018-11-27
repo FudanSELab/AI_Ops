@@ -1,7 +1,8 @@
-package com.train.test.services;
+package com.train.test.services.impl;
 
 import com.train.test.csvutil.CSVUtils;
 import com.train.test.queue.MsgSender;
+import com.train.test.services.RestCollectService;
 import org.apache.commons.collections.MapUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -71,11 +72,14 @@ public class RestCollectServiceImpl implements RestCollectService {
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         // request to get service config data
-        LinkedHashMap<String, Object> responseServiceData = restTemplate.getForObject("http://10.141.212.140:18898/api/getServicesAndConfig/cluster1", LinkedHashMap.class);
+        LinkedHashMap<String, Object> responseServiceData =
+                restTemplate.getForObject("http://10.141.212.140:18898/api/getServicesAndConfig/cluster1", LinkedHashMap.class);
         // request to get service pod data
-        LinkedHashMap<String, Object> responsePodData = restTemplate.getForObject("http://10.141.212.140:18898/api/podMetrics/cluster1", LinkedHashMap.class);
+        LinkedHashMap<String, Object> responsePodData =
+                restTemplate.getForObject("http://10.141.212.140:18898/api/podMetrics/cluster1", LinkedHashMap.class);
         // request to get node data
-        LinkedHashMap<String, Object> responseNodeData = restTemplate.getForObject("http://10.141.212.140:18898/api/nodeMetrics/cluster1", LinkedHashMap.class);
+        LinkedHashMap<String, Object> responseNodeData =
+                restTemplate.getForObject("http://10.141.212.140:18898/api/nodeMetrics/cluster1", LinkedHashMap.class);
 
 
         try {

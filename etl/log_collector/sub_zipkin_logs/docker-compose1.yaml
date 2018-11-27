@@ -111,30 +111,30 @@ services:
     networks:
       - my-network
 
-  rabbitmq:
-    image: rabbitmq:management
-    ports:
-    - 5672:5672
-    - 15672:15672
-    networks:
-    - my-network
-  chrome:
-      image: selenium/node-chrome:3.11.0-californium
-      volumes:
-        - /dev/shm:/dev/shm
-      depends_on:
-        - hub
-      environment:
-        HUB_HOST: hub
-      networks:
-        - my-network
-
-  hub:
-    image: selenium/hub:3.11.0-californium
-    ports:
-      - 4444:4444
-    networks:
-      - my-network
+#  rabbitmq:
+#    image: rabbitmq:management
+#    ports:
+#    - 5672:5672
+#    - 15672:15672
+#    networks:
+#    - my-network
+#  chrome:
+#      image: selenium/node-chrome:3.11.0-californium
+#      volumes:
+#        - /dev/shm:/dev/shm
+#      depends_on:
+#        - hub
+#      environment:
+#        HUB_HOST: hub
+#      networks:
+#        - my-network
+#
+#  hub:
+#    image: selenium/hub:3.11.0-californium
+#    ports:
+#      - 4444:4444
+#    networks:
+#      - my-network
 networks:
   my-network:
     # driver: overlay

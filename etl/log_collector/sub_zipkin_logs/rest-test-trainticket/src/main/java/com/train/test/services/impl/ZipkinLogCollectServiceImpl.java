@@ -1,19 +1,21 @@
-package com.train.test.services;
+package com.train.test.services.impl;
 
-
+import com.train.test.services.ZipkinLogCollectService;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
-public class HDFSApiService {
-
+@Service
+public class ZipkinLogCollectServiceImpl implements ZipkinLogCollectService {
     private static Boolean flag = true;
-    private static String span_CsvFile = "/parquet/new_span_trace.csv";
+    private static String span_CsvFile = "/home/parquet/new_span_trace.csv";
     private static Long countNum = 0L;
-    public static  void getResourceData() {
 
+    @Override
+    public void startCopyLogToHDFS() {
         while (flag) {
             try {
                 System.out.println("-----------copy-"+ countNum + "-times----------");
@@ -27,7 +29,8 @@ public class HDFSApiService {
         }
     }
 
-    public static String stopCopyFileToHDFS() {
+    @Override
+    public String stopCopyLogToHDFS() {
         flag = false;
         return "Stop collecting resource data succeed!";
     }

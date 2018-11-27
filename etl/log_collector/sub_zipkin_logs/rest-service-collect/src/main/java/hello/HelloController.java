@@ -1,6 +1,5 @@
-package hello.controller;
+package hello;
 
-import hello.Application;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +10,7 @@ import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 
 @RestController
-public class ZipkinKafkaReceiverController {
+public class HelloController {
 
     private static final Logger log = LoggerFactory.getLogger(Application.class);
     @Autowired

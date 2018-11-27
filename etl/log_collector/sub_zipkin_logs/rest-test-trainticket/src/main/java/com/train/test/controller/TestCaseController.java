@@ -1,19 +1,10 @@
 package com.train.test.controller;
 
-import com.train.test.bean.TestFlowReporter;
-import com.train.test.bean.TestResponse;
-import com.train.test.csvutil.CsvFileTest;
-import com.train.test.domain.CheckResult;
-import com.train.test.domain.Testcase;
+import com.train.test.entity.TestResponse;
 import com.train.test.services.TestCaseService;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
-import org.testng.ITestNGListener;
-import org.testng.TestNG;
 
 import java.io.IOException;
 

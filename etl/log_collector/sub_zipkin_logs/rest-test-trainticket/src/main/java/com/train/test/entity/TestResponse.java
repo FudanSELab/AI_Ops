@@ -1,4 +1,4 @@
-package com.train.test.bean;
+package com.train.test.entity;
 
 import java.util.List;
 
