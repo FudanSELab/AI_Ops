@@ -12,6 +12,7 @@
         <module>svm</module>
         <module>dt</module>
         <module>rf</module>
+        <module>gbt</module>
     </modules>
 
     <properties>

@@ -1,23 +1,23 @@
 package com.spark
 
-import org.apache.spark.ml.classification.{DecisionTreeClassificationModel, DecisionTreeClassifier}
-import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
-import org.apache.spark.ml.feature.VectorAssembler
-import org.apache.spark.ml.tuning.{ParamGridBuilder, TrainValidationSplit}
 import org.apache.spark.ml.{Pipeline, PipelineModel}
+import org.apache.spark.ml.classification.{GBTClassificationModel, GBTClassifier}
+import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
+import org.apache.spark.ml.feature.{VectorAssembler}
+import org.apache.spark.ml.tuning.{ParamGridBuilder, TrainValidationSplit}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import scala.util.Random
 
 
-object DT extends App {
+object GBTs extends App {
 
-//  val master = "yarn"
-//  val filePath = "hdfs://10.141.211.173:8020/user/admin/mock.csv"
+  //  val master = "yarn"
+  //  val filePath = "hdfs://10.141.211.173:8020/user/admin/mock.csv"
   val master = "local"
   val filePath = "mock.csv"
-  val appName = "Spark Decision Tree"
+  val appName = "Spark Gradient-boosted tree classifier"
 
-  println("[Run]Decision Main")
+  println("[Run]GBTs Main")
 
   val spark = SparkSession
     .builder()
@@ -31,6 +31,7 @@ object DT extends App {
     .option("inferSchema", "true")
     .option("header", "true")
     .load(filePath)
+
 
   val all_columns_list = dataDF.columns
   val only_feature_list = all_columns_list.slice(1, all_columns_list.length-1)
@@ -46,13 +47,14 @@ object DT extends App {
 
   val Array(trainingData, testData) = featureAndLabel.randomSplit(Array(0.8, 0.2))
 
-  val dt = new DecisionTreeClassifier()
-    .setSeed(Random.nextLong())
+  val gbt = new GBTClassifier()
     .setLabelCol("y1")
     .setFeaturesCol("features")
+    .setMaxIter(10)
+    .setFeatureSubsetStrategy("auto")
     .setPredictionCol("prediction")
 
-  val pipeline = new Pipeline().setStages(Array(dt))
+  val pipeline = new Pipeline().setStages(Array(gbt))
   val pipelineModel = pipeline.fit(trainingData)
 
   val predictions = pipelineModel.transform(testData)
@@ -66,22 +68,19 @@ object DT extends App {
   val accuracy = evaluator.evaluate(predictions)
   println("Test Error = " + (1.0 - accuracy))
 
-  val treeModel = pipelineModel.stages(0).asInstanceOf[DecisionTreeClassificationModel]
-  println("Model:\n" + treeModel.toDebugString)
+  val treeModel = pipelineModel.stages(0).asInstanceOf[GBTClassificationModel]
+  println("Learned model:\n" + treeModel.toDebugString)
 
-  pipelineModel.save("model/dt/pipeline_model")
-  val samePipelineModel = PipelineModel.load("model/dt/pipeline_model")
+  pipelineModel.save("model/gbts/pipeline_model")
+  val samePipelineModel = PipelineModel.load("model/gbts/pipeline_model")
 
   // We use a ParamGridBuilder to construct a grid of parameters to search over.
   // TrainValidationSplit will try all combinations of values and determine best model using
   // the evaluator.
   val paramGrid = new ParamGridBuilder()
-    .addGrid(dt.impurity, Seq("gini", "entropy"))
-    .addGrid(dt.maxDepth, Seq(5, 20))
-    .addGrid(dt.maxBins, Seq(40, 200))
-    .addGrid(dt.minInfoGain, Seq(0.0, 0.05))
-    .addGrid(dt.maxDepth, Seq(5, 20))
-    .addGrid(dt.minInstancesPerNode, Seq(10, 30))
+    .addGrid(gbt.impurity, Seq("gini", "entropy"))
+    .addGrid(gbt.maxDepth, Seq(5, 10, 20))
+    .addGrid(gbt.maxIter, Seq(5, 10, 20))
     .build()
 
   // In this case the estimator is simply the linear regression.
@@ -101,7 +100,7 @@ object DT extends App {
   val validatorModel = trainValidationSplit.fit(trainingData)
 
   val bestPipelineModel = validatorModel.bestModel.asInstanceOf[PipelineModel]
-  val bestTreeModel = bestPipelineModel.stages(0).asInstanceOf[DecisionTreeClassificationModel]
+  val bestTreeModel = bestPipelineModel.stages(0).asInstanceOf[GBTClassificationModel]
 
   val paramsAndMetrics = validatorModel.validationMetrics
     .zip(validatorModel.getEstimatorParamMaps).sortBy(-_._1)
@@ -117,5 +116,3 @@ object DT extends App {
     .select("features", "y1", "prediction")
     .show()
 }
-
-
