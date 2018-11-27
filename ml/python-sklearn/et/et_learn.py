@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.ensemble import ExtraTreesClassifier
 
-features_label = pd.read_csv("mock4.csv", header=0, index_col=None)
+features_label = pd.read_csv("../mock4.csv", header=0, index_col=None)
 X, Y = features_label, features_label.pop("y1")
 
 clf = ExtraTreesClassifier(n_estimators=10,
