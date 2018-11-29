@@ -11,7 +11,7 @@ import java.io.IOException;
 @Service
 public class ZipkinLogCollectServiceImpl implements ZipkinLogCollectService {
     private static Boolean flag = true;
-    private static String span_CsvFile = "/home/parquet/new_span_trace.csv";
+    private static String span_CsvFile = "/parquet/new_span_trace.csv";
     private static Long countNum = 0L;
 
     @Override
