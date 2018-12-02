@@ -11,6 +11,7 @@ import org.apache.spark.sql.*;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
+import org.apache.spark.storage.StorageLevel;
 
 import java.util.*;
 
@@ -21,19 +22,20 @@ public class AiOpsRDD {
         System.out.println("==============spark sql ====");
         SparkSession spark = SparkSession
                 .builder()
-                .config("spark.debug.maxToStringFields", 1000)
+                .config("spark.debug.maxToStringFields", 5000)
+                .config("spark.driver.maxResultSize", "4g")
                 .config("spark.sql.crossJoin.enabled", true)
                 .appName("java spark sql")
                 .master("yarn")
                 .getOrCreate();
 
-         filter(spark);
-
-
+         // filter(spark);
+      //  genSequencePart(spark);
+        // genTraceCombineSequence(spark);
+         genTraceCombineSequence(spark);
         spark.close();
         System.out.println("==============spark sql closed====");
     }
-
 
 
     // real_trace_pass_view   real_cpu_memory_view
@@ -114,35 +116,72 @@ public class AiOpsRDD {
         realSpanDataset = realSpanDataset.dropDuplicates(duplicasKey);
 
         //step 5 :  create real span cs  cr  ss  sr
-       // realSpanDataset.printSchema();
+        // realSpanDataset.printSchema();
         realSpanDataset.createOrReplaceTempView("real_span_trace");
         // realSpanDataset.write().saveAsTable("real_span_trace");
         System.out.println("---------------  real_span_trace table created ---------------");
 
         // step   : get trace pass service , user real_span_trace , gen tempView  real_trace_pass
         // real_trace_pass_view
-        calTracePassService(spark);
+      //===  callerTracePassService(spark);
 
         // step 6 : create real_invocation_view
         // real_invocation_view
-        genRealInvocation(spark);
+     //====   genRealInvocation(spark);
 
         // trace and trace pass service
         // gen: before_trace_view
-        genBeforeTrace(spark);
+     // ===   genBeforeTrace(spark);
         // real_cpu_memory_view
-        cpuMemory(spark);
+     // ===   cpuMemory(spark);
         // real_trace_view
-        genRealTrace(spark);
-        // test_traces_view real_trace_view
-        genTestTrace(spark);
-        genFinallTrace(spark);
+    // ===    genRealTrace(spark);
 
+
+        // test_traces_view real_trace_view
+        // 查询mysql
+     // ===   genTestTrace(spark);
+
+
+        // finall_trace table
+        // trace_final_view
+      // ===  genFinallTrace(spark);
+
+        // sequence_view  table
+       // realSpanDataset.createOrReplaceTempView("real_span_trace");
+        genSequencePart(spark);
+
+
+        // form sequence_view  trace_final_view
+        // to trace_final
+     // ===   genTraceCombineSequence(spark);
+    }
+    private static void genTraceCombineSequence(SparkSession spark){
+        Dataset<Row> trace_finalDateSet = spark.sql(TempSQL.trace_finalDateSet);
+        // `trace_final`: `trace_id`, `test_case_id`, `test_trace_id`
+//        String[] duplicasKey = new String[]{"trace_id", "test_case_id", "test_trace_id"};
+//        trace_finalDateSet = trace_finalDateSet.dropDuplicates(duplicasKey);
+      //  System.out.println(trace_finalDateSet.count() + "-----------===============");
+        trace_finalDateSet.repartition(12);
+        trace_finalDateSet.persist(StorageLevel.MEMORY_AND_DISK());
+        trace_finalDateSet.write().saveAsTable("trace_final");
+        System.out.println("======all over======");
     }
 
     private static void genTestTrace(SparkSession spark) {
         Dataset<Row> testTraceDataSet = connectDBUtil(spark, "ai_ops_liutest", "test_trace");
+        //testTraceDataSet.printSchema();
+        System.out.println("testtrace   shema  printled");
         testTraceDataSet.createOrReplaceTempView("test_traces_view");
+    }
+
+    private static void genFinallTrace(SparkSession spark) {
+        Dataset<Row> finallTrace = spark.sql(TempSQL.genFinallTraceSQL);
+        // finallTrace.printSchema();
+        System.out.println("schema printed ==============");
+        //finallTrace.write().saveAsTable("final_trace");
+        finallTrace.createOrReplaceTempView("trace_final_view");
+        System.out.println("--------------- real_invocation table created ---------------");
     }
 
 
@@ -155,7 +194,7 @@ public class AiOpsRDD {
         System.out.println("---------------  real_invocation table created ---------------");
     }
 
-    private static Dataset<TracePassServcie> calTracePassService(SparkSession spark) {
+    private static Dataset<TracePassServcie> callerTracePassService(SparkSession spark) {
         //  read trace passby service, gen new trace_pass_service   by  real_span_trace
         Dataset<Row> tracePassService = spark.sql(TempSQL.getTracePassService);
         Encoder<TracePassServcie> TracePassEncoder = Encoders.bean(TracePassServcie.class);
@@ -177,8 +216,8 @@ public class AiOpsRDD {
                 return new TracePassServcie(trace_id, passServiceMap);
             }
         }, TracePassEncoder);
-       // tracePassDataset.printSchema();
-     //   tracePassDataset.show();
+        // tracePassDataset.printSchema();
+        //   tracePassDataset.show();
         tracePassDataset.createOrReplaceTempView("real_trace_pass_view");
         return tracePassDataset;
     }
@@ -201,7 +240,7 @@ public class AiOpsRDD {
         //  combineCpuMemory.printSchema();
         // combineCpuMemory.show();
         // combineCpuMemory.write().saveAsTable("real_cpu_memory");
-         combineCpuMemory.createOrReplaceTempView("real_cpu_memory_view");
+        combineCpuMemory.createOrReplaceTempView("real_cpu_memory_view");
     }
 
     // real_invocation_view   real_trace_pass_view ,  before_trace_view
@@ -212,24 +251,16 @@ public class AiOpsRDD {
         beforeTraceDataset.createOrReplaceTempView("before_trace_view");
     }
 
-    private static void genRealTrace(SparkSession spark){
+    private static void genRealTrace(SparkSession spark) {
         Dataset<Row> realTraceDataset = spark.sql(TempSQL.genRealTrace);
-        //realTraceDataset.printSchema();
-       // realTraceDataset.show();
-       // String[] duplicasKey = new String[]{"trace_id"};
-      //  realTraceDataset = realTraceDataset.dropDuplicates(duplicasKey);
+        realTraceDataset.printSchema();
+        // realTraceDataset.show();
+        String[] duplicasKey = new String[]{"trace_id"};
+        realTraceDataset = realTraceDataset.dropDuplicates(duplicasKey);
         realTraceDataset.createOrReplaceTempView("real_trace_view");
-
-      //  realTraceDataset.write().saveAsTable("real_trace2");
+       // System.out.println(realTraceDataset.count() + "========================");
+        //realTraceDataset.write().saveAsTable("real_trace4");
     }
-
-    private static void genFinallTrace(SparkSession spark) {
-        Dataset<Row> finallTrace = spark.sql(TempSQL.genFinallTraceSQL);
-        //invocationDataset.write().saveAsTable("real_invocation");
-        System.out.println("---------------  real_invocation table created ---------------");
-    }
-
-
 
 
     private static void genSequencePart(SparkSession spark) {
@@ -285,7 +316,7 @@ public class AiOpsRDD {
                     String[] temp_sr_service = sr_servicename[i].split(",");
                     String[] temp_e_time = e_time[i].split(",");
                     Map<String, String> service_etime_map = new HashMap<>();
-                    System.out.println(temp_sr_service.length + "009999------9--" + temp_e_time.length);
+                   // System.out.println(temp_sr_service.length + "009999------9--" + temp_e_time.length);
                     // 得到一个list 的两两服务的组合， a_b, a_c, a_d
                     if (temp_sr_service.length == temp_e_time.length) {
                         for (int j = 0; j < temp_sr_service.length; j++) {
@@ -346,7 +377,7 @@ public class AiOpsRDD {
                     else
                         rowDataList.add(cloumnValue);
                 }
-                System.out.println(rowDataList.size() + "==============---------------size1");
+               // System.out.println(rowDataList.size() + "==============---------------size1");
                 // 遍历 k_v 到list 里面即可
                 return RowFactory.create(rowDataList.toArray());
             }
@@ -366,21 +397,22 @@ public class AiOpsRDD {
         // callerSerDataSet.select("trace_id").show();
         //  System.out.println(callerSerDataSet.count() + "===================-----000");
 
-        callerSerDataSet.write().saveAsTable("seq_finall");
-        // callerSerDataSet.createOrReplaceTempView("view_caller_service");
-        System.out.println(seqCallerColumsAll.size() + "==============---------------size2"); // 1765
+         callerSerDataSet.write().saveAsTable("final_seq2");
+        //  callerSerDataSet.createOrReplaceTempView("sequence_view");
+        //System.out.println(seqCallerColumsAll.size() + "==============---------------size2"); // 1765
         System.out.println("==========over===========");
         //  return callerSerDataSet;
     }
 
 
+    //=========================  连接mysql =======================
     private static Dataset<Row> connectDBUtil(SparkSession spark, String dbName, String tableName) {
-        String url = "jdbc:mysql://10.141.212.21:3306/"+ dbName +"?useUnicode=true&characterEncoding=utf-8";
+        String url = "jdbc:mysql://10.141.212.21:3306/" + dbName + "?useUnicode=true&characterEncoding=utf-8";
         Dataset<Row> jdbcDF = spark.read().format("jdbc")
-                .option("url",url)
+                .option("url", url)
                 .option("dbtable", tableName)
-                .option("user","root")
-                .option("password","root")
+                .option("user", "root")
+                .option("password", "root")
                 .load();
         jdbcDF.printSchema();
         return jdbcDF;

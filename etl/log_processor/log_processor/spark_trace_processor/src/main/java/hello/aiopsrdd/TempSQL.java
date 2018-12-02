@@ -47,15 +47,19 @@ public class TempSQL {
     // real_invocation_view ,  cpu_memory_view , real_trace_pass_view  产生 Trace 表
     public static String genRealTrace  =
             "select a.*, b.*  from  before_trace_view a, real_cpu_memory_view  b  " +
-                    "where (a.entry_timestamp + 60000) > b.ts_travel_service_start_time";
+                    "where (((a.entry_timestamp + 60000) > b.ts_travel_service_start_time )  And  (a.entry_timestamp < b.ts_travel_service_end_time))";
 
   // test_traces_view real_trace_view
    public static String genFinallTraceSQL =
            "select a.*, b.expected_result , b.is_error y_exec_result , " +
-                   " b.y_issue_ms, b.y_issue_dim_type, b.y_issue_dim_content  from real_trace_view a, test_traces_view b  ";
+                   " b.y_issue_ms, b.y_issue_dim_type, b.y_issue_dim_content  from real_trace_view a, test_traces_view b  " +
+                   " where (a.test_trace_id == b.test_trace_id) And (a.test_case_id == b.test_case_id)";
 
 
-
+  // sequence_view  trace_final_view
+    // final_seq   final_trace
+   public static String trace_finalDateSet =
+           "select  a.*, b.*  from  final_trace a , final_seq b where a.trace_id == b.trace_id1";
 
 
 
@@ -93,12 +97,12 @@ public class TempSQL {
 
     public static String genStep2 =
             "select trace_id , caller , " +
-                    " concat_ws(',', collect_set(test_trace_id)) test_trace_id" +
-                    " concat_ws(',', collect_set(test_case_id)) test_case_id" +
+                    " concat_ws(',', collect_set(test_trace_id)) test_trace_id, " +
+                    " concat_ws(',', collect_set(test_case_id)) test_case_id, " +
                     " concat_ws(',', collect_set(s_time)) s_time, " +
                     " concat_ws(',', collect_set(e_time)) e_time, " +
                     " concat_ws(',', collect_set(sr_servicename)) sr_servicename  " +
-                    " from view_clean_step1 group by trace_id, caller having count(sr_servicename) >= 2";
+                    " from view_clean_step1 group by trace_id , caller having count(sr_servicename) >= 2";
 
     public static String genStep3 =
             "select trace_id , " +

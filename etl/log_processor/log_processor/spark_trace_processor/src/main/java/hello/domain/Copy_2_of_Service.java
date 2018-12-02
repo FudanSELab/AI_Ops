@@ -72,9 +72,9 @@ public class Copy_2_of_Service {
          List<String> arrangeStr = callPairService(serviceList);
         // 添加caller
         // 前面每个字段，每次添加到最前面
-        arrangeStr.add(0,"test_case_id");
-        arrangeStr.add(0,"test_trace_id");
-        arrangeStr.add(0,"trace_id");
+        arrangeStr.add(0,"test_case_id1");
+        arrangeStr.add(0,"test_trace_id1");
+        arrangeStr.add(0,"trace_id1");
 
         System.out.println(arrangeStr.size() + "---------------------2333333");
         for(int i = callerServicePart3.length-1; i >= 0; i--){

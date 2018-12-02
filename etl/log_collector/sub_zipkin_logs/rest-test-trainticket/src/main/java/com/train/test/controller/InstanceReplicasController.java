@@ -35,6 +35,21 @@ public class InstanceReplicasController {
 
     private final static Executor executor = Executors.newCachedThreadPool();
 
+    @RequestMapping(value = "/testOne")
+    public String testOne() {
+        String url = "http://10.141.212.140:18898/api/setReplicas";
+        SetServiceReplicasRequest ssrrDto = new SetServiceReplicasRequest();
+        ssrrDto.setClusterName("cluster1");
+        List<ServiceReplicasSetting> srsList = new ArrayList<>();
+        srsList.add(new ServiceReplicasSetting("ts-login-service", 2));
+        ssrrDto.setServiceReplicasSettings(srsList);
+
+
+        SetServiceReplicasResponse srs =
+                restTemplate.postForObject(url, ssrrDto, SetServiceReplicasResponse.class);
+        return srs.getMessage();
+    }
+
     @RequestMapping(value = "/testThread")
     public String testThread() throws InterruptedException {
         logger.info("===================ssssssssssssssssssssssss");
