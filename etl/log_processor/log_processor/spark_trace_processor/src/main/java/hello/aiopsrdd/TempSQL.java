@@ -12,7 +12,7 @@ public class TempSQL {
                     "b.anno_a1_timestamp sr_timestamp, b.anno_a1_ipv4 sr_ipv4, b.anno_a1_servicename sr_servicename, " +
                     "b.anno_a2_timestamp ss_timestamp, b.anno_a2_ipv4 ss_ipv4, b.anno_a2_servicename ss_servicename, " +
                     "a.bnno_node_id c_node_id, b.bnno_node_id s_node_id, a.bnno_httpurl req_api, a.test_trace_id, " +
-                    "a.test_case_id, a.bnno_status_code status_code " +
+                    "a.test_case_id, a.bnno_status_code status_code,  a.bnno_http_method req_type " +
             "from  original_span_table a, original_span_table b where (a.span_id == b.span_id And a.parent_id == b.parent_id And a.anno_a1_value == 'cs' And a.parent_id  != '' And  (b.span_timestamp == ''  or b.span_timestamp == '0')) or (a.span_id == b.span_id And a.parent_id == b.parent_id And a.anno_a1_value == 'sr' And a.parent_id  == '')";
 
     //  由临时表 real_span_trace 产生 invocation
@@ -21,10 +21,10 @@ public class TempSQL {
             "select  trace_id, span_id, span_timestamp, test_trace_id, test_case_id," +
                     "abs(sr_timestamp - cs_timestamp)  req_latency, parent_id, cs_servicename req_service," +
                     "req_api, c_node_id req_inst_id ,cs_ipv4 req_inst_ip, span_duration duration," +
-                    "status_code res_status_code, 0 res_status_desc," +
+                    "status_code res_status_code, req_type, 0 res_status_desc," +
                     "0 res_exception, abs(ss_timestamp - cr_timestamp) res_latency," +
                     "0 req_param, 0 exec_logs, 0 res_body " +
-                    "from real_span_trace";
+                    "from real_span_trace_view";
 
     //  由 service_config_data 和 service_instance_data  产生 cpu_memory_view
     public static String genCpuMemory =
@@ -33,36 +33,44 @@ public class TempSQL {
 
     // 由real_span_trace表 查询出一个服务经过的service
     public static String getTracePassService =
-            "select trace_id, concat_ws(',', collect_set(cr_servicename)) ts_ui_dashboard_included, concat_ws(',', collect_set(sr_servicename)) ts_login_service_included from real_span_trace group by trace_id";
+            "select trace_id, concat_ws(',', collect_set(cr_servicename)) cr_service_included,  " +
+                    "concat_ws(',', collect_set(sr_servicename)) sr_service_included, " +
+                    "cast(count(*) as string) trace_service_span "+
+                    "from real_span_trace_view group by trace_id";
 
     // 合并invocation 和 trace_pass_service
     // gen: before_trace_view
-    public static String genBeforeTrace =
+    public static String combinePassServiceToTrace =
             "select a.test_trace_id, a.test_case_id, a.req_service entry_service, " +
-                    " a.req_api entry_api, a.span_timestamp  entry_timestamp, (a.span_timestamp + a.duration) exit_timestamp, " +
+                    " a.req_api entry_api, a.req_type entry_req_type, a.span_timestamp  entry_timestamp, cast((a.span_timestamp + a.duration) as string) exit_timestamp, " +
                     " a.duration , b.* from real_invocation_view a, real_trace_pass_view b  " +
                     "where a.trace_id == b.trace_id And a.req_latency == '0' And a.parent_id == ''";
 
 
     // real_invocation_view ,  cpu_memory_view , real_trace_pass_view  产生 Trace 表
     public static String genRealTrace  =
-            "select a.*, b.*  from  before_trace_view a, real_cpu_memory_view  b  " +
+            "select a.*, b.*  from  trace_passservice_view a, real_cpu_memory_view  b  " +
                     "where (((a.entry_timestamp + 60000) > b.ts_travel_service_start_time )  And  (a.entry_timestamp < b.ts_travel_service_end_time))";
 
   // test_traces_view real_trace_view
-   public static String genFinallTraceSQL =
-           "select a.*, b.expected_result , b.is_error y_exec_result , " +
-                   " b.y_issue_ms, b.y_issue_dim_type, b.y_issue_dim_content  from real_trace_view a, test_traces_view b  " +
+   public static String combineYtoTrace =
+           "select a.*, cast(b.expected_result as string), cast(b.is_error as string) y_exec_result , " +
+                   " b.y_issue_ms, b.y_issue_dim_type, b.y_issue_dim_content  from trace_pass_cpu_view a, test_traces_mysql_view b  " +
                    " where (a.test_trace_id == b.test_trace_id) And (a.test_case_id == b.test_case_id)";
 
 
   // sequence_view  trace_final_view
     // final_seq   final_trace
    public static String trace_finalDateSet =
-           "select  a.*, b.*  from  final_trace a , final_seq b where a.trace_id == b.trace_id1";
+           "select  a.*, b.*  from  trace_y a , final_seq2 b where a.trace_id == b.trace_id1";
 
 
 
+
+
+
+
+   ///////////////////////////////////////////////////////////////////
 
     public static String configSpanSql = "select a.trace_id, a.span_id , a.span_name," +
             "a.parent_id,a.span_timestamp,a.span_duration, " +
@@ -93,7 +101,7 @@ public class TempSQL {
     public static String genStep1 =
             "select trace_id ,test_trace_id, test_case_id, sr_timestamp s_time, ss_timestamp e_time, sr_servicename, " +
                     "cr_servicename caller " +
-                    " from real_span_trace where  sr_servicename != cr_servicename ";
+                    " from real_span_trace_view  where  sr_servicename != cr_servicename ";
 
     public static String genStep2 =
             "select trace_id , caller , " +
