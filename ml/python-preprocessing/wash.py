@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 input_after_join_path = "transform/final_after_join.csv"
 output_after_wash_path = "transform/final_after_wash.csv"
@@ -11,6 +12,10 @@ print(input_after_join_path, "has", len(data_after_join.keys()), "columns")
 
 # Drop the column which all element are null.
 data_after_join = data_after_join.dropna(axis=1, how='all')
+
+# Drop the column which the y-column is nan.
+data_after_join = data_after_join[~data_after_join['new_trace_y.y_issue_ms'].isin([np.nan])]
+
 
 print("After drop NAN/NULL data,", input_after_join_path, "has", len(data_after_join.keys()), "columns")
 

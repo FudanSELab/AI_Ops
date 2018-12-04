@@ -23,7 +23,10 @@ for key in keys:
             or key.endswith("entry_api") \
             or key.endswith("entry_req_type") \
             or key.endswith("_service_version") \
-            or key.endswith("service_inst_1_id"):
+            or key.endswith("service_inst_1_id")\
+            or key.endswith("new_trace_y.y_issue_ms") \
+            or key.endswith("new_trace_y.y_issue_dim_type") \
+            or key.endswith("new_trace_y.y_issue_dim_content"):
         print("Mapping: " + key)
         mapping_keys = data_after_wash[key].drop_duplicates().values
         mapping = {}
