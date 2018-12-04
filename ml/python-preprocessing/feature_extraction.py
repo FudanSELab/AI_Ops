@@ -15,94 +15,27 @@ for key in keys:
         # TODO：How to process _servicename
         print("Pop: " + key)
         data_after_wash.pop(key)
-    elif key.endswith("test_case_id"):
-        # TODO: Type
+    elif key.endswith("service_id") \
+            or key.endswith("node_id") \
+            or key.endswith("inst_id") \
+            or key.endswith("test_case_id") \
+            or key.endswith("entry_service") \
+            or key.endswith("entry_api") \
+            or key.endswith("entry_req_type") \
+            or key.endswith("_service_version") \
+            or key.endswith("service_inst_1_id"):
         print("Mapping: " + key)
         mapping_keys = data_after_wash[key].drop_duplicates().values
         mapping = {}
         for i in range(len(mapping_keys)):
             mapping[mapping_keys[i]] = i
         data_after_wash[key] = data_after_wash[key].map(mapping)
-    elif key.endswith("entry_service"):
-        # TODO: Type
-        print("Mapping: " + key)
-        mapping_keys = data_after_wash[key].drop_duplicates().values
-        mapping = {}
-        for i in range(len(mapping_keys)):
-            mapping[mapping_keys[i]] = i
-        data_after_wash[key] = data_after_wash[key].map(mapping)
-    elif key.endswith("_service_version"):
-        # TODO: Type
-        print("Mapping: " + key)
-        mapping_keys = data_after_wash[key].drop_duplicates().values
-        mapping = {}
-        for i in range(len(mapping_keys)):
-            mapping[mapping_keys[i]] = i
-        data_after_wash[key] = data_after_wash[key].map(mapping)
-    elif key.endswith("_service_id"):
-        # TODO: Type
-        print("Mapping: " + key)
-        mapping_keys = data_after_wash[key].drop_duplicates().values
-        mapping = {}
-        for i in range(len(mapping_keys)):
-            mapping[mapping_keys[i]] = i
-        data_after_wash[key] = data_after_wash[key].map(mapping)
-    elif key.endswith("service_inst_1_id"):
-        # TODO: Type
-        print("Mapping: " + key)
-        mapping_keys = data_after_wash[key].drop_duplicates().values
-        mapping = {}
-        for i in range(len(mapping_keys)):
-            mapping[mapping_keys[i]] = i
-        data_after_wash[key] = data_after_wash[key].map(mapping)
-    elif key.endswith("entry_api"):
-        # TODO: Type
-        print("Mapping: " + key)
-        mapping_keys = data_after_wash[key].drop_duplicates().values
-        mapping = {}
-        for i in range(len(mapping_keys)):
-            mapping[mapping_keys[i]] = i
-        data_after_wash[key] = data_after_wash[key].map(mapping)
-    elif key.endswith("entry_req_type"):
-        # TODO: Type
-        print("Mapping: " + key)
-        mapping_keys = data_after_wash[key].drop_duplicates().values
-        mapping = {}
-        for i in range(len(mapping_keys)):
-            mapping[mapping_keys[i]] = i
-        data_after_wash[key] = data_after_wash[key].map(mapping)
-    elif key.endswith("_inst_id"):
-        # TODO:
-        print("Mapping: " + key)
-        mapping_keys = data_after_wash[key].drop_duplicates().values
-        mapping = {}
-        for i in range(len(mapping_keys)):
-            mapping[mapping_keys[i]] = i
-        data_after_wash[key] = data_after_wash[key].map(mapping)
-    elif key.endswith("inst_service_id"):
-        print("Mapping: " + key)
-        mapping_keys = data_after_wash[key].drop_duplicates().values
-        mapping = {}
-        for i in range(len(mapping_keys)):
-            mapping[mapping_keys[i]] = i
-        data_after_wash[key] = data_after_wash[key].map(mapping)
-    elif key.endswith("_node_id"):
-        print("Mapping: " + key)
-        mapping_keys = data_after_wash[key].drop_duplicates().values
-        mapping = {}
-        for i in range(len(mapping_keys)):
-            mapping[mapping_keys[i]] = i
-        data_after_wash[key] = data_after_wash[key].map(mapping)
-    elif key.endswith("_cpu_limit"):
+    elif key.endswith("_cpu_limit") \
+            or key.endswith("_cpu"):
         print("Fetch: " + key)
         data_after_wash[key] = data_after_wash[key].str[:-1]  # 7m → 7
-    elif key.endswith("_memory_limit"):
-        print("Fetch: " + key)
-        data_after_wash[key] = data_after_wash[key].str[:-2]  # 22181452Ki → 22181452
-    elif key.endswith("_cpu"):
-        print("Fetch: " + key)
-        data_after_wash[key] = data_after_wash[key].str[:-1]  # 7m → 7
-    elif key.endswith("_memory"):
+    elif key.endswith("_memory_limit") \
+            or key.endswith("_memory"):
         print("Fetch: " + key)
         data_after_wash[key] = data_after_wash[key].str[:-2]  # 22181452Ki → 22181452
     else:
