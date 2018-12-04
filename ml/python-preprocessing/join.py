@@ -1,12 +1,12 @@
 import pandas as pd
 
-input_trace_path = "input/sample_trace.csv"
-input_trace_index_col_name = "real_trace2.trace_id"
+input_trace_path = "input/final_trace_y.csv"
+input_trace_index_col_name = "new_trace_y.trace_id"
 
-input_seq_path = "input/sample_seq.csv"
-input_seq_index_col_name = "seq_final.trace_id"
+input_seq_path = "input/final_sequence.csv"
+input_seq_index_col_name = "final_seq2.trace_id1"
 
-output_after_join_path = "transform/sample_after_join.csv"
+output_after_join_path = "transform/final_after_join.csv"
 
 
 # Read Two File with assigned index column.

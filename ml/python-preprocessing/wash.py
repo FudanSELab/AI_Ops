@@ -1,7 +1,7 @@
 import pandas as pd
 
-input_after_join_path = "transform/sample_after_join.csv"
-output_after_wash_path = "transform/sample_after_wash.csv"
+input_after_join_path = "transform/final_after_join.csv"
+output_after_wash_path = "transform/final_after_wash.csv"
 
 data_after_join = pd.read_csv(input_after_join_path,
                               header=0,
@@ -19,7 +19,9 @@ print("After drop NAN/NULL data,", input_after_join_path, "has", len(data_after_
 print("After drop duplicate data,", input_after_join_path, "has", len(data_after_join.keys()), "columns")
 
 # TODO: Drop any useless column
-data_after_join.pop("real_trace2.test_trace_id")
+data_after_join.pop("new_trace_y.test_trace_id")
+data_after_join.pop("final_seq2.test_trace_id1")
+data_after_join.pop("final_seq2.test_case_id1")
 
 print("After drop useless data,", output_after_wash_path, "has", len(data_after_join.keys()), "columns")
 
