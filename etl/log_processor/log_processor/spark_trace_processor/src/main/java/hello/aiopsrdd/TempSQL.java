@@ -33,17 +33,20 @@ public class TempSQL {
 
     // 由real_span_trace表 查询出一个服务经过的service
     public static String getTracePassService =
-            "select trace_id, concat_ws(',', collect_set(cr_servicename)) cr_service_included,  " +
+            "select trace_id, " +
+                    "concat_ws(',', collect_set(cr_servicename)) cr_service_included,  " +
                     "concat_ws(',', collect_set(sr_servicename)) sr_service_included, " +
+                    "concat_ws(',', collect_set(req_api)) pass_api, "+
                     "cast(count(*) as string) trace_service_span "+
                     "from real_span_trace_view group by trace_id";
 
     // 合并invocation 和 trace_pass_service
     // gen: before_trace_view
     public static String combinePassServiceToTrace =
-            "select a.test_trace_id, a.test_case_id, a.req_service entry_service, " +
-                    " a.req_api entry_api, a.req_type entry_req_type, a.span_timestamp  entry_timestamp, cast((a.span_timestamp + a.duration) as string) exit_timestamp, " +
-                    " a.duration , b.* from real_invocation_view a, real_trace_pass_view b  " +
+            "select a.test_trace_id, a.test_case_id,  concat_ws("+", req_service, req_api) trace_type, a.req_service trace_service, " +
+                    " a.req_api trace_api, a.req_type  trace_req_type, a.span_timestamp  entry_timestamp, " +
+                    "cast((a.span_timestamp + a.duration) as string) exit_timestamp, " +
+                    " a.duration trace_duration, b.* from real_invocation_view a, real_trace_pass_view b  " +
                     "where a.trace_id == b.trace_id And a.req_latency == '0' And a.parent_id == ''";
 
 
