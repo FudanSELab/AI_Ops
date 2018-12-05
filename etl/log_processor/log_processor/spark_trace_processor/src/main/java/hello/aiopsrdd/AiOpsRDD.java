@@ -229,7 +229,7 @@ public class AiOpsRDD {
                         rowDataList.add("-1");
                         rowDataList.add("");
                     } else {
-                        rowDataList.add("0");
+                        rowDataList.add("1");
                         rowDataList.add(passServiceApiMap.get(tracePassServiceCloumn[i]
                                 .replaceAll("_included", "").replaceAll("_", "-")));
                     }
