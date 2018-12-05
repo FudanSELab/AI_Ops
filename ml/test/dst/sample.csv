@@ -1,8 +1,0 @@
-invocation_id,trace_id,session_id,req_duration,req_service,req_api,req_params,exec_duration,exec_logs,res_status_code,res_body,res_duration,is_error
-0,3f1d7ef4e9c10f08,0,182000,one,http:/travel/querywithpackage,0,4500,0,200,0,4500,0
-0,3f1d7ef4e9c10f28,0,182100,two,http:/tasdasl/querywithpackage,0,4700,0,300,0,4500,1
-0,3f1d7ef4e9c10f28,0,182100,three,http:/tasdasl/querywithpackage,0,4700,0,300,0,4500,1
-0,3f1d7ef4e9c10f28,0,182100,three,http:/tasdasl/querywithpackage,0,4700,0,300,0,4500,0
-0,3f1d7ef4e9c10f28,0,182100,three,http:/tasdasl/querywithpackage,0,4700,0,300,0,4500,1
-0,3f1d7ef4e9c10f28,0,182100,three,http:/tasdasl/querywithpackage,0,4700,0,300,0,4500,0
-0,3f1d7ef4e9c10f28,0,182100,three,http:/tasdasl/querywithpackage,0,4700,0,300,0,4500,0
