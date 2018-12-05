@@ -30,7 +30,7 @@ public class InstanceReplicasController {
     @Autowired
     private RestTemplate restTemplate;
 
-    private static Map<Integer, String> serviceIndexMap = new HashMap<>();
+
 
 
     private final static Executor executor = Executors.newCachedThreadPool();
@@ -62,7 +62,10 @@ public class InstanceReplicasController {
 
     @RequestMapping(value = "/changeInstanceAndRun")
     public String changeInstanceAndRun() {
-        initOrderFlowService();
+
+        for (int i= 0; i< 9; i++){
+
+        }
         // 调 interface
         String url = "http://10.141.212.140:18898/api/setReplicas";
         SetServiceReplicasRequest ssrrDto = new SetServiceReplicasRequest();
@@ -70,7 +73,7 @@ public class InstanceReplicasController {
         HashMap<Integer, List<Integer>> allList = ArrangeInStanceNum.getAllrangeList(7);
         System.out.println(allList.size() + "------=排列的数量=--=-=-");
         for (int i = 0; i < allList.size(); i++) {
-            // 某一行的 1112111
+            // 某一行的
             List<ServiceReplicasSetting> srsList = new ArrayList<>();
             List<Integer> tempss = allList.get(i);
             for (int j = 0; j < tempss.size(); j++) {
@@ -84,7 +87,7 @@ public class InstanceReplicasController {
             SetServiceReplicasResponse srs =
                     restTemplate.postForObject(url, ssrrDto, SetServiceReplicasResponse.class);
             if (!srs.isStatus()){
-                logger.info("----------------- check is  ready--------------------");
+                logger.info("----------------- check is not ready--------------------");
             }
             if (srs.isStatus()) {
                 // 跑 20次 case
@@ -147,15 +150,6 @@ public class InstanceReplicasController {
     }
 
 
-    private void initOrderFlowService() {
-        //private static Map<Integer, String> serviceMap = new HashMap<>(){1:""};
-        serviceIndexMap.put(0, "ts-login-service");
-        serviceIndexMap.put(1, "ts-travel2-service");
-        serviceIndexMap.put(2, "ts-travel-service");
-        serviceIndexMap.put(3, "ts-contacts-service");
-        serviceIndexMap.put(4, "ts-food-service");
-        serviceIndexMap.put(5, "ts-preserve-service");
-        serviceIndexMap.put(6, "ts-execute-service");
-    }
+
 
 }
