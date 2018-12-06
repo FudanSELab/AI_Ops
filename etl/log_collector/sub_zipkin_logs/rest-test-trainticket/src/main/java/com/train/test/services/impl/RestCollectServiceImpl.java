@@ -23,8 +23,8 @@ public class RestCollectServiceImpl implements RestCollectService {
     private static final String SERVICE_NAME = "serviceName";
     private static final String REQUESTS = "requests";
     private static final String LIMITS = "limits";
-    private static final String CONF_NUMBER = "conf_Number";
-    private static final String READY_NUMBER = "ready_Number";
+    private static final String CONF_NUMBER = "confNumber";
+    private static final String READY_NUMBER = "readyNumber";
     private static final String CPU = "cpu";
     private static final String MEMORY = "memory";
     private static final String REQUEST_CPU = "r_cpu";
