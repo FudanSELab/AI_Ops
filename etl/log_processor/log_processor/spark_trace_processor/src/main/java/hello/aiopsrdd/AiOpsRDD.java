@@ -3,7 +3,6 @@ package hello.aiopsrdd;
 import hello.domain.*;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.MapFunction;
 import org.apache.spark.sql.*;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
@@ -26,7 +25,7 @@ public class AiOpsRDD {
                 .getOrCreate();
 
         filter(spark);
-       // finalTraceCombineSequence(spark);
+        // finalTraceCombineSequence(spark);
         spark.close();
         System.out.println("==============spark sql closed====");
     }
@@ -116,8 +115,8 @@ public class AiOpsRDD {
 
         // from real_span_trace_view  to  real_trace_pass_view
         // from real_invocation_view  and real_trace_pass_view ==>  trace_passservice_view
-         tracePassService(spark);
-         combinePassServiceToTrace(spark);
+        tracePassService(spark);
+        combinePassServiceToTrace(spark);
 
 
         // from csv  to real_cpu_memory_view
@@ -134,11 +133,11 @@ public class AiOpsRDD {
         combineYtoTrace(spark);
 
         // from real_span_trace_view  ----->  final_seq_view
-     //   genSequencePart(spark);
+        //   genSequencePart(spark);
 
 
         // form final_seq_view  trace_y_view  --->  to trace_final
-       // finalTraceCombineSequence(spark);
+        // finalTraceCombineSequence(spark);
     }
 
     private static void finalTraceCombineSequence(SparkSession spark) {
@@ -147,7 +146,7 @@ public class AiOpsRDD {
 //        String[] duplicasKey = new String[]{"trace_id", "test_case_id", "test_trace_id"};
 //        trace_finalDateSet = trace_finalDateSet.dropDuplicates(duplicasKey);
         //  System.out.println(trace_finalDateSet.count() + "-----------===============");
-    //    trace_finalDateSet.repartition(12);
+        //    trace_finalDateSet.repartition(12);
         trace_finalDateSet.write().saveAsTable("trace_final");
         System.out.println("======all over======");
     }
@@ -163,9 +162,9 @@ public class AiOpsRDD {
         Dataset<Row> finallTrace = spark.sql(TempSQL.combineYtoTrace);
         // finallTrace.printSchema();
         finallTrace.repartition(12);
-      //  System.out.println(finallTrace.count() + "--------------------count--------------");
+        //  System.out.println(finallTrace.count() + "--------------------count--------------");
         finallTrace.write().saveAsTable("new_trace_y");
-      //   finallTrace.createOrReplaceTempView("trace_y_view");
+        //   finallTrace.createOrReplaceTempView("trace_y_view");
         System.out.println("--------------- final_trace2 table created ---------------");
     }
 
@@ -200,35 +199,50 @@ public class AiOpsRDD {
 
                 String[] cr_pass_service = row.getAs("cr_service_included").toString().split(",");
                 String[] sr_pass_service = row.getAs("sr_service_included").toString().split(",");
-
+                String[] pass_service_api = row.getAs("pass_api").toString().split(",");
 
 
                 Map<String, String> passServiceMap = new HashMap<>();
-                for (int i = 0; i < cr_pass_service.length; i++) {
-                    if (!passServiceMap.containsKey(cr_pass_service[i]))
-                        passServiceMap.put(cr_pass_service[i], cr_pass_service[i]);
-                }
+                Map<String, String> passServiceApiMap = new HashMap<>();
+
                 for (int i = 0; i < sr_pass_service.length; i++) {
-                    if (!passServiceMap.containsKey(sr_pass_service[i]))
+                    if (!passServiceMap.containsKey(sr_pass_service[i])) {
                         passServiceMap.put(sr_pass_service[i], sr_pass_service[i]);
+                        passServiceApiMap.put(sr_pass_service[i], pass_service_api[i]);
+                    }
                 }
 
-                for(int i = 0; i< tracePassServiceCloumn.length; i++){
+                for (int i = 0; i < cr_pass_service.length; i++) {
+                    if (!passServiceMap.containsKey(cr_pass_service[i])) {
+                        passServiceMap.put(cr_pass_service[i], cr_pass_service[i]);
+                        // 前面一行几乎把所有的api都有了
+                        passServiceApiMap.put(cr_pass_service[i], pass_service_api[i]);
+                    }
+                }
+
+
+                for (int i = 0; i < tracePassServiceCloumn.length; i++) {
+                    // passOrNot 为服务名
                     String passOrNot = passServiceMap.get(tracePassServiceCloumn[i]
-                            .replaceAll("_included","").replaceAll("_","-"));
-                    if(passOrNot == null || "".equals(passOrNot))
+                            .replaceAll("_included", "").replaceAll("_", "-"));
+                    if (passOrNot == null || "".equals(passOrNot)) {
                         rowDataList.add("-1");
-                    else
-                        rowDataList.add("0");
+                        rowDataList.add("");
+                    } else {
+                        rowDataList.add("1");
+                        rowDataList.add(passServiceApiMap.get(tracePassServiceCloumn[i]
+                                .replaceAll("_included", "").replaceAll("_", "-")));
+                    }
                 }
                 return RowFactory.create(rowDataList.toArray());
             }
         });
 
+        String[] tracePassServiceCloumnAll = CloumnNameUtil.tracePassServiceCloumnAll;
         // 表头
         List<StructField> structFields = new ArrayList<>();
-        for (int i = 0; i < tracePassServiceCloumn.length; i++) {
-            structFields.add(DataTypes.createStructField(tracePassServiceCloumn[i], DataTypes.StringType, true));
+        for (int i = 0; i < tracePassServiceCloumnAll.length; i++) {
+            structFields.add(DataTypes.createStructField(tracePassServiceCloumnAll[i], DataTypes.StringType, true));
         }
         StructType structType = DataTypes.createStructType(structFields);
         Dataset<Row> tracePassDataset = spark.createDataFrame(step3Rdd, structType);

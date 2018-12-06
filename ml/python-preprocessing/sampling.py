@@ -2,10 +2,10 @@ import pandas as pd
 from pandas import DataFrame
 from imblearn.over_sampling import RandomOverSampler # doctest: +NORMALIZE_WHITESPACE
 
-input_after_clean_path = "transform/sample_after_clean.csv"
-input_data_y_column = "real_trace2.y_issue_dim_type"
+input_after_clean_path = "transform/final_after_wash.csv"
+input_data_y_column = "new_trace_y.y_issue_ms"
 
-output_after_sampling_path = "transform/sample_after_sampling.csv"
+output_after_sampling_path = "transform/final_after_sampling.csv"
 
 
 data_after_clean = pd.read_csv(input_after_clean_path,
