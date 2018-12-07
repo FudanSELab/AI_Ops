@@ -1,9 +1,11 @@
 import pandas as pd
 
 input_trace_path = "input/final_trace_y.csv"
-input_trace_index_col_name = "new_trace_y.trace_id"
 
 input_seq_path = "input/final_sequence.csv"
+
+# Merge two table by the following two keys.
+input_trace_index_col_name = "new_trace_y.trace_id"
 input_seq_index_col_name = "final_seq2.trace_id1"
 
 output_after_join_path = "transform/final_after_join.csv"

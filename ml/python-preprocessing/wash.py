@@ -1,6 +1,8 @@
 import pandas as pd
 
 input_after_join_path = "transform/final_after_join.csv"
+
+# The NULL value in such 3 columns means SUCCESS, we will fill it.
 y1 = "new_trace_y.y_issue_ms"
 y2 = "new_trace_y.y_issue_dim_type"
 y3 = "new_trace_y.y_issue_dim_content"
@@ -16,12 +18,11 @@ print(input_after_join_path, "has", len(data_after_join.keys()), "columns")
 # Drop the column which all element are null.
 data_after_join = data_after_join.dropna(axis=1, how='all')
 
-# Drop the column which the y-column is nan.
+# Fill the column which the y-column is NULL( Null means success).
 data_after_join[y1] = data_after_join[y1].fillna("Success")
 data_after_join[y2] = data_after_join[y2].fillna("Success")
 data_after_join[y3] = data_after_join[y3].fillna("Success")
 # data_after_join = data_after_join[~data_after_join['new_trace_y.y_issue_ms'].isin([np.nan])]
-
 
 print("After drop NAN/NULL data,", input_after_join_path, "has", len(data_after_join.keys()), "columns")
 
