@@ -7,7 +7,7 @@ import java.util.Map;
 public class BookingFlowPassServiceMapUtil {
 
 
-    private Map<Integer, Map<Integer, String>> flowOnePassService() {
+    public static Map<Integer, Map<Integer, String>> flowOnePassService() {
         Map<Integer, Map<Integer, String>> allFlowOnePassServcie = new HashMap<>();
 
         // login

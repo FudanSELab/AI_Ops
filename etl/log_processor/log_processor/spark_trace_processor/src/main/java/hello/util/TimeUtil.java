@@ -1,4 +1,4 @@
-package hello.domain;
+package hello.util;
 
 public class TimeUtil {
 
@@ -14,5 +14,4 @@ public class TimeUtil {
             return 1;
         }
     }
-
 }

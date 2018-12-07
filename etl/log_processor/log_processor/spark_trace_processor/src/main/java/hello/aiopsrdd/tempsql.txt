@@ -1,3 +1,32 @@
+
+
+//        Encoder<TracePassServcie> TracePassEncoder = Encoders.bean(TracePassServcie.class);
+//        Dataset<TracePassServcie> tracePassDataset = tracePassService.map(new MapFunction<Row, TracePassServcie>() {
+//            @Override
+//            public TracePassServcie call(Row row) throws Exception {
+//                String trace_id = row.getAs("trace_id");
+//                String[] cr_pass_service = row.getAs("cr_service_included").toString().split(",");
+//                String[] sr_pass_service = row.getAs("sr_service_included").toString().split(",");
+//                String trace_service_span = row.getAs("trace_service_span");
+//
+//                Map<String, String> passServiceMap = new HashMap<>();
+//                for (int i = 0; i < cr_pass_service.length; i++) {
+//                    if (!passServiceMap.containsKey(cr_pass_service[i]))
+//                        passServiceMap.put(cr_pass_service[i], cr_pass_service[i]);
+//                }
+//                for (int i = 0; i < sr_pass_service.length; i++) {
+//                    if (!passServiceMap.containsKey(sr_pass_service[i]))
+//                        passServiceMap.put(sr_pass_service[i], sr_pass_service[i]);
+//                }
+//                return new TracePassServcie(trace_id, passServiceMap);
+//            }
+//        }, TracePassEncoder);
+//        // tracePassDataset.printSchema();
+//        //   tracePassDataset.show();
+
+
+
+
     // auto  tag  is_error (1)  or not(0)
         JavaRDD<TraceAnnotation> multipleNumberRDD = originalRdd.map(new Function<TraceAnnotation, TraceAnnotation>() {
             @Override
