@@ -14,7 +14,6 @@ for key in keys:
     if key.endswith("_servicename") \
             or key.endswith("timestamp") \
             or key.endswith("_time"):
-        # TODO：How to process _servicename
         print("Pop: " + key)
         data_after_sampling.pop(key)
     elif key.endswith("service_id") \
