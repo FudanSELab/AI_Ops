@@ -16,6 +16,9 @@ public class MainApplication {
 
     @Bean
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
-        return builder.setConnectTimeout(1000000).build();
+        return builder
+                .setConnectTimeout(10000)
+                .setReadTimeout(1000000)
+                .build();
     }
 }
