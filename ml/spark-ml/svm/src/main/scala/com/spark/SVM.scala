@@ -98,7 +98,7 @@ object SVM extends App {
       .setEstimator(pipeline)
       .setEvaluator(multiclassEval)
       .setEstimatorParamMaps(paramGrid)
-      .setNumFolds(5)// 80% of the data will be used for training and the remaining 20% for validation.
+      .setNumFolds(10)// 80% of the data will be used for training and the remaining 20% for validation.
 
     // Run train validation split, and choose the best set of parameters.
     val validatorModel = trainValidationSplit.fit(trainingData)
