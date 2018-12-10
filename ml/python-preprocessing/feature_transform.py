@@ -1,7 +1,13 @@
 import pandas as pd
 
-input_after_fill_empty_path = "transform/final_after_fill_empty.csv"
-output_after_transform_path = "transform/final_after_transform.csv"
+# input_after_fill_empty_path = "transform/y_result/y_result_after_fill_empty.csv"
+# output_after_transform_path = "transform/y_result/y_result_after_transform.csv"
+
+# input_after_fill_empty_path = "transform/y_ms/y_ms_after_fill_empty.csv"
+# output_after_transform_path = "transform/y_ms/y_ms_after_transform.csv"
+
+input_after_fill_empty_path = "transform/y_dimension/y_dimension_after_fill_empty.csv"
+output_after_transform_path = "transform/y_dimension/y_dimension_after_transform.csv"
 
 
 def transform_cpu(value):

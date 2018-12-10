@@ -69,7 +69,8 @@ public class RestCollectServiceImpl implements RestCollectService {
 
     public void getCpuMemoryLogInReceiver(long requestTime) {
 
-        boolean contentFlag = false;
+        boolean configDataFlag = false;
+        boolean instanceDataFlag = true;
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         // request to get service config data
@@ -93,7 +94,7 @@ public class RestCollectServiceImpl implements RestCollectService {
 
                 if (responseServiceData.get(STATUS).toString().equals(Boolean.TRUE.toString())) {
                     List<HashMap<String, Object>> servicesData = (List<HashMap<String, Object>>) responseServiceData.get(SERVICES);
-                    createCSVTableAndWriteHDFSFile(constructServiceData(servicesData, requestTime, responseTime), SERVICE_CONFIG_DATA, contentFlag);
+                    createCSVTableAndWriteHDFSFile(constructServiceData(servicesData, requestTime, responseTime), SERVICE_CONFIG_DATA, configDataFlag);
                 }
 
                 if (responseNodeData.get(STATUS).toString().equals(Boolean.TRUE.toString())
@@ -102,7 +103,7 @@ public class RestCollectServiceImpl implements RestCollectService {
                     List<HashMap<String, Object>> nodesData = (List<HashMap<String, Object>>) responseNodeData.get("nodesMetrics");
                     LinkedList<LinkedHashMap<String, String>> serviceInstanceData = new LinkedList<>();
                     constructServiceInstanceData(podsData, nodesData, serviceInstanceData, requestTime, responseTime);
-                    createCSVTableAndWriteHDFSFile(serviceInstanceData, SERVICE_INSTANCE_DATA, contentFlag);
+                    createCSVTableAndWriteHDFSFile(serviceInstanceData, SERVICE_INSTANCE_DATA, instanceDataFlag);
                 }
 
                 System.out.println("End write time: " + dateFormat.format(System.currentTimeMillis()));
