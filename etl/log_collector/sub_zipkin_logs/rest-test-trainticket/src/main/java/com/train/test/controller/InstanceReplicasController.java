@@ -5,6 +5,7 @@ import com.train.test.entity.instance.ServiceReplicasSetting;
 import com.train.test.entity.instance.SetServiceReplicasRequest;
 import com.train.test.entity.instance.SetServiceReplicasResponse;
 import com.train.test.utils.ArrangeInStanceNum;
+import com.train.test.utils.BookingFlowPassServiceMapUtil;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -32,7 +33,7 @@ public class InstanceReplicasController {
     @RequestMapping(value = "/changeInstanceAndRun")
     public String changeInstanceAndRun() {
         // 整个流程的服务和下标
-        Map<Integer, Map<Integer, String>> flowOnePassServiceMap = new HashMap<>();
+        Map<Integer, Map<Integer, String>> flowOnePassServiceMap = BookingFlowPassServiceMapUtil.flowOnePassService();
 
         for (int i = 0; i < flowOnePassServiceMap.size(); i++) {
             Map<Integer, String> oneTraceServiceMap = flowOnePassServiceMap.get(i);
@@ -41,7 +42,6 @@ public class InstanceReplicasController {
             HashMap<Integer, List<Integer>> oneTraceAllArrangeList = ArrangeInStanceNum.getAllrangeList(serviceSize);
 
             System.out.println(oneTraceAllArrangeList.size() + "------=排列的数量=--=-=-");
-
 
             // 某一个trace 的
             for (int j = 0; j < oneTraceAllArrangeList.size(); j++) {

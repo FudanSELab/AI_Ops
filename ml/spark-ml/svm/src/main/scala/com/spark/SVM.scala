@@ -3,9 +3,11 @@ package com.spark
 import org.apache.spark.ml.classification.{LinearSVC, OneVsRest, OneVsRestModel}
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 import org.apache.spark.ml.feature.VectorAssembler
-import org.apache.spark.ml.tuning.{ParamGridBuilder, TrainValidationSplit}
+import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder, TrainValidationSplit}
 import org.apache.spark.ml.{Pipeline, PipelineModel}
+import org.apache.spark.sql.functions.rand
 import org.apache.spark.sql.{DataFrame, SparkSession}
+
 import scala.util.Random
 
 object SVM extends App {
@@ -13,7 +15,7 @@ object SVM extends App {
 //    val master = "yarn"
 //    val filePath = "hdfs://10.141.211.173:8020/user/admin/mock.csv"
     val master = "local"
-    val filePath = "mock.csv"
+    val filePath = "final_after_dimensionality_reduction.csv"
     val appName = "Spark SVM"
 
     println("[Run]SVM Main")
@@ -37,9 +39,11 @@ object SVM extends App {
       .setInputCols(feature_list)
       .setOutputCol("features")
     val vecDF: DataFrame = assembler.transform(dataDF)
+    vecDF.orderBy(rand())
+
     vecDF.show(5)
 
-    val featureAndLabel: DataFrame = vecDF.select("features", "y1")
+    val featureAndLabel: DataFrame = vecDF.select("features", "y")
     featureAndLabel.show(5)
 
     val Array(trainingData, testData) = featureAndLabel.randomSplit(Array(0.8, 0.2))
@@ -47,13 +51,13 @@ object SVM extends App {
     val lsvc = new LinearSVC()
       .setMaxIter(10)
       .setRegParam(0.1)
-      .setLabelCol("y1")
+      .setLabelCol("y")
       .setFeaturesCol("features")
 
     // Instantiate the One Vs Rest Classifier.
     val ovr = new OneVsRest()
       .setClassifier(lsvc)
-      .setLabelCol("y1")
+      .setLabelCol("y")
       .setFeaturesCol("features")
       .setPredictionCol("prediction")
 
@@ -65,7 +69,7 @@ object SVM extends App {
 
     // obtain evaluator.
     val evaluator = new MulticlassClassificationEvaluator()
-      .setLabelCol("y1")
+      .setLabelCol("y")
       .setPredictionCol("prediction")
       .setMetricName("accuracy")
 
@@ -86,15 +90,15 @@ object SVM extends App {
     // In this case the estimator is simply the linear regression.
     // A TrainValidationSplit requires an Estimator, a set of Estimator ParamMaps, and an Evaluator.
     val multiclassEval = new MulticlassClassificationEvaluator()
-      .setLabelCol("y1")
+      .setLabelCol("y")
       .setPredictionCol("prediction")
       .setMetricName("accuracy")
-    val trainValidationSplit = new TrainValidationSplit()
+    val trainValidationSplit = new CrossValidator()
       .setSeed(Random.nextLong())
       .setEstimator(pipeline)
       .setEvaluator(multiclassEval)
       .setEstimatorParamMaps(paramGrid)
-      .setTrainRatio(0.8)// 80% of the data will be used for training and the remaining 20% for validation.
+      .setNumFolds(10)// 80% of the data will be used for training and the remaining 20% for validation.
 
     // Run train validation split, and choose the best set of parameters.
     val validatorModel = trainValidationSplit.fit(trainingData)
@@ -102,8 +106,8 @@ object SVM extends App {
     val bestPipelineModel = validatorModel.bestModel.asInstanceOf[PipelineModel]
     val bestSVM = bestPipelineModel.stages(0).asInstanceOf[OneVsRestModel]
 
-    val paramsAndMetrics = validatorModel.validationMetrics
-      .zip(validatorModel.getEstimatorParamMaps).sortBy(-_._1)
+    val paramsAndMetrics = validatorModel.avgMetrics.zip(validatorModel.getEstimatorParamMaps).sortBy(-_._1)
+
     paramsAndMetrics.foreach{ case (metric, params) =>
       println(metric)
       println(params)
@@ -113,6 +117,6 @@ object SVM extends App {
     // Make predictions on test data. model is the model with combination of parameters
     // that performed best.
     bestPipelineModel.transform(testData)
-      .select("features", "y1", "prediction")
-      .show()
+      .select("features", "y", "prediction")
+      .show(400)
 }

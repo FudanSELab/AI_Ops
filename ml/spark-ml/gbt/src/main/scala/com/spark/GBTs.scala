@@ -4,7 +4,8 @@ import org.apache.spark.ml.{Pipeline, PipelineModel}
 import org.apache.spark.ml.classification.{GBTClassifier, OneVsRest, OneVsRestModel}
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 import org.apache.spark.ml.feature.VectorAssembler
-import org.apache.spark.ml.tuning.{ParamGridBuilder, TrainValidationSplit}
+import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder, TrainValidationSplit}
+import org.apache.spark.sql.functions.rand
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import scala.util.Random
@@ -15,7 +16,7 @@ object GBTs extends App {
   //  val master = "yarn"
   //  val filePath = "hdfs://10.141.211.173:8020/user/admin/mock.csv"
   val master = "local"
-  val filePath = "mock.csv"
+  val filePath = "final_after_dimensionality_reduction.csv"
   val appName = "Spark Gradient-boosted tree classifier"
 
   println("[Run]GBTs Main")
@@ -41,15 +42,15 @@ object GBTs extends App {
     .setInputCols(only_feature_list)  
     .setOutputCol("features")
   val vecDF: DataFrame = assembler.transform(dataDF)
-  vecDF.show(5)
 
-  val featureAndLabel: DataFrame = vecDF.select("features", "y1")
-  featureAndLabel.show(5)
+  val featureAndLabel: DataFrame = vecDF.select("features", "y")
+  vecDF.orderBy(rand())
+
 
   val Array(trainingData, testData) = featureAndLabel.randomSplit(Array(0.8, 0.2))
 
   val gbt = new GBTClassifier()
-    .setLabelCol("y1")
+    .setLabelCol("y")
     .setFeaturesCol("features")
     .setMaxIter(3)
     .setFeatureSubsetStrategy("auto")
@@ -58,7 +59,7 @@ object GBTs extends App {
   // Instantiate the One Vs Rest Classifier.
   val ovr = new OneVsRest()
     .setClassifier(gbt)
-    .setLabelCol("y1")
+    .setLabelCol("y")
     .setFeaturesCol("features")
     .setPredictionCol("prediction")
 
@@ -69,7 +70,7 @@ object GBTs extends App {
   predictions.show(5)
 
   val evaluator = new MulticlassClassificationEvaluator()
-    .setLabelCol("y1")
+    .setLabelCol("y")
     .setPredictionCol("prediction")
     .setMetricName("accuracy")
 
@@ -84,23 +85,23 @@ object GBTs extends App {
   // TrainValidationSplit will try all combinations of values and determine best model using
   // the evaluator.
   val paramGrid = new ParamGridBuilder()
-    .addGrid(gbt.impurity, Seq("gini", "entropy"))
-    .addGrid(gbt.maxDepth, Seq(5, 10, 20))
-    .addGrid(gbt.maxIter, Seq(5, 10, 20))
+    //.addGrid(gbt.impurity, Seq("gini", "entropy"))
+    .addGrid(gbt.maxDepth, Seq(5, 10, 20, 30))
+    .addGrid(gbt.maxIter, Seq(5, 20))
     .build()
 
   // In this case the estimator is simply the linear regression.
   // A TrainValidationSplit requires an Estimator, a set of Estimator ParamMaps, and an Evaluator.
   val multiclassEval = new MulticlassClassificationEvaluator()
-    .setLabelCol("y1")
+    .setLabelCol("y")
     .setPredictionCol("prediction")
     .setMetricName("accuracy")
-  val trainValidationSplit = new TrainValidationSplit()
+  val trainValidationSplit = new CrossValidator()
     .setSeed(Random.nextLong())
     .setEstimator(pipeline)
     .setEvaluator(multiclassEval)
     .setEstimatorParamMaps(paramGrid)
-    .setTrainRatio(0.8)// 80% of the data will be used for training and the remaining 20% for validation.
+    .setNumFolds(10)// 80% of the data will be used for training and the remaining 20% for validation.
 
   // Run train validation split, and choose the best set of parameters.
   val validatorModel = trainValidationSplit.fit(trainingData)
@@ -108,8 +109,8 @@ object GBTs extends App {
   val bestPipelineModel = validatorModel.bestModel.asInstanceOf[PipelineModel]
   val bestOVRModel = bestPipelineModel.stages(0).asInstanceOf[OneVsRestModel]
 
-  val paramsAndMetrics = validatorModel.validationMetrics
-    .zip(validatorModel.getEstimatorParamMaps).sortBy(-_._1)
+  val paramsAndMetrics = validatorModel.avgMetrics.zip(validatorModel.getEstimatorParamMaps).sortBy(-_._1)
+
   paramsAndMetrics.foreach{ case (metric, params) =>
     println(metric)
     println(params)
@@ -119,5 +120,5 @@ object GBTs extends App {
   // Make predictions on test data. model is the model with combination of parameters
   // that performed best.
   bestPipelineModel.transform(testData)
-    .show()
+    .show(400)
 }

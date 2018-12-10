@@ -1,7 +1,13 @@
 import pandas as pd
 
-input_after_feature_extraction_path = "transform/final_after_feature_extraction.csv"
-output_after_fill_empty_path = "transform/final_after_fill_empty.csv"
+# input_after_feature_extraction_path = "transform/y_result/y_result_after_feature_extraction.csv"
+# output_after_fill_empty_path = "transform/y_result/y_result_after_fill_empty.csv"
+
+# input_after_feature_extraction_path = "transform/y_ms/y_ms_after_feature_extraction.csv"
+# output_after_fill_empty_path = "transform/y_ms/y_ms_after_fill_empty.csv"
+
+input_after_feature_extraction_path = "transform/y_dimension/y_dimension_after_feature_extraction.csv"
+output_after_fill_empty_path = "transform/y_dimension/y_dimension_after_fill_empty.csv"
 
 data_after_feature_extraction = pd.read_csv(input_after_feature_extraction_path,
                                             header=0,

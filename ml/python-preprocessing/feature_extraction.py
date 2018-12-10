@@ -1,7 +1,13 @@
 import pandas as pd
 
-input_after_sampling_path = "transform/final_after_sampling.csv"
-output_after_feature_extraction_path = "transform/final_after_feature_extraction.csv"
+# input_after_sampling_path = "transform/y_result/y_result_after_sampling.csv"
+# output_after_feature_extraction_path = "transform/y_result/y_result_after_feature_extraction.csv"
+
+# input_after_sampling_path = "transform/y_ms/y_ms_after_sampling.csv"
+# output_after_feature_extraction_path = "transform/y_ms/y_ms_after_feature_extraction.csv"
+#
+input_after_sampling_path = "transform/y_dimension/y_dimension_after_sampling.csv"
+output_after_feature_extraction_path = "transform/y_dimension/y_dimension_after_feature_extraction.csv"
 
 data_after_sampling = pd.read_csv(input_after_sampling_path,
                                   header=0,
@@ -9,12 +15,10 @@ data_after_sampling = pd.read_csv(input_after_sampling_path,
 
 keys = data_after_sampling.keys()
 print(input_after_sampling_path, "has", len(keys), "keys")
-
 for key in keys:
     if key.endswith("_servicename") \
             or key.endswith("timestamp") \
             or key.endswith("_time"):
-        # TODO：How to process _servicename
         print("Pop: " + key)
         data_after_sampling.pop(key)
     elif key.endswith("service_id") \
