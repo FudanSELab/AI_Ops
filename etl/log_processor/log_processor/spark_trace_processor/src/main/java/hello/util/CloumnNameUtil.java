@@ -13,7 +13,7 @@ public class CloumnNameUtil {
         for (int i = 0; i < tracePassServiceCloumn.length; i++) {
             String ser = tracePassServiceCloumn[i].replaceAll("_included", "");
             cpuMemDiff.add(ser+"_inst_mem_diff");
-            cpuMemDiff.add(ser+"_inst_cpu_limit");
+            cpuMemDiff.add(ser+"_inst_cpu_diff");
         }
         return cpuMemDiff;
     }

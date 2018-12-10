@@ -11,8 +11,11 @@ public class TempSQL {
                     "a.anno_a2_timestamp cr_timestamp, a.anno_a2_ipv4 cr_ipv4, a.anno_a2_servicename cr_servicename, " +
                     "b.anno_a1_timestamp sr_timestamp, b.anno_a1_ipv4 sr_ipv4, b.anno_a1_servicename sr_servicename, " +
                     "b.anno_a2_timestamp ss_timestamp, b.anno_a2_ipv4 ss_ipv4, b.anno_a2_servicename ss_servicename, " +
-                    "a.bnno_node_id c_node_id, b.bnno_node_id s_node_id, a.bnno_httpurl req_api, a.test_trace_id, " +
-                    "a.test_case_id, a.bnno_status_code status_code,  a.bnno_http_method req_type " +
+                    "a.bnno_httpurl c_req_api, b.bnno_httpurl s_req_api, " +
+                    "a.bnno_node_id c_inst_id, b.bnno_node_id s_inst_id, " +
+                    "a.bnno_status_code c_status_code, b.bnno_status_code s_status_code,"+
+                    "a.test_trace_id, a.test_case_id, " +
+                    "a.bnno_http_method req_type " +
             "from  original_span_table a, original_span_table b " +
                     "where (a.span_id == b.span_id And a.parent_id == b.parent_id And a.anno_a1_value == 'cs' And a.parent_id  != '' And  (b.span_timestamp == ''  or b.span_timestamp == '0')) or (a.span_id == b.span_id And a.parent_id == b.parent_id And a.anno_a1_value == 'sr' And a.parent_id  == '')";
 
@@ -22,7 +25,7 @@ public class TempSQL {
             "select  trace_id, span_id, span_timestamp, test_trace_id, test_case_id," +
                     "abs(sr_timestamp - cs_timestamp)  req_latency, parent_id, cs_servicename req_service," +
                     "req_api, c_node_id req_inst_id ,cs_ipv4 req_inst_ip, span_duration duration," +
-                    "status_code res_status_code, req_type, 0 res_status_desc," +
+                    "c_status_code res_status_code, req_type, 0 res_status_desc," +
                     "0 res_exception, abs(ss_timestamp - cr_timestamp) res_latency," +
                     "0 req_param, 0 exec_logs, 0 res_body " +
                     "from real_span_trace_view";
@@ -37,9 +40,14 @@ public class TempSQL {
             "select trace_id, " +
                     "concat_ws(',', collect_set(cr_servicename)) cr_service_included,  " +
                     "concat_ws(',', collect_set(cast(abs(cr_timestamp - cs_timestamp) as string))) crs_time, " +
+                    "concat_ws(',', collect_set(c_req_api)) c_req_api, "+
+                    "concat_ws(',', collect_set(c_inst_id)) c_inst_id, "+
+                    "concat_ws(',', collect_set(c_status_code)) c_status_code, "+
                     "concat_ws(',', collect_set(sr_servicename)) sr_service_included, " +
                     "concat_ws(',', collect_set(cast(abs(ss_timestamp - sr_timestamp) as string))) ssr_time, " +
-                    "concat_ws(',', collect_set(req_api)) pass_api, "+
+                    "concat_ws(',', collect_set(s_req_api)) s_req_api, "+
+                    "concat_ws(',', collect_set(s_inst_id)) s_inst_id, "+
+                    "concat_ws(',', collect_set(s_status_code)) s_status_code, "+
                     "cast(count(*) as string) trace_service_span "+
                     "from real_span_trace_view group by trace_id";
 
