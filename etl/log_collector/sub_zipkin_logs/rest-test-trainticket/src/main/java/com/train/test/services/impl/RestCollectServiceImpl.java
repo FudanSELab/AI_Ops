@@ -31,8 +31,8 @@ public class RestCollectServiceImpl implements RestCollectService {
     private static final String REQUEST_MEMORY = "r_memory";
     private static final String LIMIT_CPU = "l_cpu";
     private static final String LIMIT_MEMORY = "l_memory";
-    private static final String SERVICE_CONFIG_DATA = "serviceConfigData";
-    private static final String SERVICE_INSTANCE_DATA = "serviceInstanceData";
+    private static final String SERVICE_CONFIG_DATA = "serviceConfigData_instance";
+    private static final String SERVICE_INSTANCE_DATA = "serviceInstanceData_instance";
     private static final String START_TIME = "start_time";
     private static final String END_TIME = "end_time";
 

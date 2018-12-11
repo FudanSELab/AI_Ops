@@ -36,7 +36,7 @@ public class CloumnNameUtil {
     public static List<String> getTracePassCloumnAllList() {
         List<String> tempList = new ArrayList<>();
         tempList.add("trace_id");
-        tempList.add("trace_service_span_ql");
+        tempList.add("trace_service_span");
 
         for (int i = 0; i < tracePassServiceCloumn.length; i++) {
             String ser = tracePassServiceCloumn[i].replaceAll("_included", "");
@@ -44,7 +44,7 @@ public class CloumnNameUtil {
             tempList.add(ser + "_api");
             tempList.add(ser + "_inst_id");
             tempList.add(ser + "_inst_status_code");
-            tempList.add(ser + "_exec_time_ql");
+            tempList.add(ser + "_exec_time");
 
             //  有变量的服务才加
             //  加的列，为每个服务中变量的个数

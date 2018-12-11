@@ -131,13 +131,14 @@ public class AiOpsRDD {
         tracePassService(spark);
         combinePassServiceToTrace(spark);
 
+        combineInstanceDataToTrace(spark);
 
         // from csv  to real_cpu_memory_view
         // from trace_passservice_view , real_cpu_memory_view ==> trace_pass_cpu_view
 
 
-        combineServiceConfigToTrace(spark);
-        combineInstanceDataToTrace(spark);
+      //  combineServiceConfigToTrace(spark);
+        //combineInstanceDataToTrace(spark);
         // cpuMemory(spark);
         //  combineCpuMemoryToTrace(spark); // trace_pass_cpu_view
 
@@ -168,10 +169,10 @@ public class AiOpsRDD {
             @Override
             public Row call(Row row) throws Exception {
                 List<String> configData = new ArrayList<>();
-                for(int i=0; i<configColName.length; i++){
-                    if(configColName[i].contains("mongo")){
+                for (int i = 0; i < configColName.length; i++) {
+                    if (configColName[i].contains("mongo")) {
                         // 对应值不加进去
-                    }else{
+                    } else {
                         configData.add(row.getAs(i));
                     }
                 }
@@ -180,8 +181,8 @@ public class AiOpsRDD {
         });
         // 过滤掉mongo的类名
         List<String> newColName = new ArrayList<>();
-        for(int i =0; i< configColName.length; i++){
-            if(!configColName[i].contains("mongo"))
+        for (int i = 0; i < configColName.length; i++) {
+            if (!configColName[i].contains("mongo"))
                 newColName.add(configColName[i]);
         }
 
@@ -189,7 +190,7 @@ public class AiOpsRDD {
         for (int i = 0; i < newColName.size(); i++) {
             structFields.add(DataTypes.createStructField(newColName.get(i), DataTypes.StringType, true));
         }
-        Dataset<Row> serviceConfigDataSet = spark.createDataFrame(configNoMongoRDD,  DataTypes.createStructType(structFields));
+        Dataset<Row> serviceConfigDataSet = spark.createDataFrame(configNoMongoRDD, DataTypes.createStructType(structFields));
 
         serviceConfigDataSet.createOrReplaceTempView("service_config_data");
         Dataset<Row> trace_combine_configDataset = spark.sql(TempSQL.combineServiceConfigToTrace);
@@ -200,7 +201,6 @@ public class AiOpsRDD {
         trace_combine_configDataset.write().saveAsTable("trace_combine_config");
 
 
-
         // read service instance data
         Dataset<Row> serviceInstanceData = spark.read().option("header", "true")
                 .csv("hdfs://10.141.211.173:8020/user/admin/serviceInstanceData.csv");
@@ -208,23 +208,41 @@ public class AiOpsRDD {
         System.out.println("--------------print servcie instance schema --------------");
         serviceInstanceData.createOrReplaceTempView("service_instance_data");
 
-        String [] collname = trace_combine_configDataset.columns();
+        String[] collname = trace_combine_configDataset.columns();
 
         JavaRDD<Row> tempRdd = trace_combine_configDataset.javaRDD().map(new Function<Row, Row>() {
             @Override
             public Row call(Row row) throws Exception {
-                 List<String> temp = new ArrayList<>();
-                 String[] tempInst = new String[]{};
-                 for(int i=0;i <collname.length; i++){
-                     if(collname[i].contains("inst_id")){
-                         serviceInstanceData.select(collname[i]);
-                         row.getAs(i);
-                        Dataset<Row> ttt = spark.sql("select service_inst_mem, * from service_instance_data where service_inst_id =" + collname[i]);
+                List<String> temp = new ArrayList<>();
+                String[] tempInst = new String[]{};
+                for (int i = 0; i < collname.length; i++) {
+                    if (collname[i].contains("inst_id")) {
+                        Dataset<Row> ttt = spark.sql(
+                                "select service_inst_memory, service_inst_cpu, service_inst_service_version, " +
+                                        "service_inst_node_id, service_inst_node_cpu, service_inst_node_memory ," +
+                                        "service_inst_node_memory_limit,  service_inst_node_cpu_limit " +
+                                        "from service_instance_data where service_inst_id =" + row.getAs(i) +
+                                        "And  service_inst_start_time < ("+ row.getAs("entry_timestamp")+"60000)" +
+                                        "And service_inst_end_time >" + row.getAs("entry_timestamp"));
 
-                     }else{
-                         temp.add(row.getAs(i));
-                     }
-                 }
+
+                        ttt.javaRDD().map(new Function<Row, Row>() {
+                            @Override
+                            public Row call(Row row) throws Exception {
+                                int tag = 0;
+                                if(tag == 0) {
+                                    temp.add(row.getAs("service_inst_memory"));
+                                    temp.add(row.getAs("service_inst_cpu"));
+                                }
+                                tag++;
+                                return null;
+                            }
+                        });
+
+                    } else {
+                        temp.add(row.getAs(i));
+                    }
+                }
 
 
                 return null;
@@ -234,14 +252,34 @@ public class AiOpsRDD {
 
     }
 
-    private static void combineInstanceDataToTrace(SparkSession spark){
+    private static void combineInstanceDataToTrace(SparkSession spark) {
         // read service instance data
         Dataset<Row> serviceInstanceData = spark.read().option("header", "true")
                 .csv("hdfs://10.141.211.173:8020/user/admin/serviceInstanceData.csv");
         //serviceInstanceData.printSchema();
         System.out.println("--------------print servcie instance schema --------------");
         serviceInstanceData.createOrReplaceTempView("service_instance_data");
-        serviceInstanceData
+        /// trace_passservice_view
+
+        String[] basic_service = CloumnNameUtil.tracePassServiceCloumn;
+        Dataset<Row> traceCombineIns = null;
+        for(int i=0;i <basic_service.length; i++){
+            String tempService = basic_service[i].replaceAll("_included", "");
+            traceCombineIns = spark.sql("select a.*, " +
+                     "b.service_inst_memory as "+ tempService+"_inst_memory"+
+                     "b.service_inst_cpu as "+ tempService+"_inst_cpu"+
+                     "b.service_inst_service_version as "+ tempService+"_inst_service_version , "+
+                     "b.service_inst_node_id as"+ tempService+"_inst_node_id , "+
+                     "b.service_inst_node_cpu as "+ tempService+"_inst_node_cpu , "+
+                     "b.service_inst_node_memory as "+ tempService+"_inst_node_memory , "+
+                     "b.service_inst_node_cpu_limit as "+ tempService+"_inst_node_cpu_limit , "+
+                     "b.service_inst_node_memory_limit as "+ tempService+"_inst_node_memory_limit "+
+                     "from  trace_passservice_view a, service_instance_data b " +
+                    "where a.entry_timestamp > b.start_time And a.entry_timestamp < b.end_time And a." + tempService+"_inst_id"+"== b.service_inst_id");
+            traceCombineIns.createOrReplaceTempView("trace_passservice_view");
+        }
+        traceCombineIns.write().saveAsTable("trace_combine_instance");
+       // serviceInstanceData
     }
 
     private static void finalTraceCombineSequence(SparkSession spark) {
@@ -375,7 +413,7 @@ public class AiOpsRDD {
                         rowDataList.add(passServiceApiMap.get(changeService)); // s?_service_api
                         rowDataList.add(passServiceInstId.get(changeService)); // s?_inst_id
                         rowDataList.add(passServiceStatusCode.get(changeService));// s?_inst_status_code
-                        rowDataList.add( Double.parseDouble(passServiceTimeMap.get(changeService)) + ""); // s?_exec_time
+                        rowDataList.add(Double.parseDouble(passServiceTimeMap.get(changeService)) + ""); // s?_exec_time
 
 //
 //                        Integer varNum = SharedVariableUtils.getServiceVarlible().get(changeService);
@@ -409,7 +447,7 @@ public class AiOpsRDD {
 //                        }
                     }
                 }
-                System.out.println(rowDataList.size() +"====================");
+                System.out.println(rowDataList.size() + "====================");
                 return RowFactory.create(rowDataList.toArray());
             }
         });
@@ -419,7 +457,7 @@ public class AiOpsRDD {
         for (int i = 0; i < CloumnNameUtil.getTracePassCloumnAllList().size(); i++) {
             structFields.add(DataTypes.createStructField(CloumnNameUtil.getTracePassCloumnAllList().get(i), DataTypes.StringType, true));
         }
-        Dataset<Row> tracePassDataset = spark.createDataFrame(step3Rdd,  DataTypes.createStructType(structFields));
+        Dataset<Row> tracePassDataset = spark.createDataFrame(step3Rdd, DataTypes.createStructType(structFields));
 
         tracePassDataset = tracePassDataset.dropDuplicates(new String[]{"trace_id"});
         ///tracePassDataset.write().saveAsTable("real_trace_pass_view");

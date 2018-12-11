@@ -140,7 +140,8 @@ public class InstanceReplicasController {
                 // AsyncRestTemplate asyncTemplate = new AsyncRestTemplate();
                 try {
                     logger.info(i + "------ times ");
-                    restTemplate.getForObject("http://10.141.212.140:10101/test/bookingflow", FlowTestResult.class);
+                    restTemplate.getForObject("http://localhost:10101/test/bookingflow", FlowTestResult.class);
+                   // restTemplate.getForObject("http://10.141.212.140:10101/test/bookingflow", FlowTestResult.class);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
