@@ -5,6 +5,16 @@ import java.util.regex.Pattern;
 
 public class MatcherUrlRouterUtil {
 
+    public static String nodeIdMatcherPattern(String maStr){
+        Pattern p = Pattern.compile("\\~..-.*-.*-.*-.....");
+        Matcher matcher = p.matcher(maStr);
+        String urlRouter2 = "";
+        if (matcher.find()) {
+            urlRouter2 = matcher.group(0);
+            urlRouter2 = urlRouter2.replaceAll("~","");
+        }
+        return urlRouter2;
+    }
     public static String matcherPattern(String maStr) {
         Pattern p = Pattern.compile("\\d{1}/.*/.*/");
         Matcher matcher = p.matcher(maStr);

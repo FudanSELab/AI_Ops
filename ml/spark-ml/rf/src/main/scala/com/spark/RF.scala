@@ -16,7 +16,7 @@ object RF extends App {
   //  val master = "yarn"
   //  val filePath = "hdfs://10.141.211.173:8020/user/admin/mock.csv"
   val master = "local"
-  val filePath = "final_after_dimensionality_reduction.csv"
+  val filePath = "y_ms_after_dimensionality_reduction.csv"
   val appName = "Spark Random Forest"
 
   println("[Run]Random Forest Main")
@@ -70,8 +70,8 @@ object RF extends App {
   val treeModel = pipelineModel.stages(0).asInstanceOf[RandomForestClassificationModel]
   println("Model: \n" + treeModel.toDebugString)
 
-  pipelineModel.write.overwrite().save("model/rf/pipeline_model")
-  val samePipelineModel = PipelineModel.load("model/rf/pipeline_model")
+//  pipelineModel.write.overwrite().save("model/rf/pipeline_model")
+//  val samePipelineModel = PipelineModel.load("model/rf/pipeline_model")
 
   // We use a ParamGridBuilder to construct a grid of parameters to search over.
   // TrainValidationSplit will try all combinations of values and determine best model using
@@ -92,7 +92,7 @@ object RF extends App {
     .setEstimator(pipeline)
     .setEvaluator(multiclassEval)
     .setEstimatorParamMaps(paramGrid)
-    .setNumFolds(10)// 80% of the data will be used for training and the remaining 20% for validation.
+    .setNumFolds(5)// 80% of the data will be used for training and the remaining 20% for validation.
 
   // Run train validation split, and choose the best set of parameters.
   val validatorModel = trainValidationSplit.fit(trainingData)

@@ -12,8 +12,8 @@ public class CloumnNameUtil {
         List<String> cpuMemDiff = new ArrayList<>();
         for (int i = 0; i < tracePassServiceCloumn.length; i++) {
             String ser = tracePassServiceCloumn[i].replaceAll("_included", "");
-            cpuMemDiff.add(ser+"_inst_mem_diff");
-            cpuMemDiff.add(ser+"_inst_cpu_limit");
+            cpuMemDiff.add(ser + "_inst_mem_diff");
+            cpuMemDiff.add(ser + "_inst_cpu_diff");
         }
         return cpuMemDiff;
     }
@@ -37,11 +37,23 @@ public class CloumnNameUtil {
         List<String> tempList = new ArrayList<>();
         tempList.add("trace_id");
         tempList.add("trace_service_span_ql");
+
         for (int i = 0; i < tracePassServiceCloumn.length; i++) {
             String ser = tracePassServiceCloumn[i].replaceAll("_included", "");
             tempList.add(ser + "_included");
             tempList.add(ser + "_api");
+            tempList.add(ser + "_inst_id");
+            tempList.add(ser + "_inst_status_code");
             tempList.add(ser + "_exec_time_ql");
+
+            //  有变量的服务才加
+            //  加的列，为每个服务中变量的个数
+//            Integer varNum = SharedVariableUtils.getServiceVarlible().get(ser.replaceAll("_", "-"));
+//            if (varNum != null) {
+//                for (int j = 0; j < varNum; j++) {
+//                    tempList.add(ser + "_var_" + j);
+//                }
+//            }
             // System.out.println("\""+ ser + "_included" +"\""+" , " +"\""+ ser + "_api" +"\""+ " , " +"\""+ ser + "_exec_time"+"\"");
         }
         return tempList;
