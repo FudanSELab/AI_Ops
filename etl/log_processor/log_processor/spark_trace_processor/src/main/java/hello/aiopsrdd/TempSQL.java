@@ -24,7 +24,7 @@ public class TempSQL {
     public static String genInvocation =
             "select  trace_id, span_id, span_timestamp, test_trace_id, test_case_id," +
                     "abs(sr_timestamp - cs_timestamp)  req_latency, parent_id, cs_servicename req_service," +
-                    "req_api, c_node_id req_inst_id ,cs_ipv4 req_inst_ip, span_duration duration," +
+                    "c_req_api req_api, c_inst_id req_inst_id ,cs_ipv4 req_inst_ip, span_duration duration," +
                     "c_status_code res_status_code, req_type, 0 res_status_desc," +
                     "0 res_exception, abs(ss_timestamp - cr_timestamp) res_latency," +
                     "0 req_param, 0 exec_logs, 0 res_body " +
@@ -38,16 +38,16 @@ public class TempSQL {
     // 由real_span_trace表 查询出一个服务经过的service
     public static String getTracePassService =
             "select trace_id, " +
-                    "concat_ws(',', collect_set(cr_servicename)) cr_service_included,  " +
-                    "concat_ws(',', collect_set(cast(abs(cr_timestamp - cs_timestamp) as string))) crs_time, " +
-                    "concat_ws(',', collect_set(c_req_api)) c_req_api, "+
-                    "concat_ws(',', collect_set(c_inst_id)) c_inst_id, "+
-                    "concat_ws(',', collect_set(c_status_code)) c_status_code, "+
-                    "concat_ws(',', collect_set(sr_servicename)) sr_service_included, " +
-                    "concat_ws(',', collect_set(cast(abs(ss_timestamp - sr_timestamp) as string))) ssr_time, " +
-                    "concat_ws(',', collect_set(s_req_api)) s_req_api, "+
-                    "concat_ws(',', collect_set(s_inst_id)) s_inst_id, "+
-                    "concat_ws(',', collect_set(s_status_code)) s_status_code, "+
+                    "concat_ws(',', collect_list(cr_servicename)) cr_service_included,  " +
+                    "concat_ws(',', collect_list(cast(abs(cr_timestamp - cs_timestamp) as string))) crs_time, " +
+                    "concat_ws(',', collect_list(c_req_api)) c_req_api, "+
+                    "concat_ws(',', collect_list(c_inst_id)) c_inst_id, "+
+                    "concat_ws(',', collect_list(c_status_code)) c_status_code, "+
+                    "concat_ws(',', collect_list(sr_servicename)) sr_service_included, " +
+                    "concat_ws(',', collect_list(cast(abs(ss_timestamp - sr_timestamp) as string))) ssr_time, " +
+                    "concat_ws(',', collect_list(s_req_api)) s_req_api, "+
+                    "concat_ws(',', collect_list(s_inst_id)) s_inst_id, "+
+                    "concat_ws(',', collect_list(s_status_code)) s_status_code, "+
                     "cast(count(*) as string) trace_service_span "+
                     "from real_span_trace_view group by trace_id";
 
@@ -60,6 +60,12 @@ public class TempSQL {
                     "a.duration trace_duration_ql, b.* " +
                     "from  real_invocation_view a, real_trace_pass_view b  " +
                     "where a.trace_id == b.trace_id And a.req_latency == '0' And a.parent_id == '' ";
+
+
+    // service_config_data
+    public static String combineServiceConfigToTrace =
+            "select a.* , b.* from  trace_passservice_view a, service_config_data  b " +
+            "where (((a.entry_timestamp + 60000) > b.ts_travel_service_start_time )  And  (a.entry_timestamp < b.ts_travel_service_end_time))";
 
 
     // real_invocation_view ,  cpu_memory_view , real_trace_pass_view  产生 Trace 表
