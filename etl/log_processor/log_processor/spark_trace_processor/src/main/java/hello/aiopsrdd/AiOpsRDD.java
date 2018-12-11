@@ -235,12 +235,24 @@ public class AiOpsRDD {
 
                 String[] cr_pass_service = row.getAs("cr_service_included").toString().split(",");
                 String[] sr_pass_service = row.getAs("sr_service_included").toString().split(",");
-                String[] pass_service_api = row.getAs("pass_api").toString().split(",");
+
+                String[] cr_pass_api = row.getAs("c_req_api").toString().split(",");
+                String[] sr_pass_api = row.getAs("s_req_api").toString().split(",");
+
+                String[] cr_inst_id = row.getAs("c_inst_id").toString().split(",");
+                String[] sr_inst_id = row.getAs("s_inst_id").toString().split(",");
+
+                String[] cr_status_code = row.getAs("c_status_code").toString().split(",");
+                String[] s_status_code = row.getAs("s_status_code").toString().split(",");
+
                 String[] crs_time = row.getAs("crs_time").toString().split(",");
                 String[] ssr_time = row.getAs("ssr_time").toString().split(",");
 
                 Map<String, String> passServiceMap = new HashMap<>();
                 Map<String, String> passServiceApiMap = new HashMap<>();
+                Map<String, String> passServiceInstId = new HashMap<>();
+                Map<String, String> passServiceStatusCode = new HashMap<>();
+
                 Map<String, String> passServiceTimeMap = new HashMap<>();
 
 
@@ -248,16 +260,20 @@ public class AiOpsRDD {
                 for (int i = 0; i < sr_pass_service.length; i++) {
                     if (!passServiceMap.containsKey(sr_pass_service[i])) {
                         passServiceMap.put(sr_pass_service[i], sr_pass_service[i]);
-                        passServiceApiMap.put(sr_pass_service[i], pass_service_api[i]);
+                        passServiceApiMap.put(sr_pass_service[i], sr_pass_api[i]);
+                        passServiceInstId.put(sr_pass_service[i], sr_inst_id[i]);
+                        passServiceStatusCode.put(sr_pass_service[i], s_status_code[i]);
+
                         passServiceTimeMap.put(sr_pass_service[i], ssr_time[i]);
                     }
                 }
-
+                // 前面一行几乎把所有的api都有了
                 for (int i = 0; i < cr_pass_service.length; i++) {
                     if (!passServiceMap.containsKey(cr_pass_service[i])) {
                         passServiceMap.put(cr_pass_service[i], cr_pass_service[i]);
-                        // 前面一行几乎把所有的api都有了
-                        passServiceApiMap.put(cr_pass_service[i], pass_service_api[i]);
+                        passServiceApiMap.put(cr_pass_service[i], cr_pass_api[i]);
+                        passServiceInstId.put(cr_pass_service[i], cr_inst_id[i]);
+                        passServiceStatusCode.put(cr_pass_service[i], cr_status_code[i]);
                         passServiceTimeMap.put(cr_pass_service[i], crs_time[i]);
                     }
                 }
@@ -270,13 +286,16 @@ public class AiOpsRDD {
                             .replaceAll("_included", "").replaceAll("_", "-");
                     String passOrNot = passServiceMap.get(changeService);
                     if (passOrNot == null || "".equals(passOrNot)) {
-                        rowDataList.add("-1");
-                        rowDataList.add("");
-                        rowDataList.add("");
+                        rowDataList.add("-1"); // s?_include
+                        rowDataList.add(""); // s?_service_api
+                        rowDataList.add(""); // s?_inst_id
+                        rowDataList.add(""); // s?_inst_status_code
+                        rowDataList.add(""); // s?_exec_time
+                        rowDataList.add(""); //s?_var
                     } else {
                         rowDataList.add("1");
                         rowDataList.add(passServiceApiMap.get(changeService));
-
+                        rowDataList.add("");
                         double serviceExecTime = Double.parseDouble(passServiceTimeMap.get(changeService));
 //                        String resultTime = new BigDecimal(serviceExecTime / 1000000 + "").toString();
 //                        double rt = Double.parseDouble(resultTime);
@@ -327,7 +346,6 @@ public class AiOpsRDD {
         serviceInstanceData.createOrReplaceTempView("service_instance_data");
 
         Dataset<Row> combineCpuMemory = spark.sql(TempSQL.genCpuMemory);
-
 
         String[] col = combineCpuMemory.columns();
         System.out.println(col.length + "-----w-------e-----------");
