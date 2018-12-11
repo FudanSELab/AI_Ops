@@ -1,0 +1,4 @@
+Best score: 0.327
+Best parameters set:
+	max_depth: 30
+	n_estimators: 10

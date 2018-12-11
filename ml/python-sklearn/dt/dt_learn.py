@@ -1,19 +1,19 @@
 import pandas as pd
-from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.utils import shuffle
 
-# file_path = "../y_result_after_dimensionality_reduction.csv"
-# log_file_path = "../log/et/log_y_result.txt"
-# y_name = "new_trace_y.y_exec_result"
+file_path = "../y_result_after_dimensionality_reduction.csv"
+log_file_path = "../log/dt/log_y_result.txt"
+y_name = "new_trace_y.y_exec_result"
 
 # file_path = "../y_ms_after_dimensionality_reduction.csv"
-# log_file_path = "../log/et/log_y_ms.txt"
+# log_file_path = "../log/dt/log_y_ms.txt"
 # y_name = "new_trace_y.y_issue_ms"
 
-file_path = "../y_dimension_after_dimensionality_reduction.csv"
-log_file_path = "../log/et/log_y_dimension.txt"
-y_name = "new_trace_y.y_issue_dim_type"
+# file_path = "../y_dimension_after_dimensionality_reduction.csv"
+# log_file_path = "../log/dt/log_y_dimension.txt"
+# y_name = "new_trace_y.y_issue_dim_type"
 
 
 def print_best_score(gsearch, param_test):
@@ -29,16 +29,16 @@ def print_best_score(gsearch, param_test):
 
 
 features_label = pd.read_csv(file_path, header=0, index_col=0)
+print(features_label.head(5))
 features_label = shuffle(features_label)
 
 X, Y = features_label, features_label.pop(y_name)
 
-clf = ExtraTreesClassifier(max_depth=None,
-                           random_state=0)
+clf = DecisionTreeClassifier()
+
 
 param_test = {
-    "n_estimators": [5, 10, 20, 30, 50, 100, 500],
-    "max_depth": [None, 10, 20, 30]
+    "max_depth": [None, 10, 20, 30],
 }
 
 grid_search_cv = GridSearchCV(clf,
