@@ -15,7 +15,7 @@ object DT extends App {
 //  val master = "yarn"
 //  val filePath = "hdfs://10.141.211.173:8020/user/admin/mock.csv"
   val master = "local"
-  val filePath = "final_after_dimensionality_reduction.csv"
+  val filePath = "y_ms_after_dimensionality_reduction.csv"
   val appName = "Spark Decision Tree"
 
   println("[Run]Decision Main")
@@ -57,24 +57,24 @@ object DT extends App {
     .setPredictionCol("prediction")
 
   val pipeline = new Pipeline().setStages(Array(dt))
-  val pipelineModel = pipeline.fit(trainingData)
+//  val pipelineModel = pipeline.fit(trainingData)
+//
+//  val predictions = pipelineModel.transform(testData)
+//  predictions.show(5)
+//
+//  val evaluator = new MulticlassClassificationEvaluator()
+//    .setLabelCol("y")
+//    .setPredictionCol("prediction")
+//    .setMetricName("accuracy")
+//
+//  val accuracy = evaluator.evaluate(predictions)
+//  println("Test Error = " + (1.0 - accuracy))
+//
+//  val treeModel = pipelineModel.stages(0).asInstanceOf[DecisionTreeClassificationModel]
+//  println("Model:\n" + treeModel.toDebugString)
 
-  val predictions = pipelineModel.transform(testData)
-  predictions.show(5)
-
-  val evaluator = new MulticlassClassificationEvaluator()
-    .setLabelCol("y")
-    .setPredictionCol("prediction")
-    .setMetricName("accuracy")
-
-  val accuracy = evaluator.evaluate(predictions)
-  println("Test Error = " + (1.0 - accuracy))
-
-  val treeModel = pipelineModel.stages(0).asInstanceOf[DecisionTreeClassificationModel]
-  println("Model:\n" + treeModel.toDebugString)
-
-  pipelineModel.write.overwrite().save("model/dt/pipeline_model")
-  val samePipelineModel = PipelineModel.load("model/dt/pipeline_model")
+//  pipelineModel.write.overwrite().save("model/dt/pipeline_model")
+//  val samePipelineModel = PipelineModel.load("model/dt/pipeline_model")
 
   // We use a ParamGridBuilder to construct a grid of parameters to search over.
   // TrainValidationSplit will try all combinations of values and determine best model using
