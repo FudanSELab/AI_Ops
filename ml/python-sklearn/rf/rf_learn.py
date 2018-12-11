@@ -1,18 +1,18 @@
 import pandas as pd
-from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.utils import shuffle
 
 # file_path = "../y_result_after_dimensionality_reduction.csv"
-# log_file_path = "../log/et/log_y_result.txt"
+# log_file_path = "../log/rf/log_y_result.txt"
 # y_name = "new_trace_y.y_exec_result"
 
 # file_path = "../y_ms_after_dimensionality_reduction.csv"
-# log_file_path = "../log/et/log_y_ms.txt"
+# log_file_path = "../log/rf/log_y_ms.txt"
 # y_name = "new_trace_y.y_issue_ms"
 
 file_path = "../y_dimension_after_dimensionality_reduction.csv"
-log_file_path = "../log/et/log_y_dimension.txt"
+log_file_path = "../log/rf/log_y_dimension.txt"
 y_name = "new_trace_y.y_issue_dim_type"
 
 
@@ -33,12 +33,12 @@ features_label = shuffle(features_label)
 
 X, Y = features_label, features_label.pop(y_name)
 
-clf = ExtraTreesClassifier(max_depth=None,
-                           random_state=0)
+clf = RandomForestClassifier()
+
 
 param_test = {
-    "n_estimators": [5, 10, 20, 30, 50, 100, 500],
-    "max_depth": [None, 10, 20, 30]
+    "max_depth": [None, 10, 20, 30],
+    "n_estimators": [5, 10, 20, 50, 100]
 }
 
 grid_search_cv = GridSearchCV(clf,

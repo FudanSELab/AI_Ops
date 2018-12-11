@@ -1,19 +1,20 @@
 import pandas as pd
-from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.model_selection import GridSearchCV
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.utils import shuffle
+from sklearn.svm import SVC
 
 # file_path = "../y_result_after_dimensionality_reduction.csv"
-# log_file_path = "../log/et/log_y_result.txt"
+# log_file_path = "../log/svm/log_y_result.txt"
 # y_name = "new_trace_y.y_exec_result"
 
-# file_path = "../y_ms_after_dimensionality_reduction.csv"
-# log_file_path = "../log/et/log_y_ms.txt"
-# y_name = "new_trace_y.y_issue_ms"
+file_path = "../y_ms_after_dimensionality_reduction.csv"
+log_file_path = "../log/svm/log_y_ms.txt"
+y_name = "new_trace_y.y_issue_ms"
 
-file_path = "../y_dimension_after_dimensionality_reduction.csv"
-log_file_path = "../log/et/log_y_dimension.txt"
-y_name = "new_trace_y.y_issue_dim_type"
+# file_path = "../y_dimension_after_dimensionality_reduction.csv"
+# log_file_path = "../log/svm/log_y_dimension.txt"
+# y_name = "new_trace_y.y_issue_dim_type"
 
 
 def print_best_score(gsearch, param_test):
@@ -33,15 +34,16 @@ features_label = shuffle(features_label)
 
 X, Y = features_label, features_label.pop(y_name)
 
-clf = ExtraTreesClassifier(max_depth=None,
-                           random_state=0)
+clf = SVC(gamma='auto')
+ovr = OneVsRestClassifier(clf)
 
 param_test = {
-    "n_estimators": [5, 10, 20, 30, 50, 100, 500],
-    "max_depth": [None, 10, 20, 30]
+    "estimator__C": [1, 2, 4, 8],
+    "estimator__kernel": ["poly", "rbf", "sigmoid"],
+    "estimator__degree": [1, 2, 3, 4],
 }
 
-grid_search_cv = GridSearchCV(clf,
+grid_search_cv = GridSearchCV(ovr,
                               param_grid=param_test,
                               cv=10)
 
