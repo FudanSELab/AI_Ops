@@ -29,7 +29,16 @@ train_columns.append("svc")
 train_columns.append("result")
 
 
-train_data_final = pd.DataFrame(dict(zip(train_columns, train_data)))
+dateset = []
+
+for i in range(500):
+    temp = []
+    for j in range(43):
+        temp.append(train_data[j][i])
+    print(temp)
+    dateset.append(temp)
+
+train_data_final = DataFrame(dateset, columns=train_columns)
 
 train_data_final.to_csv("mock.csv")
 

@@ -24,22 +24,29 @@ df = pd.read_csv(data_file_path,
 
 y_name = "result"
 X, Y = df, df.pop(y_name)
-
-# clf = MLPClassifier()
+#
+# # clf = MLPClassifier()
+# # param_test = {
+# #     "hidden_layer_sizes": [(30, 30), (10, 10), (50, 50)],
+# #     "max_iter": [200, 500, 1000, 2000]
+# # }
+# clf = RandomForestClassifier()
+#
+#
 # param_test = {
-#     "hidden_layer_sizes": [(30, 30), (10, 10), (50, 50)],
-#     "max_iter": [200, 500, 1000, 2000]
+#     "max_depth": [None, 10, 20, 30],
+#     "n_estimators": [5, 10, 20, 50, 100]
 # }
-clf = RandomForestClassifier()
 
-
+clf = DecisionTreeClassifier()
 param_test = {
-    "max_depth": [None, 10, 20, 30],
-    "n_estimators": [5, 10, 20, 50, 100]
+     "max_depth": [None, 10, 20, 30, 200],
 }
+
 grid_search_cv = GridSearchCV(clf,
                               param_grid=param_test,
                               cv=10)
 
 grid_search_cv.fit(X=X, y=Y)
 print_best_score(grid_search_cv, param_test)
+
