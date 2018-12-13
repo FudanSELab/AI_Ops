@@ -1,5 +1,5 @@
 package com.train.test.services;
 
 public interface ConfigErrorService {
-    void testConfigError() throws Exception;
+    void testConfigErrorFlowOne(int step) throws Exception;
 }

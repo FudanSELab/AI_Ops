@@ -111,13 +111,13 @@ services:
     networks:
       - my-network
 
-#  rabbitmq:
-#    image: rabbitmq:management
-#    ports:
-#    - 5672:5672
-#    - 15672:15672
-#    networks:
-#    - my-network
+  rabbitmq:
+    image: rabbitmq:management
+    ports:
+    - 5672:5672
+    - 15672:15672
+    networks:
+    - my-network
 #  chrome:
 #      image: selenium/node-chrome:3.11.0-californium
 #      volumes:
