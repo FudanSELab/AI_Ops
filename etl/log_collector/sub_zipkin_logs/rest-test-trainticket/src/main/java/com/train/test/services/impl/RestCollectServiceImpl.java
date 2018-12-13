@@ -69,7 +69,7 @@ public class RestCollectServiceImpl implements RestCollectService {
 
     public void getCpuMemoryLogInReceiver(long requestTime) {
 
-        boolean configDataFlag = false;
+        boolean configDataFlag = true;
         boolean instanceDataFlag = true;
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
