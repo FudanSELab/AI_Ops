@@ -239,13 +239,13 @@ public class SharedVariableUtils {
         return serviceValNumMap;
     }
 
-    public static void main(String[] args) {
-        System.out.println(getSharedVariableMap().get("ts-consign-service").get("/consign/insertConsign").get("insertConsignCache"));
-        System.out.println(getPassVarName().get("ts-execute-service").get("/execute/execute").get(0));
-        System.out.println(getPassVarName().get("ts-contacts-service").size());
-        System.out.println();
-
-    }
+//    public static void main(String[] args) {
+//        System.out.println(getSharedVariableMap().get("ts-consign-service").get("/consign/insertConsign").get("insertConsignCache"));
+//        System.out.println(getPassVarName().get("ts-execute-service").get("/execute/execute").get(0));
+//        System.out.println(getPassVarName().get("ts-contacts-service").size());
+//        System.out.println();
+//
+//    }
 
 
 }

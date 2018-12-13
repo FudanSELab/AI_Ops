@@ -1,6 +1,9 @@
 package hello.util;
 
 
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +21,7 @@ public class CloumnNameUtil {
         return cpuMemDiff;
     }
 
-    public static Map<Integer, List<String>> getCpuMemDiff() {
+    public static Map<Integer, List<String>> getCpuMemDiffCloName() {
         Map<Integer, List<String>> allCpuMemDiff = new HashMap<>();
         for (int i = 0; i < tracePassServiceCloumn.length; i++) {
             List<String> oneService = new ArrayList<>();
@@ -39,25 +42,25 @@ public class CloumnNameUtil {
         tempList.add("trace_service_span");
 
         for (int i = 0; i < tracePassServiceCloumn.length; i++) {
-            String ser = tracePassServiceCloumn[i].replaceAll("_included", "");
-            tempList.add(ser + "_included");
-            tempList.add(ser + "_api");
-            tempList.add(ser + "_inst_id");
-            tempList.add(ser + "_inst_status_code");
-            tempList.add(ser + "_exec_time");
+            String serName = tracePassServiceCloumn[i].replaceAll("_included", "");
+            tempList.add(serName + "_included");
+            tempList.add(serName + "_api");
+            tempList.add(serName + "_inst_id");
+            tempList.add(serName + "_inst_status_code");
+            tempList.add(serName + "_exec_time");
 
-            //  有变量的服务才加
+            //  有变量的服务才加,
             //  加的列，为每个服务中变量的个数
-//            Integer varNum = SharedVariableUtils.getServiceVarlible().get(ser.replaceAll("_", "-"));
-//            if (varNum != null) {
-//                for (int j = 0; j < varNum; j++) {
-//                    tempList.add(ser + "_var_" + j);
-//                }
-//            }
-            // System.out.println("\""+ ser + "_included" +"\""+" , " +"\""+ ser + "_api" +"\""+ " , " +"\""+ ser + "_exec_time"+"\"");
+            Integer varNum = SharedVariableUtils.getServiceVarlible().get(serName.replaceAll("_", "-"));
+            if (varNum != null) {
+                for (int j = 0; j < varNum; j++) {
+                    tempList.add(serName + "_var_" + j);
+                }
+            }
         }
         return tempList;
     }
+
 
     public static String[] tracePassServiceCloumn = new String[]{
             "ts_login_service_included", "ts_register_service_included",
@@ -107,4 +110,35 @@ public class CloumnNameUtil {
             "ts_admin_basic_info_service_included", "ts_admin_basic_info_service_api", "ts_ticket_office_service_included", "ts_ticket_office_service_api",
             "ts_voucher_service_included", "ts_voucher_service_api", "ts_ui_dashboard_included", "ts_ui_dashboard_api"
     };
+
+//    public static void main(String[] args) {
+//        Map<String, String> fdfd = configServe();
+//        System.out.println(fdfd.size() + "=========批量生成42条SQL=============");
+//        for (int i = 0; i < tracePassServiceCloumn.length; i++) {
+//            System.out.println(fdfd.get(tracePassServiceCloumn[i].replaceAll("_included", "")));
+//        }
+//    }
+
+    public static Map<String, String> configEachServeSQL() {
+        Map<String, String> tableNameAndSQl = new HashMap<>();
+
+        String[] basic_service = tracePassServiceCloumn;
+        for (int i = 0; i < basic_service.length; i++) {
+            String tempService = basic_service[i].replaceAll("_included", "");
+            String temp = "select a.*, " +
+                    "b.service_inst_memory as " + tempService + "_inst_memory , " +
+                    "b.service_inst_cpu as " + tempService + "_inst_cpu , " +
+                    "b.service_inst_service_version as " + tempService + "_inst_service_version , " +
+                    "b.service_inst_node_id as " + tempService + "_inst_node_id , " +
+                    "b.service_inst_node_cpu as " + tempService + "_inst_node_cpu , " +
+                    "b.service_inst_node_memory as " + tempService + "_inst_node_memory , " +
+                    "b.service_inst_node_cpu_limit as " + tempService + "_inst_node_cpu_limit , " +
+                    "b.service_inst_node_memory_limit as " + tempService + "_inst_node_memory_limit " +
+                    "from trace_passservice_view a left outer join service_instance_data b " +
+                    "on  a." + tempService + "_inst_id" + " = b.service_inst_id And (substr(a.entry_timestamp , 1 , 13) + 60000 ) > b.start_time And (substr(a.entry_timestamp , 1 , 13)) < b.start_time";
+
+            tableNameAndSQl.put(tempService, temp);
+        }
+        return tableNameAndSQl;
+    }
 }

@@ -8,12 +8,17 @@ import org.apache.spark.sql.*;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import org.codehaus.janino.Java;
 
 import java.util.*;
 
 
 public class AiOpsRDD {
+
+    private static String TRACE_CSV_URL  = "hdfs://10.141.211.173:8020/user/admin/new_span_trace_sequence.csv";
+    private static String SERVICE_INSTANC_CSV_URL = "hdfs://10.141.211.173:8020/user/admin/serviceInstanceData_sequence.csv";
+    private static String SERVIC_CONFIG_CSV_URL = "hdfs://10.141.211.173:8020/user/admin/serviceConfigData_sequence.csv";
+    private static String DATABASE_NAME = "ai_ops";
+
     public static void executor() {
 
         System.out.println("==============spark sql ====");
@@ -28,7 +33,8 @@ public class AiOpsRDD {
 
         filter(spark);
         // combineYtoTrace(spark);
-        // cpuMemory(spark);
+       // genSequencePart(spark);
+
         // finalTraceCombineSequence(spark);
         spark.close();
         System.out.println("==============spark sql closed====");
@@ -40,7 +46,7 @@ public class AiOpsRDD {
 
         // step 1 : read original span logs as RDD
         JavaRDD<TraceAnnotation> originalSpanRdd = spark.read()
-                .textFile("hdfs://10.141.211.173:8020/user/admin/new_span_trace.csv")
+                .textFile(TRACE_CSV_URL)
                 .javaRDD()
                 .map(line -> {
                     String[] parts = line.split(",");
@@ -78,8 +84,8 @@ public class AiOpsRDD {
                     traceAnnotation.setBnno_http_method(parts[20]);
                     traceAnnotation.setBnno_downstream_cluster(parts[21]);
 
-                    traceAnnotation.setTest_trace_id(parts[22]);
-                    traceAnnotation.setTest_case_id(parts[23]);
+                    traceAnnotation.setTest_trace_id(parts[22].replaceAll("Test-Trace-Id:",""));
+                    traceAnnotation.setTest_case_id(parts[23].replaceAll("","Test-Case-Id:"));
 
                     traceAnnotation.setBnno_http_protocol(parts[24]);
                     traceAnnotation.setBnno_request_size(parts[25]);
@@ -125,42 +131,85 @@ public class AiOpsRDD {
         // from  real_span_trace_view  ==>  real_invocation_view
         genRealInvocation(spark);
 
-
         // from real_span_trace_view  to  real_trace_pass_view
         // from real_invocation_view  and real_trace_pass_view ==>  trace_passservice_view
-        tracePassService(spark);
-        combinePassServiceToTrace(spark);
-
-        combineInstanceDataToTrace(spark);
-
-        // from csv  to real_cpu_memory_view
-        // from trace_passservice_view , real_cpu_memory_view ==> trace_pass_cpu_view
+     //   tracePassService(spark);
+    //    combinePassServiceToTrace(spark);
 
 
-      //  combineServiceConfigToTrace(spark);
-        //combineInstanceDataToTrace(spark);
-        // cpuMemory(spark);
-        //  combineCpuMemoryToTrace(spark); // trace_pass_cpu_view
-
+   //     combineInstanceDataToTrace(spark);
+    //    combineServiceConfigToTrace(spark);
 
         // from   mysql  ---- >  test_traces_mysql_view
-        //  genTestTraceMysql(spark);
+      //  genTestTraceMysql(spark);
 
 
         //from  test_traces_mysql_view  , trace_pass_cpu_view  ---- >  trace_y_view
-        // combineYtoTrace(spark);
+     //   combineYtoTrace(spark);
 
         // from real_span_trace_view  ----->  final_seq_view
-        //genSequencePart(spark);
+       // genSequencePart(spark);
 
 
         // form final_seq_view  trace_y_view  --->  to trace_final
         // finalTraceCombineSequence(spark);
     }
 
+    /**
+     * 产生真的span
+     *
+     * @param spark
+     */
+    private static void genRealInvocation(SparkSession spark) {
+        Dataset<Row> invocationDataset = spark.sql(TempSQL.genInvocation);
+        //invocationDataset.show();
+        //invocationDataset.printSchema();
+       // invocationDataset.createOrReplaceTempView("real_invocation_view");
+        invocationDataset.write().saveAsTable("real_invocation_sequence");
+        System.out.println("---------------  real_invocation table created ---------------");
+    }
+
+    /**
+     * 读出csv 文件， 并选择42列，合并到trce
+     *
+     * @param spark
+     */
+    private static void combineInstanceDataToTrace(SparkSession spark) {
+        // read service instance data
+        Dataset<Row> serviceInstanceData = spark.read().option("header", "true")
+                .csv(SERVICE_INSTANC_CSV_URL);
+        //serviceInstanceData.printSchema();
+        System.out.println("--------------print servcie instance schema --------------");
+        serviceInstanceData.createOrReplaceTempView("service_instance_data");
+
+        // from  trace_passservice_view
+        Map<String, String> configSQLMap = CloumnNameUtil.configEachServeSQL();
+        String[] basic_service = CloumnNameUtil.tracePassServiceCloumn;
+        Dataset<Row> traceCombineInstance = null;
+        for (int i = 0; i < basic_service.length; i++) {
+            traceCombineInstance = spark.sql(configSQLMap.get(basic_service[i].replaceAll("_included", "")));
+            if (i % 4 == 0) {
+                traceCombineInstance = traceCombineInstance.dropDuplicates(new String[]{"trace_id"});
+            }
+            traceCombineInstance.createOrReplaceTempView("trace_passservice_view");
+        }
+        traceCombineInstance = traceCombineInstance.dropDuplicates(new String[]{"trace_id"});
+        traceCombineInstance.createOrReplaceTempView("trace_combine_instance_view");
+        // traceCombineInstance.write().saveAsTable("trace_combine_instance42_2");
+        System.out.println("=================   trace_combine_instance created   ==============");
+    }
+
+
+    /**
+     * 从csv读出文件，并过滤掉mongo， 把service_config 合并到trace,
+     * 这步就把instance 和 config 都 合并到 trace了
+     *
+     * @param spark
+     */
+
     private static void combineServiceConfigToTrace(SparkSession spark) {
         Dataset<Row> serviceConfigData = spark.read().option("header", "true")
-                .csv("hdfs://10.141.211.173:8020/user/admin/serviceConfigData.csv");
+                .csv(SERVIC_CONFIG_CSV_URL);
         System.out.println("--------------print servcie config schema --------------");
 
         // 去除mongo
@@ -191,96 +240,96 @@ public class AiOpsRDD {
             structFields.add(DataTypes.createStructField(newColName.get(i), DataTypes.StringType, true));
         }
         Dataset<Row> serviceConfigDataSet = spark.createDataFrame(configNoMongoRDD, DataTypes.createStructType(structFields));
-
         serviceConfigDataSet.createOrReplaceTempView("service_config_data");
+
+
         Dataset<Row> trace_combine_configDataset = spark.sql(TempSQL.combineServiceConfigToTrace);
         // 根据时间匹配的，一定要去重
         trace_combine_configDataset = trace_combine_configDataset.dropDuplicates(new String[]{"trace_id"});
 
-        //trace_combine_configDataset.createOrReplaceTempView("trace_combine_config_view");
-        trace_combine_configDataset.write().saveAsTable("trace_combine_config");
 
-
-        // read service instance data
-        Dataset<Row> serviceInstanceData = spark.read().option("header", "true")
-                .csv("hdfs://10.141.211.173:8020/user/admin/serviceInstanceData.csv");
-        //serviceInstanceData.printSchema();
-        System.out.println("--------------print servcie instance schema --------------");
-        serviceInstanceData.createOrReplaceTempView("service_instance_data");
-
-        String[] collname = trace_combine_configDataset.columns();
-
-        JavaRDD<Row> tempRdd = trace_combine_configDataset.javaRDD().map(new Function<Row, Row>() {
+        /**
+         * 计算memory , cpu diff
+         * i_mem  - l_mem,  i_cpu -  l_cpu
+         */
+        String[] traceColName = trace_combine_configDataset.columns();
+        Map<Integer, List<String>> cpuMemdiffServerName = CloumnNameUtil.getCpuMemDiffCloName();
+        JavaRDD<Row> traceRDD = trace_combine_configDataset.javaRDD().map(new Function<Row, Row>() {
             @Override
             public Row call(Row row) throws Exception {
-                List<String> temp = new ArrayList<>();
-                String[] tempInst = new String[]{};
-                for (int i = 0; i < collname.length; i++) {
-                    if (collname[i].contains("inst_id")) {
-                        Dataset<Row> ttt = spark.sql(
-                                "select service_inst_memory, service_inst_cpu, service_inst_service_version, " +
-                                        "service_inst_node_id, service_inst_node_cpu, service_inst_node_memory ," +
-                                        "service_inst_node_memory_limit,  service_inst_node_cpu_limit " +
-                                        "from service_instance_data where service_inst_id =" + row.getAs(i) +
-                                        "And  service_inst_start_time < ("+ row.getAs("entry_timestamp")+"60000)" +
-                                        "And service_inst_end_time >" + row.getAs("entry_timestamp"));
-
-
-                        ttt.javaRDD().map(new Function<Row, Row>() {
-                            @Override
-                            public Row call(Row row) throws Exception {
-                                int tag = 0;
-                                if(tag == 0) {
-                                    temp.add(row.getAs("service_inst_memory"));
-                                    temp.add(row.getAs("service_inst_cpu"));
-                                }
-                                tag++;
-                                return null;
-                            }
-                        });
-
-                    } else {
-                        temp.add(row.getAs(i));
-                    }
+                List<String> traceDataList = new ArrayList<>();
+                for (int i = 0; i < traceColName.length; i++) {
+                    traceDataList.add(row.getAs(i));
                 }
 
+                for (int i = 0; i < cpuMemdiffServerName.size(); i++) {
 
-                return null;
+                    double l_mem = 0;
+                    if (row.getAs(cpuMemdiffServerName.get(i).get(0)) == null) {
+                        l_mem = 0;
+                    } else {
+                        l_mem = Double.parseDouble(row.getAs(cpuMemdiffServerName.get(i).get(0)));
+                    }
+
+                    double i_mem = 0;
+                    if (row.getAs(cpuMemdiffServerName.get(i).get(1)) == null) {
+                        i_mem = 0;
+                    } else {
+                        i_mem = Double.parseDouble(row.getAs(cpuMemdiffServerName.get(i).get(1)));
+                    }
+
+                    double l_cpu = 0;
+                    if (row.getAs(cpuMemdiffServerName.get(i).get(2)) == null) {
+                        l_cpu = 0;
+                    } else {
+                        l_cpu = Double.parseDouble(row.getAs(cpuMemdiffServerName.get(i).get(2)));
+                    }
+
+                    double i_cpu = 0;
+                    if (row.getAs(cpuMemdiffServerName.get(i).get(3)) == null) {
+                        i_cpu = 0;
+                    } else {
+                        i_cpu = Double.parseDouble(row.getAs(cpuMemdiffServerName.get(i).get(3)));
+                    }
+
+                    if (i_mem == 0 || i_cpu == 0 || l_cpu == 0 || l_mem == 0) {
+                        // 说明这个不是经过的服务
+                        traceDataList.add("");
+                        traceDataList.add("");
+                    } else {
+                        traceDataList.add((i_mem - l_mem) + "");
+                        traceDataList.add((i_cpu - l_cpu) + "");
+                    }
+                }
+                return RowFactory.create(traceDataList.toArray());
             }
         });
 
-
-    }
-
-    private static void combineInstanceDataToTrace(SparkSession spark) {
-        // read service instance data
-        Dataset<Row> serviceInstanceData = spark.read().option("header", "true")
-                .csv("hdfs://10.141.211.173:8020/user/admin/serviceInstanceData.csv");
-        //serviceInstanceData.printSchema();
-        System.out.println("--------------print servcie instance schema --------------");
-        serviceInstanceData.createOrReplaceTempView("service_instance_data");
-        /// trace_passservice_view
-
-        String[] basic_service = CloumnNameUtil.tracePassServiceCloumn;
-        Dataset<Row> traceCombineIns = null;
-        for(int i=0;i <basic_service.length; i++){
-            String tempService = basic_service[i].replaceAll("_included", "");
-            traceCombineIns = spark.sql("select a.*, " +
-                     "b.service_inst_memory as "+ tempService+"_inst_memory"+
-                     "b.service_inst_cpu as "+ tempService+"_inst_cpu"+
-                     "b.service_inst_service_version as "+ tempService+"_inst_service_version , "+
-                     "b.service_inst_node_id as"+ tempService+"_inst_node_id , "+
-                     "b.service_inst_node_cpu as "+ tempService+"_inst_node_cpu , "+
-                     "b.service_inst_node_memory as "+ tempService+"_inst_node_memory , "+
-                     "b.service_inst_node_cpu_limit as "+ tempService+"_inst_node_cpu_limit , "+
-                     "b.service_inst_node_memory_limit as "+ tempService+"_inst_node_memory_limit "+
-                     "from  trace_passservice_view a, service_instance_data b " +
-                    "where a.entry_timestamp > b.start_time And a.entry_timestamp < b.end_time And a." + tempService+"_inst_id"+"== b.service_inst_id");
-            traceCombineIns.createOrReplaceTempView("trace_passservice_view");
+        /**
+         * 构造表头,在trace 后面加 42 inst_diff_cpu, 42 inst_diff_mem
+         */
+        List<String> colName = new ArrayList<>();
+        for (int i = 0; i < traceColName.length; i++) {
+            colName.add(traceColName[i]);
         }
-        traceCombineIns.write().saveAsTable("trace_combine_instance");
-       // serviceInstanceData
+
+        List<String> diffCpuMemName = CloumnNameUtil.addCpuMemDiffCloumn();
+        for (int i = 0; i < diffCpuMemName.size(); i++) {
+            colName.add(diffCpuMemName.get(i));
+        }
+        // 表头
+        List<StructField> structFields2 = new ArrayList<>();
+        for (int i = 0; i < colName.size(); i++) {
+            structFields2.add(DataTypes.createStructField(colName.get(i), DataTypes.StringType, true));
+        }
+        StructType structType = DataTypes.createStructType(structFields2);
+        // 填充数据
+        Dataset<Row> trace_combine_config_diff_DataSet = spark.createDataFrame(traceRDD, structType);
+
+       // trace_combine_config_diff_DataSet.createOrReplaceTempView("trace_combine_config_view");
+        trace_combine_config_diff_DataSet.write().saveAsTable("trace_combine_config");
     }
+
 
     private static void finalTraceCombineSequence(SparkSession spark) {
         Dataset<Row> trace_finalDateSet = spark.sql(TempSQL.trace_finalDateSet);
@@ -294,7 +343,7 @@ public class AiOpsRDD {
     }
 
     private static void genTestTraceMysql(SparkSession spark) {
-        Dataset<Row> testTraceDataSet = DBUtil.connectDBUtil(spark, "ai_ops_liu", "test_trace");
+        Dataset<Row> testTraceDataSet = DBUtil.connectDBUtil(spark, DATABASE_NAME, "test_trace");
         //testTraceDataSet.printSchema();
         System.out.println("testtrace   shema  printled");
         testTraceDataSet.createOrReplaceTempView("test_traces_mysql_view");
@@ -305,21 +354,12 @@ public class AiOpsRDD {
         Dataset<Row> finallTrace = spark.sql(TempSQL.combineYtoTrace);
         // finallTrace.printSchema();
         //finallTrace.repartition(12);
-        finallTrace.write().saveAsTable("new_trace_y2");
+        finallTrace.write().saveAsTable("trace_sequence_1");
         //finallTrace.createOrReplaceTempView("trace_y_view");
         // System.out.println(finallTrace.count() + "-------------count--------------");
-        System.out.println("--------------- final_trace2 table created ---------------");
+        System.out.println("--------------- trace_sequence_1 table created ---------------");
     }
 
-
-    private static void genRealInvocation(SparkSession spark) {
-        Dataset<Row> invocationDataset = spark.sql(TempSQL.genInvocation);
-        //invocationDataset.show();
-        //invocationDataset.printSchema();
-        invocationDataset.createOrReplaceTempView("real_invocation_view");
-        //invocationDataset.write().saveAsTable("real_invocation3");
-        System.out.println("---------------  real_invocation table created ---------------");
-    }
 
     private static void tracePassService(SparkSession spark) {
         //  read trace passby service, gen new trace_pass_service   by  real_span_trace
@@ -360,12 +400,7 @@ public class AiOpsRDD {
                 Map<String, String> passServiceStatusCode = new HashMap<>();
                 Map<String, String> passServiceTimeMap = new HashMap<>();
 
-//                System.out.println(sr_pass_service.length + "============" + sr_status_code.length +
-//                        "======" + sr_inst_id.length + "====" + ssr_time.length);
-//
-//                System.out.println(cr_pass_service.length + "============" + cr_status_code.length +
-//                        "======" + cr_inst_id.length + "====" + crs_time.length);
-                // 放前面
+                // 放前面, 经过的服务，大部分在sr里面
                 for (int i = 0; i < sr_pass_service.length; i++) {
                     if (!passServiceMap.containsKey(sr_pass_service[i])) {
                         passServiceMap.put(sr_pass_service[i], sr_pass_service[i]);
@@ -391,9 +426,9 @@ public class AiOpsRDD {
                 for (int i = 0; i < tracePassServiceCloumn.length; i++) {
                     // passOrNot 为服务名
                     // 经过的服务， 调用的api, 执行的时间，
-                    String changeService = tracePassServiceCloumn[i]
+                    String changeServiceName = tracePassServiceCloumn[i]
                             .replaceAll("_included", "").replaceAll("_", "-");
-                    String passOrNot = passServiceMap.get(changeService);
+                    String passOrNot = passServiceMap.get(changeServiceName);
                     if (passOrNot == null || "".equals(passOrNot)) {
                         rowDataList.add("-1"); // s?_include
                         rowDataList.add(""); // s?_service_api
@@ -401,7 +436,7 @@ public class AiOpsRDD {
                         rowDataList.add(""); // s?_inst_status_code
                         rowDataList.add(""); // s?_exec_time
 
-//                        // 没有经过的服务，但是有变量， 加
+                        // 没有经过的服务，但是有变量， 加
 //                        Integer varNum = SharedVariableUtils.getServiceVarlible().get(changeService);
 //                        if (varNum != null) {
 //                            for (int l = 0; l < varNum; l++) {
@@ -410,10 +445,10 @@ public class AiOpsRDD {
 //                        }
                     } else {
                         rowDataList.add("1"); // s?_include
-                        rowDataList.add(passServiceApiMap.get(changeService)); // s?_service_api
-                        rowDataList.add(passServiceInstId.get(changeService)); // s?_inst_id
-                        rowDataList.add(passServiceStatusCode.get(changeService));// s?_inst_status_code
-                        rowDataList.add(Double.parseDouble(passServiceTimeMap.get(changeService)) + ""); // s?_exec_time
+                        rowDataList.add(passServiceApiMap.get(changeServiceName)); // s?_service_api
+                        rowDataList.add(passServiceInstId.get(changeServiceName)); // s?_inst_id
+                        rowDataList.add(passServiceStatusCode.get(changeServiceName));// s?_inst_status_code
+                        rowDataList.add(Double.parseDouble(passServiceTimeMap.get(changeServiceName)) + ""); // s?_exec_time
 
 //
 //                        Integer varNum = SharedVariableUtils.getServiceVarlible().get(changeService);
@@ -447,6 +482,7 @@ public class AiOpsRDD {
 //                        }
                     }
                 }
+
                 System.out.println(rowDataList.size() + "====================");
                 return RowFactory.create(rowDataList.toArray());
             }
@@ -464,110 +500,6 @@ public class AiOpsRDD {
         tracePassDataset.createOrReplaceTempView("real_trace_pass_view");
     }
 
-    // service_config_data, service_instance_data ===> real_cpu_memory_view
-    private static void cpuMemory(SparkSession spark) {
-        // read service config data
-        Dataset<Row> serviceConfigData = spark.read().option("header", "true")
-                .csv("hdfs://10.141.211.173:8020/user/admin/serviceConfigData.csv");
-        //serviceConfigData.printSchema();
-        System.out.println("--------------print servcie config schema --------------");
-        serviceConfigData.createOrReplaceTempView("service_config_data");
-
-        // read service instance data
-        Dataset<Row> serviceInstanceData = spark.read().option("header", "true")
-                .csv("hdfs://10.141.211.173:8020/user/admin/serviceInstanceData.csv");
-        //serviceInstanceData.printSchema();
-        System.out.println("--------------print servcie instance schema --------------");
-        serviceInstanceData.createOrReplaceTempView("service_instance_data");
-
-        Dataset<Row> combineCpuMemory = spark.sql(TempSQL.genCpuMemory);
-
-        String[] col = combineCpuMemory.columns();
-        System.out.println(col.length + "-----w-------e-----------");
-        Map<Integer, List<String>> cpuMemdiffService = CloumnNameUtil.getCpuMemDiff();
-
-        JavaRDD<Row> configInstanceDataRDD = combineCpuMemory.javaRDD().map(new Function<Row, Row>() {
-            @Override
-            public Row call(Row row) throws Exception {
-                List<String> colData = new ArrayList<>();
-
-                for (int i = 0; i < col.length; i++) {
-                    if (col[i].contains("mongo")) {
-                    } else {
-                        colData.add(row.getAs(i));
-                    }
-                }
-                System.out.println("-----------------------" + cpuMemdiffService.size() + "----------------------");
-                for (int i = 0; i < cpuMemdiffService.size(); i++) {
-//                    System.out.println(cpuMemdiffService.get(i).get(0) + "---"+ cpuMemdiffService.get(i).get(1));
-//                    System.out.println(cpuMemdiffService.get(i).get(2) + "---"+ cpuMemdiffService.get(i).get(3));
-//
-//                    System.out.println(row.getAs(cpuMemdiffService.get(i).get(0)) + "");
-//                    System.out.println(row.getAs(cpuMemdiffService.get(i).get(1)) + "");
-//                    System.out.println(row.getAs(cpuMemdiffService.get(i).get(2)) + "");
-//                    System.out.println(row.getAs(cpuMemdiffService.get(i).get(3)) + "");
-
-                    double l_mem = 0; // _l_memory
-                    if (row.getAs(cpuMemdiffService.get(i).get(0)) == null) {
-                        l_mem = 0;
-                    } else {
-                        l_mem = Double.parseDouble(row.getAs(cpuMemdiffService.get(i).get(0)));
-                    }
-
-                    double i_mem = 0;  // _inst_memory
-                    if (row.getAs(cpuMemdiffService.get(i).get(1)) == null) {
-                        i_mem = 0;
-                    } else {
-                        i_mem = Double.parseDouble(row.getAs(cpuMemdiffService.get(i).get(1)));
-                    }
-
-                    double l_cpu = 0; // _l_cpu
-                    if (row.getAs(cpuMemdiffService.get(i).get(2)) == null) {
-                        l_cpu = 0;
-                    } else {
-                        l_cpu = Double.parseDouble(row.getAs(cpuMemdiffService.get(i).get(2)));
-                    }
-
-                    double i_cpu = 0; // _inst_cpu
-                    if (row.getAs(cpuMemdiffService.get(i).get(3)) == null) {
-                        i_cpu = 0;
-                    } else {
-                        i_cpu = Double.parseDouble(row.getAs(cpuMemdiffService.get(i).get(3)));
-                    }
-
-                    colData.add((i_mem - l_mem) + "");
-                    colData.add((i_cpu - l_cpu) + "");
-                }
-                return RowFactory.create(colData.toArray());
-            }
-        });
-
-        // 过滤掉mongo的类名
-        List<String> colName = new ArrayList<>();
-        for (int i = 0; i < col.length; i++) {
-            if (!col[i].contains("mongo"))
-                colName.add(col[i]);
-        }
-        System.out.println("==================" + colName.size() + " ------------" + configInstanceDataRDD.collect().size());
-        List<String> diffCpuMemName = CloumnNameUtil.addCpuMemDiffCloumn();
-        for (int i = 0; i < diffCpuMemName.size(); i++) {
-            colName.add(diffCpuMemName.get(i));
-        }
-        // 表头
-        List<StructField> structFields = new ArrayList<>();
-        for (int i = 0; i < colName.size(); i++) {
-            structFields.add(DataTypes.createStructField(colName.get(i), DataTypes.StringType, true));
-        }
-        StructType structType = DataTypes.createStructType(structFields);
-        // 填充数据
-        Dataset<Row> configInstanceDataSet = spark.createDataFrame(configInstanceDataRDD, structType);
-
-
-        // configInstanceDataSet.write().saveAsTable("cpu_memory2");
-        System.out.println("===============all over ===================");
-        configInstanceDataSet.createOrReplaceTempView("real_cpu_memory_view");
-    }
-
 
     // real_invocation_view   real_trace_pass_view ,  before_trace_view
     public static void combinePassServiceToTrace(SparkSession spark) {
@@ -575,18 +507,7 @@ public class AiOpsRDD {
         //beforeTraceDataset.show();
         //beforeTraceDataset.printSchema();
         beforeTraceDataset.createOrReplaceTempView("trace_passservice_view");
-        //beforeTraceDataset.write().saveAsTable("before_trace");
-    }
-
-    private static void combineCpuMemoryToTrace(SparkSession spark) {
-        Dataset<Row> realTraceDataset = spark.sql(TempSQL.genRealTrace);
-        // realTraceDataset.printSchema();
-        // realTraceDataset.show();
-        String[] duplicasKey = new String[]{"trace_id"};
-        realTraceDataset = realTraceDataset.dropDuplicates(duplicasKey);
-        realTraceDataset.createOrReplaceTempView("trace_pass_cpu_view");
-        // System.out.println(realTraceDataset.count() + "========================");
-        //    realTraceDataset.write().saveAsTable("trace_pass_cpu_view");
+        beforeTraceDataset.write().saveAsTable("before_trace_sequence");
     }
 
 
@@ -634,7 +555,7 @@ public class AiOpsRDD {
                 String[] e_time = row.getAs("e_time").toString().split("___");
                 String[] sr_servicename = row.getAs("sr_servicename").toString().split("___");
 
-                // 保存所有的a_b == 0 or 1
+                // 保存所有的经过服务的 a_b == 0 or 1
                 Map<String, String> k_v = new HashMap<>();
                 // 总的开始遍历的次数了 =============================================
                 // 1 个trace 里面有多个caller
@@ -667,13 +588,14 @@ public class AiOpsRDD {
                 }
 
 
+                // 所有服务的排列组合a_b b_a
                 List<String> callerPairServiceAll = Copy_2_of_Service.callPairService(Copy_2_of_Service.callerServicePart2);
                 // 加 service  pair
                 for (int i = 0; i < callerPairServiceAll.size(); i++) {
                     // k_v  里面可能没有 所有的，就为0 或 null
                     String cloumnValue = k_v.get(callerPairServiceAll.get(i));
                     if (cloumnValue == null || "".equals(cloumnValue))
-                        rowDataList.add("-1"); // 没调的写个0
+                        rowDataList.add("-1"); // 没调的写个-1
                     else
                         rowDataList.add(cloumnValue);
                 }
@@ -724,7 +646,7 @@ public class AiOpsRDD {
         // callerSerDataSet.select("trace_id").show();
         //  System.out.println(callerSerDataSet.count() + "===================-----000");
 
-        callerSerDataSet.write().saveAsTable("final_seq");
+        callerSerDataSet.write().saveAsTable("seq_sequence_1");
         //  callerSerDataSet.createOrReplaceTempView("final_seq_view");
         //System.out.println(seqCallerColumsAll.size() + "==============---------------size2"); // 1765
         System.out.println("==========over===========");
