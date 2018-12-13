@@ -1,17 +1,28 @@
 import pandas as pd
 
 
-data_file_path = "../mock/mock.csv"
-df = pd.read_csv(data_file_path,
-                 header=0,
-                 index_col=0)
+# 用于将指示列转换成指示列对应的数据列
+def svc2int():
+    data_file_path = "../mock/mock.csv"
+    df = pd.read_csv(data_file_path,
+                     header=0,
+                     index_col=0)
+    df_values = df.values
+    df_keys = df.keys()
+    for i in range(500):
+        df_values[i][41] = df_values[i][df_values[i][41]]
+    df[df_keys] = df_values
+    df.to_csv("mock_new.csv")
 
-df_values = df.values
-df_keys = df.keys()
 
-for i in range(500):
-    df_values[i][41] = df_values[i][df_values[i][41]]
+def svc2onehot():
+    data_file_path = "../mock/mock2.csv"
+    df = pd.read_csv(data_file_path,
+                     header=0,
+                     index_col=0)
+    df = pd.get_dummies(df, prefix=["svc"], columns=["svc"])
+    df.to_csv("mock_new_one_hot.csv")
 
-df[df_keys] = df_values
 
-df.to_csv("mock_new.csv")
+if __name__ == "__main__":
+    svc2onehot()
