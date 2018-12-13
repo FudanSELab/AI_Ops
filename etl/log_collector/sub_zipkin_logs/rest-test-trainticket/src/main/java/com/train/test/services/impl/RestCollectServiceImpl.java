@@ -123,6 +123,11 @@ public class RestCollectServiceImpl implements RestCollectService {
             // get service id
             String serviceId = podItem.get("serviceId").toString();
 
+            // filter the database data
+            if (serviceId.contains("mongo") || serviceId.contains("mysql")) {
+                continue;
+            }
+
             // add the pod data
             podData.put("service_inst_id", podItem.get("podId").toString());
             podData.put("service_inst_node_id", podItem.get("nodeId").toString());
@@ -182,6 +187,11 @@ public class RestCollectServiceImpl implements RestCollectService {
 
         for (HashMap<String, Object> serviceData : servicesData) {
             LinkedHashMap<String, String> serviceDataMap = new LinkedHashMap<>();
+
+            // filter the database data
+            if (serviceData.get(SERVICE_NAME).toString().contains("mongo") || serviceData.get(SERVICE_NAME).toString().contains("mysql")) {
+                continue;
+            }
 
             for (String key : serviceData.keySet()) {
                 if (SERVICE_NAME.equals(key) || CONF_NUMBER.equals(key) || READY_NUMBER.equals(key)) {
