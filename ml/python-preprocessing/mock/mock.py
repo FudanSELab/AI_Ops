@@ -6,19 +6,19 @@ import pandas as pd
 
 train_columns = []
 train_data = []
-for i in range(41):
+for i in range(5):
     temp_col_data = []
     for j in range(500):
-        temp_col_data.append(np.random.randint(0, 4))
+        temp_col_data.append(np.random.randint(1, 3))
     train_data.append(temp_col_data)
     train_columns.append("svc" + str(i) + "_num")
 
 temp_col_data1 = []
 temp_col_data2 = []
 for j in range(500):
-    svc_ran_num = np.random.randint(0, 40)
+    svc_ran_num = np.random.randint(0, 5)
     temp_col_data1.append(svc_ran_num)
-    if train_data[svc_ran_num][j] >= 2:
+    if train_data[svc_ran_num][j] == 2:
         temp_col_data2.append(1)
     else:
         temp_col_data2.append(0)
@@ -33,12 +33,12 @@ dateset = []
 
 for i in range(500):
     temp = []
-    for j in range(43):
+    for j in range(7):
         temp.append(train_data[j][i])
     print(temp)
     dateset.append(temp)
 
 train_data_final = DataFrame(dateset, columns=train_columns)
 
-train_data_final.to_csv("mock.csv")
+train_data_final.to_csv("mock2.csv")
 
