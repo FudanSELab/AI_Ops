@@ -18,7 +18,7 @@ public class MainApplication {
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
         return builder
                 .setConnectTimeout(10000)
-                .setReadTimeout(1000000)
+                .setReadTimeout(3600000)
                 .build();
     }
 }

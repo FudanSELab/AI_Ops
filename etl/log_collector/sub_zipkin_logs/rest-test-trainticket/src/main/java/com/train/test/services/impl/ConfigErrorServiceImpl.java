@@ -26,59 +26,61 @@ public class ConfigErrorServiceImpl implements ConfigErrorService {
     private RestTemplate restTemplate;
 
     @Override
-    public void testConfigError() throws Exception {
-        String bookingFlowUrl = "localhost:10101/bookingflow";
+    public void testConfigErrorFlowOne(int step) throws Exception {
+        String bookingFlowUrl = "http://localhost:10101/test/bookingflow";
         String url2 = "localhost:10101/cancelflow";
         String url3 = "localhost:10101/consignFlow";
         String url4 = "localhost:10101/voucherFlow";
 
+        // get flow one passed services map
         Map<Integer, Map<Integer, String>> flowOnePassedServiceMap = BookingFlowPassServiceMapUtil.flowOnePassService();
+        // get trace passed services with specific step
+        Map<Integer, String> stepServiceMap = flowOnePassedServiceMap.get(step);
+        // get the arrange list which key is order, value is list such as [1, 1, 1, 1, ...]
+        HashMap<Integer, List<Integer>> oneTraceAllArrangeList = ArrangeInStanceNum.getAllrangeList(stepServiceMap.size());
 
-        for (Map.Entry<Integer, Map<Integer, String>> orderToServices : flowOnePassedServiceMap.entrySet()) { // all passed service
-            HashMap<Integer, List<Integer>> oneTraceAllArrangeList = ArrangeInStanceNum.getAllrangeList(flowOnePassedServiceMap.size());
+        for (Map.Entry<Integer, List<Integer>> configCase : oneTraceAllArrangeList.entrySet()) {
+            // get service names which need to be configured
+            List<String> configServiceNames = getConfigServices(configCase.getValue(), stepServiceMap);
+            // get the config requests
+            List<NewSingleDeltaCMResourceRequest> configRequests = constructConfigRequests(configServiceNames, 0, false);
 
-            for (Map.Entry<Integer, List<Integer>> configCase : oneTraceAllArrangeList.entrySet()) {
-                List<String> configServiceNames = getConfigServices(configCase.getValue(), orderToServices.getValue());
-                List<NewSingleDeltaCMResourceRequest> configRequests = constructConfigRequests(configServiceNames, 0, false);
-                boolean configResult;
-                if (!configRequests.isEmpty()) {
-                    try {
-                        configResult = setServiceResource(configRequests);
-                    } catch (Exception e) {
-                        logger.error(e.getMessage());
-                        continue;
-                    }
-
-                }
-                else {
-                    configResult = true;
-                }
-
-                // execute test case
-                if (configResult) {
-                    testBookingFlow(bookingFlowUrl);
-                }
-                else {
-                    logger.error("Set CPU or Memory failed!");
+            boolean configResult;
+            if (!configRequests.isEmpty()) {
+                try {
+                    configResult = setServiceResource(configRequests);
+                } catch (Exception e) {
+                    logger.error(e.getMessage());
                     continue;
                 }
 
-                // reset the environment
-                configRequests = constructConfigRequests(configServiceNames, 0, true);
-                boolean resetResult = false;
-                try {
-                    resetResult = setServiceResource(configRequests);
-                } catch (Exception e) {
-                    logger.error(e.getMessage());
-                }
+            } else { // if no service need to be configured, such as the first time to run
+                configResult = true;
+            }
 
-                // if not ready, sleep 5 min.
-                if (!resetResult) {
-                    Thread.sleep(300000);
-                }
+            // execute test case
+            if (configResult) {
+                testBookingFlow(bookingFlowUrl);
+            } else {
+                logger.error("Set CPU or Memory failed!");
+                Thread.sleep(300000);
+                continue;
+            }
+
+            // reset the environment
+            configRequests = constructConfigRequests(configServiceNames, 0, true);
+            boolean resetResult = false;
+            try {
+                resetResult = setServiceResource(configRequests);
+            } catch (Exception e) {
+                logger.error(e.getMessage());
+            }
+
+            // if not ready, sleep 5 min.
+            if (!resetResult) {
+                Thread.sleep(300000);
             }
         }
-
     }
 
 
@@ -99,13 +101,20 @@ public class ConfigErrorServiceImpl implements ConfigErrorService {
         request.setClusterName("cluster2");
         request.setDeltaRequests(configRequests);
 
-        String url = "10.141.212.21:18898/api/deltaCMResource";
+        String url = "http://10.141.212.21:18898/api/deltaCMResource";
         HttpEntity requestBody = new HttpEntity<>(request);
         ResponseEntity<DeltaCMResourceResponse> responseEntity = restTemplate.exchange(url, HttpMethod.POST, requestBody, DeltaCMResourceResponse.class);
 
         return null != responseEntity && responseEntity.getBody().isStatus();
     }
 
+    /**
+     *
+     * @param serviceNames service names which need to be configured
+     * @param configType 0: cpu;  1: memory;  2: cpu and memory
+     * @param isReset true: reset; false: set config
+     * @return the constructed config requests
+     */
     private List<NewSingleDeltaCMResourceRequest> constructConfigRequests(List<String> serviceNames, int configType, boolean isReset) {
         List<NewSingleDeltaCMResourceRequest> configRequests = new ArrayList<>();
 
@@ -123,7 +132,7 @@ public class ConfigErrorServiceImpl implements ConfigErrorService {
 
                         resourceRequest.setServiceName(serviceName);
                         cmConfig.setType("limits");
-                        cmConfig.setValues(Arrays.asList(new CM("cpu", "6")));
+                        cmConfig.setValues(Arrays.asList(new CM("cpu", "6000m")));
                         cmConfigs.add(cmConfig);
                         resourceRequest.setConfigs(cmConfigs);
                         configRequests.add(resourceRequest);
@@ -138,7 +147,7 @@ public class ConfigErrorServiceImpl implements ConfigErrorService {
 
                         resourceRequest.setServiceName(serviceName);
                         cmConfig.setType("limits");
-                        cmConfig.setValues(Arrays.asList(new CM("memory", "15Gi")));
+                        cmConfig.setValues(Arrays.asList(new CM("memory", "15360Mi")));
                         cmConfigs.add(cmConfig);
                         resourceRequest.setConfigs(cmConfigs);
                         configRequests.add(resourceRequest);
@@ -153,7 +162,7 @@ public class ConfigErrorServiceImpl implements ConfigErrorService {
 
                         resourceRequest.setServiceName(serviceName);
                         cmConfig.setType("limits");
-                        cmConfig.setValues(Arrays.asList(new CM("cpu", "6"), new CM("memory", "15Gi")));
+                        cmConfig.setValues(Arrays.asList(new CM("cpu", "6000m"), new CM("memory", "15360Mi")));
                         cmConfigs.add(cmConfig);
                         resourceRequest.setConfigs(cmConfigs);
                         configRequests.add(resourceRequest);
@@ -163,8 +172,7 @@ public class ConfigErrorServiceImpl implements ConfigErrorService {
                 default:
                     break;
             }
-        }
-        else { // set configurations
+        } else { // set configurations
             switch (configType) {
                 case 0: { // cpu
                     for (String serviceName : serviceNames) {
@@ -230,9 +238,5 @@ public class ConfigErrorServiceImpl implements ConfigErrorService {
         }
 
         return results;
-    }
-
-    private void constructConfigs(NewSingleDeltaCMResourceRequest resourceRequest) {
-
     }
 }

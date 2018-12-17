@@ -1,5 +1,6 @@
 package com.train.test.controller;
 
+import com.train.test.domain.InitCacheDataResponse;
 import com.train.test.entity.instance.FlowTestResult;
 import com.train.test.entity.instance.ServiceReplicasSetting;
 import com.train.test.entity.instance.SetServiceReplicasRequest;
@@ -24,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 public class InstanceReplicasController {
 
     private org.slf4j.Logger logger = LoggerFactory.getLogger(getClass());
+    private int EVERY_THREAD_RUN_TIME = 24;
 
     private static String URL = "http://10.141.212.140:18898/api/setReplicas";
 
@@ -45,31 +47,33 @@ public class InstanceReplicasController {
 
             // 某一个trace 的
             for (int j = 0; j < oneTraceAllArrangeList.size(); j++) {
-                boolean isChangReplicasReady = requestToChangeReplicas(oneTraceAllArrangeList.get(j), oneTraceServiceMap);
-                if (!isChangReplicasReady) {
-                    logger.info("----------------- check is not ready--------------------");
-                }
-                if (isChangReplicasReady) {
-                    // 跑 15次 case
-                    logger.info("===================" + i + " times ====================");
-                    try {
-                        exeRemoteRequet();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                // 请求改变实例数量
+                InitCacheDataResponse initCacheDataResponse = restTemplate.getForObject("http://10.141.212.140:10101/test/initBookingFlowCacheData", InitCacheDataResponse.class);
+                // 跑每个trace 的 排列前， 先初始化客户端访问变量次数， 然后跑30次
+                if (initCacheDataResponse.isStatus()) {
+                    System.out.println("-------------------change client cache success -----------------------");
+                    boolean isChangReplicasReady = requestToChangeReplicas(oneTraceAllArrangeList.get(j), oneTraceServiceMap);
+                    if (!isChangReplicasReady) {
+                        logger.info("----------------- check is not ready--------------------");
                     }
-                    try {
-                        TimeUnit.SECONDS.sleep(1);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    if (isChangReplicasReady) {
+                        // 跑 15次 case
+                        logger.info("===================" + i + " times ====================");
+                        try {
+                            exeRemoteRequet();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        logger.info("===================" + i + " times over  =================");
                     }
-                    logger.info("===================" + i + " times over  =================");
                 }
-                System.out.println("------------ " + oneTraceAllArrangeList.get(j).toString() + "  一行 15 次 已经跑完 -------------");
+                System.out.println("------------ " + oneTraceAllArrangeList.get(j).toString() + "  一行 " + EVERY_THREAD_RUN_TIME  +" 次 已经跑完 -------------");
             }
 
             // 恢复实例数全为1，避免影响后面
             boolean isChangReplicasReady = requestToChangeReplicas(resetInStanceReplicas(serviceSize), oneTraceServiceMap);
-            if(isChangReplicasReady)
+            if (isChangReplicasReady)
                 System.out.println("---------改变的服务数量已经恢复为1----------");
 
             System.out.println("-------" + i + "-- 次 trace 经过" + oneTraceServiceMap.size() + "服务, 排列大小---" + oneTraceAllArrangeList.size() + "  已经跑完-------");
@@ -103,7 +107,7 @@ public class InstanceReplicasController {
         }
         ssrrDto.setClusterName("cluster1");
         ssrrDto.setServiceReplicasSettings(srsList);
-        System.out.println("------------ " + tempss.toString() + "  一行 15 次 开始跑 -------------");
+        System.out.println("------------ " + tempss.toString() + "  一行 "+  EVERY_THREAD_RUN_TIME+" 次 开始跑 -------------");
 
         SetServiceReplicasResponse srs =
                 restTemplate.postForObject(URL, ssrrDto, SetServiceReplicasResponse.class);
@@ -115,14 +119,14 @@ public class InstanceReplicasController {
         logger.info("主线程开始-------");
         // 每个线程5次 ，共15次
         Thread t1 = new Thread(new ThreadWorker("thread-1"));
-        Thread t2 = new Thread(new ThreadWorker("thread-2"));
-        Thread t3 = new Thread(new ThreadWorker("thread-3"));
+      ///  Thread t2 = new Thread(new ThreadWorker("thread-2"));
+      //  Thread t3 = new Thread(new ThreadWorker("thread-3"));
         t1.start();
-        t2.start();
-        t3.start();
+      //  t2.start();
+     //   t3.start();
         t1.join();
-        t2.join();
-        t3.join();
+      //  t2.join();
+     //   t3.join();
 
         logger.info("主线程结束-------");
     }
@@ -136,16 +140,22 @@ public class InstanceReplicasController {
 
         @Override
         public void run() {
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < EVERY_THREAD_RUN_TIME; i++) {
                 // AsyncRestTemplate asyncTemplate = new AsyncRestTemplate();
                 try {
-                    logger.info(i + "------ times ");
-                    restTemplate.getForObject("http://localhost:10101/test/bookingflow", FlowTestResult.class);
-                   // restTemplate.getForObject("http://10.141.212.140:10101/test/bookingflow", FlowTestResult.class);
+                    //restTemplate.getForObject("http://localhost:10101/test/bookingflow", FlowTestResult.class);
+                    restTemplate.getForObject("http://10.141.212.140:10101/test/bookingflow", FlowTestResult.class);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                logger.info("thread over ========" + name);
+
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                logger.info(i + "------ times ----" + "thread over ========" + name);
             }
         }
     }
