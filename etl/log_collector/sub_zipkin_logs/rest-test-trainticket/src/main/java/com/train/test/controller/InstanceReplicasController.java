@@ -57,6 +57,11 @@ public class InstanceReplicasController {
                         logger.info("----------------- check is not ready--------------------");
                     }
                     if (isChangReplicasReady) {
+                        try {
+                            TimeUnit.SECONDS.sleep(60);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                         // 跑 15次 case
                         logger.info("===================" + i + " times ====================");
                         try {
@@ -68,7 +73,20 @@ public class InstanceReplicasController {
                         logger.info("===================" + i + " times over  =================");
                     }
                 }
+
+                try {
+                    TimeUnit.SECONDS.sleep(60);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
                 System.out.println("------------ " + oneTraceAllArrangeList.get(j).toString() + "  一行 " + EVERY_THREAD_RUN_TIME  +" 次 已经跑完 -------------");
+
+                try {
+                    TimeUnit.SECONDS.sleep(3);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
 
             // 恢复实例数全为1，避免影响后面

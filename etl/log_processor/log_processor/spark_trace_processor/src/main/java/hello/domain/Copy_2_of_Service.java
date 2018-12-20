@@ -61,20 +61,23 @@ public class Copy_2_of_Service {
            "voucher"
     };
 
-//   public static void main(String[] args){
-//       List<String>tt =   execute();
-//       System.out.println("===================323333==============");
-//       System.out.println(tt.size() +"===1111");
-//   }
+   public static void main(String[] args){
+       List<String>tt =   callNoDoublePairService(new String[]{"A", "B", "A", "B"});
+       System.out.println("===================323333==============");
+       System.out.println(tt.size() +"===1111");
+       for(int i= 0;i < tt.size() ; i++){
+           System.out.println(tt.get(i));
+       }
+   }
 
 
     public static List<String> execute() {
-         List<String> arrangeStr = callPairService(serviceList);
+         List<String> arrangeStr = callPairServiceWithCaller(serviceList);
         // 添加caller
         // 前面每个字段，每次添加到最前面
-        arrangeStr.add(0,"test_case_id1");
-        arrangeStr.add(0,"test_trace_id1");
-        arrangeStr.add(0,"trace_id1");
+        arrangeStr.add(0,"test_case_id");
+        arrangeStr.add(0,"test_trace_id");
+        arrangeStr.add(0,"trace_id");
 
         System.out.println(arrangeStr.size() + "---------------------2333333");
         for(int i = callerServicePart3.length-1; i >= 0; i--){
@@ -82,6 +85,10 @@ public class Copy_2_of_Service {
         }
         System.out.println(arrangeStr.size() + "---------------------2333333");
         return arrangeStr;
+    }
+
+    public static List<String> callPairServiceWithCaller(String[] temp) {
+        return printWithCaller(combine(temp, 2));
     }
 
 
@@ -194,6 +201,30 @@ public class Copy_2_of_Service {
             String []temp2 = temp.split("__");
             // 调换顺序加入列
             arrangeStr.add(temp2[1]+"__"+temp2[0]);
+            //System.out.println();
+        }
+        return arrangeStr;
+    }
+
+    private static List<String>  printWithCaller(List l) {
+        List<String> arrangeStr = new ArrayList<>();
+        for (int i = 0; i < l.size(); i++) {
+            String[] a = (String[]) l.get(i);
+            String temp = "";
+
+            for (int j = 0; j < a.length; j++) {
+                // System.out.print(a[j] + " ");
+                if (j == 0)
+                    temp = temp + a[j] + "__";
+                else
+                    temp = temp + a[j];
+            }
+            arrangeStr.add(temp+"_seq");
+            arrangeStr.add(temp+"_caller");
+            String []temp2 = temp.split("__");
+            // 调换顺序加入列
+            arrangeStr.add(temp2[1]+"__"+temp2[0]+ "_seq");
+            arrangeStr.add(temp2[1]+"__"+temp2[0]+ "_caller");
             //System.out.println();
         }
         return arrangeStr;
