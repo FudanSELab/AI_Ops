@@ -42,7 +42,8 @@ def fetch_data():
                 or col.endswith(".trace_api") \
                 or col.endswith(".y_issue_ms"):
             df_new[col] = df_raw[col]
-            print("Fetch:", col)
+        # elif col.endswith("_diff"):
+        #     df_new[col] = df_raw[col].fillna("0")
     df_new.to_csv("trace_instance_3_verifyd_fetch_inst_ms.csv")
 
 
@@ -82,7 +83,10 @@ def train_dt():
                      header=0,
                      index_col=index_col_name)
     X, Y = df, df.pop(y_name)
-    print(X.keys())
+
+    print("Feature name in X:")
+    for key in X.keys():
+        print(key)
 
     clf = DecisionTreeClassifier()
     param_test = {
@@ -94,6 +98,34 @@ def train_dt():
                                   cv=10)
     grid_search_cv.fit(X=X, y=Y)
     print_best_score(grid_search_cv, param_test)
+
+    df2 = pd.read_csv(file_path,
+                      header=0,
+                      index_col=0)
+    train = df2.sample(frac=0.8)
+    test = df2.drop(train.index)
+    train_x, train_y = train, train.pop(y_name)
+    test_x, test_y = test, test.pop(y_name)
+    print("Feature name in X:")
+    for key in train_x.keys():
+        print(key)
+    clf2 = DecisionTreeClassifier()
+    clf2.fit(X=train_x, y=train_y)
+    result = clf2.predict(test_x)
+    count_success = 0
+    count_y_positive = 0
+    count_result_positive = 0
+    for i in range(len(result)):
+        print(str(result[i]) + " - " + str(test_y.values[i]))
+        if result[i] == test_y.values[i]:
+            count_success += 1
+        if test_y.values[i] == 1:
+            count_y_positive += 1
+        if result[i] == 1:
+            count_result_positive += 1
+    print("Predict Success:", str(count_success) + " : " + str(len(result)))
+    print("Y Positive:", str(count_y_positive) + " : " + str(len(result)))
+    print("Predict Positive:", str(count_result_positive) + " : " + str(len(result)))
 
 
 if __name__ == "__main__":
