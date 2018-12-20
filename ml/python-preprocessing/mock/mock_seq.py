@@ -60,5 +60,5 @@ def mock(size, svc_num):
 
 
 if __name__ == "__main__":
-    mock(500, 5)
+    mock(1000, 8)
 

@@ -69,12 +69,12 @@ def train_dt_single():
     df2 = pd.read_csv("mock_seq_5_converted.csv",
                       header=0,
                       index_col=0)
-    df2.pop(label_col_name_ms)
+    df2.pop(label_col_name_result)
 
     train = df2.sample(frac=0.8)
     test = df2.drop(train.index)
-    train_x, train_y = train, train.pop(label_col_name_result)
-    test_x, test_y = test, test.pop(label_col_name_result)
+    train_x, train_y = train, train.pop(label_col_name_ms)
+    test_x, test_y = test, test.pop(label_col_name_ms)
     print("Feature name in X:")
     for key in train_x.keys():
         print(key)
