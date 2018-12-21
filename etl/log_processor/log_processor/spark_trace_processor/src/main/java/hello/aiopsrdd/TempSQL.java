@@ -72,7 +72,7 @@ public class TempSQL {
 
     // service_config_data
     public static String combineServiceConfigToTrace =
-            "select a.* , b.* from  trace_combine_instance42 a, service_config_data  b " +
+            "select a.* , b.* from  trace_combine_instance a, service_config_data  b " +
             "where ( ( (( substr( a.entry_timestamp , 1 , 13) - 15000) < b.start_time )  And  ( ( substr( a.entry_timestamp , 1 , 13) + 15000) > b.start_time))  Or " +
                    " ( (( substr( a.entry_timestamp , 1 , 13) - 30000) < b.start_time )  And  ( ( substr( a.entry_timestamp , 1 , 13) + 15000) > b.start_time))  Or " +
                    " ( (( substr( a.entry_timestamp , 1 , 13) - 30000) < b.start_time )  And  ( ( substr( a.entry_timestamp , 1 , 13) + 30000) > b.start_time)))";
@@ -85,7 +85,7 @@ public class TempSQL {
   // test_traces_view real_trace_view
    public static String combineYtoTrace =
            "select a.*, cast(b.expected_result as string), cast(b.error as string) y_exec_result , " +
-                   " b.y_issue_ms, b.y_issue_dim_type, b.y_issue_dim_content  from trace_combine_config_3 a, test_traces_mysql_view b  " +
+                   " b.y_issue_ms, b.y_issue_dim_type, b.y_issue_dim_content  from trace_combine_config_view a, test_traces_mysql_view b  " +
                    " where (a.test_trace_id == b.test_trace_id) And (a.test_case_id == b.test_case_id)";
 
 

@@ -329,3 +329,16 @@ root
         System.out.println("===============all over ===================");
         configInstanceDataSet.createOrReplaceTempView("real_cpu_memory_view");
     }
+
+    //                                if (passVarName != null) {
+    //                                    for (int j = 0; j < 1; i++) {
+    //                                        // 先添加经过的api 对应的变量
+    //                                        rowDataList.add(passApiVariable.get(passVarName.get(0))); //s?_var
+    //                                    }
+    //                                    if ((varNum - 1) > 0) {
+    //                                        for (int l = 0; l < (varNum - 1); l++) {
+    //                                            // 在添加这个服务剩余的没经过的变量
+    //                                            rowDataList.add("");
+    //                                        }
+    //                                    }
+    //                                }
