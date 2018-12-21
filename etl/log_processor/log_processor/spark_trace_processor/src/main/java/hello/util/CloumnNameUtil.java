@@ -1,8 +1,6 @@
 package hello.util;
 
 
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,6 +59,21 @@ public class CloumnNameUtil {
         return tempList;
     }
 
+    public static List<String> configServiceCloumn() {
+        List<String> newCloumn = new ArrayList<>();
+        newCloumn.add("start_time");
+        newCloumn.add("end_time");
+        String[] passSerivce = tracePassServiceCloumn;
+        for (int i = 0; i < passSerivce.length; i++) {
+            String tempService = passSerivce[i].replaceAll("_included", "");
+            newCloumn.add(tempService + "_servicename");
+            newCloumn.add(tempService + "_l_cpu");
+            newCloumn.add(tempService + "_l_memory");
+            newCloumn.add(tempService + "_confnumber");
+            newCloumn.add(tempService + "_readynumber");
+        }
+        return newCloumn;
+    }
 
     public static String[] tracePassServiceCloumn = new String[]{
             "ts_login_service_included", "ts_register_service_included",
@@ -111,13 +124,17 @@ public class CloumnNameUtil {
             "ts_voucher_service_included", "ts_voucher_service_api", "ts_ui_dashboard_included", "ts_ui_dashboard_api"
     };
 
-//    public static void main(String[] args) {
-//        Map<String, String> fdfd = configServe();
-//        System.out.println(fdfd.size() + "=========批量生成42条SQL=============");
-//        for (int i = 0; i < tracePassServiceCloumn.length; i++) {
-//            System.out.println(fdfd.get(tracePassServiceCloumn[i].replaceAll("_included", "")));
+    public static void main(String[] args) {
+
+        List<String> passVarName = SharedVariableUtils.getPassVarName()
+                .get("ts-execute-service").get("/execute/collected");
+
+        System.out.println(passVarName.size());
+//        List<String> te = configServiceCloumn();
+//        for(int i=0;i< te.size() ; i++){
+//            System.out.println(te.get(i));
 //        }
-//    }
+    }
 
     public static Map<String, String> configEachServeSQL() {
         Map<String, String> tableNameAndSQl = new HashMap<>();
