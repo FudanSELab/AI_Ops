@@ -9,15 +9,12 @@ label_col_name = "trace_verified.y_issue_ms"
 
 
 def print_best_score(gsearch, param_test):
-    f = open("log.txt", 'w+')
-    print("Best score: %0.3f" % gsearch.best_score_,
-          file=f)
-    print("Best parameters set:",
-          file=f)
+    # f = open("log.txt", 'w+')
+    print("Best score: %0.3f" % gsearch.best_score_)
+    print("Best parameters set:")
     best_parameters = gsearch.best_params_
     for param_name in sorted(param_test.keys()):
-        print("\t%s: %r" % (param_name, best_parameters[param_name]),
-              file=f)
+        print("\t%s: %r" % (param_name, best_parameters[param_name]))
 
 
 def print_cols():
@@ -55,17 +52,21 @@ def drop_convert():
     df_raw[label_col_name] = df_raw[label_col_name].fillna("Success")
     df_raw = df_raw.loc[df_raw[label_col_name] != "Success"]
 
-    mapping_keys = df_raw["trace_verified.trace_service"].drop_duplicates().values
-    mapping = {}
-    for i in range(len(mapping_keys)):
-        mapping[mapping_keys[i]] = i
-    df_raw["trace_verified.trace_service"] = df_raw["trace_verified.trace_service"].map(mapping)
+    # mapping_keys = df_raw["trace_verified.trace_service"].drop_duplicates().values
+    # mapping = {}
+    # for i in range(len(mapping_keys)):
+    #     mapping[mapping_keys[i]] = i
+    # df_raw["trace_verified.trace_service"] = df_raw["trace_verified.trace_service"].map(mapping)
+    #
+    #
+    # mapping_keys = df_raw["trace_verified.trace_api"].drop_duplicates().values
+    # mapping = {}
+    # for i in range(len(mapping_keys)):
+    #     mapping[mapping_keys[i]] = i
+    # df_raw["trace_verified.trace_api"] = df_raw["trace_verified.trace_api"].map(mapping)
 
-    mapping_keys = df_raw["trace_verified.trace_api"].drop_duplicates().values
-    mapping = {}
-    for i in range(len(mapping_keys)):
-        mapping[mapping_keys[i]] = i
-    df_raw["trace_verified.trace_api"] = df_raw["trace_verified.trace_api"].map(mapping)
+    df_raw = pd.get_dummies(df_raw, columns=["trace_verified.trace_service"])
+    df_raw = pd.get_dummies(df_raw, columns=["trace_verified.trace_api"])
 
     mapping_keys = df_raw["trace_verified.y_issue_ms"].drop_duplicates().values
     mapping = {}

@@ -61,6 +61,9 @@ def drop_convert():
         mapping[mapping_keys[i]] = i
     df_raw["trace_verified.trace_api"] = df_raw["trace_verified.trace_api"].map(mapping)
 
+    # df_raw = pd.get_dummies(df_raw, columns=["trace_verified.trace_service"])
+    # df_raw = pd.get_dummies(df_raw, columns=["trace_verified.trace_api"])
+
     df_raw.to_csv("trace_instance_3_verifyd_fetch_inst_convert_result.csv")
 
 
