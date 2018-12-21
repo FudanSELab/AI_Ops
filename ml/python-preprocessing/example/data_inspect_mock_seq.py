@@ -33,12 +33,19 @@ def drop_convert():
                          header=0,
                          index_col=0)
     for col in df_raw.keys():
-        if col.endswith("_caller") or col.endswith("ms"):
+        if col.endswith("ms"):
             mapping_keys = df_raw[col].drop_duplicates().values
             mapping = {}
             for i in range(len(mapping_keys)):
                 mapping[mapping_keys[i]] = i
             df_raw[col] = df_raw[col].map(mapping)
+        elif col.endswith("_caller"):
+            # mapping_keys = df_raw[col].drop_duplicates().values
+            # mapping = {}
+            # for i in range(len(mapping_keys)):
+            #     mapping[mapping_keys[i]] = i
+            # df_raw[col] = df_raw[col].map(mapping)
+            df_raw = pd.get_dummies(df_raw, columns=[col])
     df_raw.to_csv("mock_seq_5_converted.csv")
 
 
@@ -51,7 +58,10 @@ def train_dt():
     df.pop(label_col_name_result)
     X, Y = df, df.pop(y_name)
 
-    print("Feature Name in X:", X.keys())
+    print("Feature Name in X:")
+    for col in X.keys():
+        print(col)
+
 
     clf = DecisionTreeClassifier()
     param_test = {
@@ -75,9 +85,11 @@ def train_dt_single():
     test = df2.drop(train.index)
     train_x, train_y = train, train.pop(label_col_name_ms)
     test_x, test_y = test, test.pop(label_col_name_ms)
+
     print("Feature name in X:")
     for key in train_x.keys():
         print(key)
+
     clf2 = DecisionTreeClassifier()
     clf2.fit(X=train_x, y=train_y)
     result = clf2.predict(test_x)
