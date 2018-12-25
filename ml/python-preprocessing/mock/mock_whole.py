@@ -23,7 +23,7 @@ def get_col(svc_num):
 def mock_data(size, svc_num):
     cols = get_col(svc_num)
     rand_seq = [-1, 0, 1]
-    rand_inst = [1, 3]
+    rand_inst = [0, 1, 2, 3]
     data = []
     for i in range(0, size):
         # Random Entry Service
@@ -72,8 +72,8 @@ def mock_data(size, svc_num):
 
 
     # Output Result
-    data_final.to_csv("mock_whole_8.csv")
+    data_final.to_csv("mock_whole_20.csv")
 
 
 if __name__ == "__main__":
-    mock_data(1000,8)
+    mock_data(500, 20)

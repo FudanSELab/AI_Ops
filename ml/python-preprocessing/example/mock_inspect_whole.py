@@ -1,9 +1,8 @@
 import pandas as pd
-from pandas import DataFrame
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import GridSearchCV
 
-input_path = "../mock/mock_whole_8.csv"
+input_path = "../mock/mock_whole_20.csv"
 label_col_result = "result"
 label_col_ms = "ms"
 
@@ -25,12 +24,12 @@ def drop_convert():
     for col in df_raw.keys():
         if col.endswith("_caller") \
                 or col.endswith("entry_svc"):
-            df_raw = pd.get_dummies(df_raw, columns=[col])
-            # mapping_keys = df_raw[col].drop_duplicates().values
-            # mapping = {}
-            # for i in range(len(mapping_keys)):
-            #     mapping[mapping_keys[i]] = i
-            # df_raw[col] = df_raw[col].map(mapping)
+            # df_raw = pd.get_dummies(df_raw, columns=[col])
+            mapping_keys = df_raw[col].drop_duplicates().values
+            mapping = {}
+            for i in range(len(mapping_keys)):
+                mapping[mapping_keys[i]] = i
+            df_raw[col] = df_raw[col].map(mapping)
         elif col.endswith("ms"):
             mapping_keys = df_raw[col].drop_duplicates().values
             mapping = {}
@@ -38,11 +37,11 @@ def drop_convert():
                 mapping[mapping_keys[i]] = i
             df_raw[col] = df_raw[col].map(mapping)
 
-    df_raw.to_csv("mock_whole_8_converted.csv")
+    df_raw.to_csv("mock_whole_20_converted.csv")
 
 
 def train_dt():
-    file_path = "mock_whole_8_converted.csv"
+    file_path = "mock_whole_20_converted.csv"
     y_name = label_col_result
     df = pd.read_csv(file_path,
                      header=0,
@@ -56,8 +55,9 @@ def train_dt():
 
     clf = DecisionTreeClassifier()
     param_test = {
-        "max_depth": [None, 10, 20, 30, 100, 200, 400],
+        "max_depth": [None, 10, 20, 30, 100, 200],
     }
+    print("Label Name in Y:", y_name)
 
     grid_search_cv = GridSearchCV(clf,
                                   param_grid=param_test,
