@@ -223,3 +223,122 @@ root
 //        Dataset<Row> trace = spark.sql(TempSQL.genTrace);
 //        trace.show();
 //        trace.write().saveAsTable("trace3");
+
+
+
+   // service_config_data, service_instance_data ===> real_cpu_memory_view
+    private static void cpuMemory(SparkSession spark) {
+        // read service config data
+        Dataset<Row> serviceConfigData = spark.read().option("header", "true")
+                .csv("hdfs://10.141.211.173:8020/user/admin/serviceConfigData.csv");
+        //serviceConfigData.printSchema();
+        System.out.println("--------------print servcie config schema --------------");
+        serviceConfigData.createOrReplaceTempView("service_config_data");
+
+        // read service instance data
+        Dataset<Row> serviceInstanceData = spark.read().option("header", "true")
+                .csv("hdfs://10.141.211.173:8020/user/admin/serviceInstanceData.csv");
+        //serviceInstanceData.printSchema();
+        System.out.println("--------------print servcie instance schema --------------");
+        serviceInstanceData.createOrReplaceTempView("service_instance_data");
+
+        Dataset<Row> combineCpuMemory = spark.sql(TempSQL.genCpuMemory);
+
+        String[] col = combineCpuMemory.columns();
+        System.out.println(col.length + "-----w-------e-----------");
+        Map<Integer, List<String>> cpuMemdiffService = CloumnNameUtil.getCpuMemDiffCloName();
+
+        JavaRDD<Row> configInstanceDataRDD = combineCpuMemory.javaRDD().map(new Function<Row, Row>() {
+            @Override
+            public Row call(Row row) throws Exception {
+                List<String> colData = new ArrayList<>();
+
+                for (int i = 0; i < col.length; i++) {
+                    if (col[i].contains("mongo")) {
+                    } else {
+                        colData.add(row.getAs(i));
+                    }
+                }
+                System.out.println("-----------------------" + cpuMemdiffService.size() + "----------------------");
+                for (int i = 0; i < cpuMemdiffService.size(); i++) {
+//                    System.out.println(cpuMemdiffService.get(i).get(0) + "---"+ cpuMemdiffService.get(i).get(1));
+//                    System.out.println(cpuMemdiffService.get(i).get(2) + "---"+ cpuMemdiffService.get(i).get(3));
+//
+//                    System.out.println(row.getAs(cpuMemdiffService.get(i).get(0)) + "");
+//                    System.out.println(row.getAs(cpuMemdiffService.get(i).get(1)) + "");
+//                    System.out.println(row.getAs(cpuMemdiffService.get(i).get(2)) + "");
+//                    System.out.println(row.getAs(cpuMemdiffService.get(i).get(3)) + "");
+
+                    double l_mem = 0; // _l_memory
+                    if (row.getAs(cpuMemdiffService.get(i).get(0)) == null) {
+                        l_mem = 0;
+                    } else {
+                        l_mem = Double.parseDouble(row.getAs(cpuMemdiffService.get(i).get(0)));
+                    }
+
+                    double i_mem = 0;  // _inst_memory
+                    if (row.getAs(cpuMemdiffService.get(i).get(1)) == null) {
+                        i_mem = 0;
+                    } else {
+                        i_mem = Double.parseDouble(row.getAs(cpuMemdiffService.get(i).get(1)));
+                    }
+
+                    double l_cpu = 0; // _l_cpu
+                    if (row.getAs(cpuMemdiffService.get(i).get(2)) == null) {
+                        l_cpu = 0;
+                    } else {
+                        l_cpu = Double.parseDouble(row.getAs(cpuMemdiffService.get(i).get(2)));
+                    }
+
+                    double i_cpu = 0; // _inst_cpu
+                    if (row.getAs(cpuMemdiffService.get(i).get(3)) == null) {
+                        i_cpu = 0;
+                    } else {
+                        i_cpu = Double.parseDouble(row.getAs(cpuMemdiffService.get(i).get(3)));
+                    }
+
+                    colData.add((i_mem - l_mem) + "");
+                    colData.add((i_cpu - l_cpu) + "");
+                }
+                return RowFactory.create(colData.toArray());
+            }
+        });
+
+        // 过滤掉mongo的类名
+        List<String> colName = new ArrayList<>();
+        for (int i = 0; i < col.length; i++) {
+            if (!col[i].contains("mongo"))
+                colName.add(col[i]);
+        }
+        System.out.println("==================" + colName.size() + " ------------" + configInstanceDataRDD.collect().size());
+        List<String> diffCpuMemName = CloumnNameUtil.addCpuMemDiffCloumn();
+        for (int i = 0; i < diffCpuMemName.size(); i++) {
+            colName.add(diffCpuMemName.get(i));
+        }
+        // 表头
+        List<StructField> structFields = new ArrayList<>();
+        for (int i = 0; i < colName.size(); i++) {
+            structFields.add(DataTypes.createStructField(colName.get(i), DataTypes.StringType, true));
+        }
+        StructType structType = DataTypes.createStructType(structFields);
+        // 填充数据
+        Dataset<Row> configInstanceDataSet = spark.createDataFrame(configInstanceDataRDD, structType);
+
+
+        // configInstanceDataSet.write().saveAsTable("cpu_memory2");
+        System.out.println("===============all over ===================");
+        configInstanceDataSet.createOrReplaceTempView("real_cpu_memory_view");
+    }
+
+    //                                if (passVarName != null) {
+    //                                    for (int j = 0; j < 1; i++) {
+    //                                        // 先添加经过的api 对应的变量
+    //                                        rowDataList.add(passApiVariable.get(passVarName.get(0))); //s?_var
+    //                                    }
+    //                                    if ((varNum - 1) > 0) {
+    //                                        for (int l = 0; l < (varNum - 1); l++) {
+    //                                            // 在添加这个服务剩余的没经过的变量
+    //                                            rowDataList.add("");
+    //                                        }
+    //                                    }
+    //                                }

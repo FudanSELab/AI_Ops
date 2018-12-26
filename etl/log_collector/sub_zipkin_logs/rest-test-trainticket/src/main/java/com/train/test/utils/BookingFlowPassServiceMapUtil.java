@@ -2,10 +2,27 @@ package com.train.test.utils;
 
 
 import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class BookingFlowPassServiceMapUtil {
 
-
+// 测试排列组合
+//    public static void main(String[] args){
+//        Map<Integer, Map<Integer, String>> flowOnePassServiceMap = BookingFlowPassServiceMapUtil.flowOnePassService();
+//
+//        for (int i = 0; i < flowOnePassServiceMap.size(); i++) {
+//            Map<Integer, String> oneTraceServiceMap = flowOnePassServiceMap.get(i);
+//            int serviceSize = oneTraceServiceMap.size();
+//              System.out.println(i);
+//            HashMap<Integer, List<Integer>> oneTraceAllArrangeList = ArrangeInStanceNum.getAllrangeList(serviceSize);
+//            for(int j =0;j<oneTraceAllArrangeList.size() ;j++){
+//                System.out.println(oneTraceAllArrangeList.get(j).toString());
+//            }
+//
+//        }
+//    }
     public static Map<Integer, Map<Integer, String>> flowOnePassService() {
         Map<Integer, Map<Integer, String>> allFlowOnePassService = new HashMap<>();
 

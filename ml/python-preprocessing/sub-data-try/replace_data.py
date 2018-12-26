@@ -16,12 +16,15 @@ def svc2int():
 
 
 def svc2onehot():
-    data_file_path = "../mock/mock2.csv"
+    data_file_path = "../mock/mock_map_10_st.csv"
     df = pd.read_csv(data_file_path,
                      header=0,
                      index_col=0)
+
+    df = df.dropna(axis=0, how="any")
+
     df = pd.get_dummies(df, prefix=["svc"], columns=["svc"])
-    df.to_csv("mock_new_one_hot.csv")
+    df.to_csv("mock_new_one_hot_10_st.csv")
 
 
 if __name__ == "__main__":

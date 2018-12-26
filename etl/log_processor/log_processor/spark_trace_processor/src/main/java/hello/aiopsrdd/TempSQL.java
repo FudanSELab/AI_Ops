@@ -35,6 +35,14 @@ public class TempSQL {
             "select a.*, b.*  from service_config_data a, service_instance_data b " +
                     "where (a.ts_travel_service_start_time == b.ts_order_service_inst_start_time)";
 
+    public static String config_server_view =
+            "select start_time , end_time , " +
+                    "concat_ws(',', collect_list(serviceName)) serviceName , " +
+                    "concat_ws(',', collect_list(l_cpu)) l_cpu , " +
+                    "concat_ws(',', collect_list(l_memory)) l_memory , " +
+                    "concat_ws(',', collect_list(confNumber)) confNumber , " +
+                    "concat_ws(',', collect_list(readyNumber)) readyNumber " +
+                    "from config_server_view group by start_time, end_time";
     // 由real_span_trace表 查询出一个服务经过的service
     public static String getTracePassService =
             "select trace_id, " +
@@ -64,9 +72,10 @@ public class TempSQL {
 
     // service_config_data
     public static String combineServiceConfigToTrace =
-            "select a.* , b.* from  trace_passservice_view a, service_config_data  b " +
-            "where (((a.entry_timestamp + 60000) > b.ts_travel_service_start_time )  And  (a.entry_timestamp < b.ts_travel_service_end_time))";
-
+            "select a.* , b.* from  trace_combine_instance a, service_config_data  b " +
+            "where ( ( (( substr( a.entry_timestamp , 1 , 13) - 15000) < b.start_time )  And  ( ( substr( a.entry_timestamp , 1 , 13) + 15000) > b.start_time))  Or " +
+                   " ( (( substr( a.entry_timestamp , 1 , 13) - 30000) < b.start_time )  And  ( ( substr( a.entry_timestamp , 1 , 13) + 15000) > b.start_time))  Or " +
+                   " ( (( substr( a.entry_timestamp , 1 , 13) - 30000) < b.start_time )  And  ( ( substr( a.entry_timestamp , 1 , 13) + 30000) > b.start_time)))";
 
     // real_invocation_view ,  cpu_memory_view , real_trace_pass_view  产生 Trace 表
     public static String genRealTrace  =
@@ -75,8 +84,8 @@ public class TempSQL {
 
   // test_traces_view real_trace_view
    public static String combineYtoTrace =
-           "select a.*, cast(b.expected_result as string), cast(b.is_error as string) y_exec_result , " +
-                   " b.y_issue_ms, b.y_issue_dim_type, b.y_issue_dim_content  from trace_pass_cpu_view a, test_traces_mysql_view b  " +
+           "select a.*, cast(b.expected_result as string), cast(b.error as string) y_exec_result , " +
+                   " b.y_issue_ms, b.y_issue_dim_type, b.y_issue_dim_content  from trace_combine_config_view a, test_traces_mysql_view b  " +
                    " where (a.test_trace_id == b.test_trace_id) And (a.test_case_id == b.test_case_id)";
 
 
@@ -126,11 +135,12 @@ public class TempSQL {
 
     public static String genStep2 =
             "select trace_id , caller , " +
+                    " count(sr_servicename) caller_times , " +
                     " concat_ws(',', collect_set(test_trace_id)) test_trace_id, " +
                     " concat_ws(',', collect_set(test_case_id)) test_case_id, " +
                     " concat_ws(',', collect_set(s_time)) s_time, " +
                     " concat_ws(',', collect_set(e_time)) e_time, " +
-                    " concat_ws(',', collect_set(sr_servicename)) sr_servicename  " +
+                    " concat_ws(',', collect_list(sr_servicename)) sr_servicename  " +
                     " from view_clean_step1 group by trace_id , caller having count(sr_servicename) >= 2";
 
     public static String genStep3 =
@@ -138,8 +148,9 @@ public class TempSQL {
                     "concat_ws('___' , collect_set(test_trace_id)) test_trace_id, " +
                     "concat_ws('___' , collect_set(test_case_id)) test_case_id, " +
                     "concat_ws('___' , collect_set(caller)) caller, " +
-                    " concat_ws('___', collect_set(s_time)) s_time, " +
-                    " concat_ws('___', collect_set(e_time)) e_time, " +
-                    " concat_ws('___', collect_set(sr_servicename)) sr_servicename  " +
-                    " from view_clean_step2  group by trace_id ";
+                    "concat_ws('___' , collect_set(caller_times)) caller_times, "+
+                    "concat_ws('___', collect_set(s_time)) s_time, " +
+                    "concat_ws('___', collect_set(e_time)) e_time, " +
+                    "concat_ws('___', collect_set(sr_servicename)) sr_servicename  " +
+                    "from view_clean_step2  group by trace_id ";
 }

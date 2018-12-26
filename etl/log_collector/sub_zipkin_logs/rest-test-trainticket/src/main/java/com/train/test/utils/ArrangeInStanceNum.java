@@ -7,10 +7,10 @@ import java.util.Map;
 
 public class ArrangeInStanceNum {
 
-    private static List<Integer> tmpArr = new ArrayList<>();
-    private static HashMap<Integer, String> tmpArrList = new HashMap<>();
+    private static List<Integer> tmpArr ;
+    private static HashMap<Integer, String> tmpArrList ;
 
-    private static HashMap<Integer, List<Integer>> numList = new HashMap<>();
+    private static HashMap<Integer, List<Integer>> numList ;
 
     /**
      ts-login-service  ts-travel2-service  ts-travel-service  ts-contacts-service
@@ -33,12 +33,25 @@ public class ArrangeInStanceNum {
 
     /**
      *
-     * @param numKind  有8个数字， 每个数字有 1，2两种情况
+     *  numKind  有8个数字， 每个数字有 1，2两种情况
      * @return
      */
+//    public static void main(String[]  args){
+//        HashMap<Integer, List<Integer>> te = getAllrangeList(4);
+//        for(int i=0; i<te.size(); i++){
+//            List<Integer> fg = te.get(i);
+//            for(int j= 0; j<fg.size(); j++)
+//            System.out.print(fg.get(j) +"   ");
+//            System.out.println("");
+//        }
+//    }
     public static HashMap<Integer, List<Integer>> getAllrangeList(int numKind) {
         // 12345678
         //int[] arr = new int[]{0,1,2,3,4,5,6,7};
+        tmpArr  = new ArrayList<>();
+        tmpArrList = new HashMap<>();
+        numList = new HashMap<>();
+
         int[] arr = new int[numKind];
         for(int i=0 ;i<numKind;i++){
             arr[i] = i;
@@ -72,8 +85,8 @@ public class ArrangeInStanceNum {
     /**
      * 组合
      * 按一定的顺序取出元素，就是组合,元素个数[C arr.len 3]
-     * @param tmpArrList 保存所有的list
-     * @param tmpArr 某一行的数据list
+     *  tmparrList 保存所有的list
+     *  tmp Arr 某一行的数据list
      * @param index 开始选取元素位置
      * @param k     选取的元素个数
      * @param arr   数组

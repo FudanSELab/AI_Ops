@@ -27,24 +27,24 @@ public class SharedVariableUtils {
 
         // ts-contacts-service
         variableToInitialType.put("requestContactsNumCache", "2");
-        apiPathToVariable.put("/contacts/findContacts", variableToInitialType);
+        apiPathToVariable.put("/contacts", variableToInitialType);
         serviceToApiPath.put("ts-contacts-service", apiPathToVariable);
 
         // ts-execute-service
         variableToInitialType = new HashMap<>();
         apiPathToVariable = new HashMap<>();
         variableToInitialType.put("executeNumCache", "2");
-        apiPathToVariable.put("/execute/execute", variableToInitialType);
+        apiPathToVariable.put("/execute", variableToInitialType);
         variableToInitialType = new HashMap<>();
         variableToInitialType.put("collectNumCache", "2");
-        apiPathToVariable.put("/execute/collected", variableToInitialType);
+        apiPathToVariable.put("/execute", variableToInitialType);
         serviceToApiPath.put("ts-execute-service", apiPathToVariable);
 
         // ts-food-service
         variableToInitialType = new HashMap<>();
         apiPathToVariable = new HashMap<>();
         variableToInitialType.put("getFoodTimeCache", "2");
-        apiPathToVariable.put("/food/getFood", variableToInitialType);
+        apiPathToVariable.put("/food", variableToInitialType);
         serviceToApiPath.put("ts-food-service", apiPathToVariable);
 
         // ts-login-service
@@ -68,14 +68,14 @@ public class SharedVariableUtils {
         variableToInitialType = new HashMap<>();
         apiPathToVariable = new HashMap<>();
         variableToInitialType.put("travelQueryNumCache", "2");
-        apiPathToVariable.put("/travel/query", variableToInitialType);
+        apiPathToVariable.put("/travel", variableToInitialType);
         serviceToApiPath.put("ts-travel-service", apiPathToVariable);
 
         // ts-travel2-service
         variableToInitialType = new HashMap<>();
         apiPathToVariable = new HashMap<>();
         variableToInitialType.put("travel2QueryNumCache", "2");
-        apiPathToVariable.put("/travel2/query", variableToInitialType);
+        apiPathToVariable.put("/travel2", variableToInitialType);
         serviceToApiPath.put("ts-travel2-service", apiPathToVariable);
 
         // ts-cancel-service
@@ -93,21 +93,21 @@ public class SharedVariableUtils {
         variableToInitialType = new HashMap<>();
         apiPathToVariable = new HashMap<>();
         variableToInitialType.put("orderOtherQueryCache", "2");
-        apiPathToVariable.put("/orderOther/query", variableToInitialType);
+        apiPathToVariable.put("/orderOther", variableToInitialType);
         serviceToApiPath.put("ts-order-other-service", apiPathToVariable);
 
         // ts-order-service
         variableToInitialType = new HashMap<>();
         apiPathToVariable = new HashMap<>();
         variableToInitialType.put("orderQueryCache", "2");
-        apiPathToVariable.put("/order/query", variableToInitialType);
+        apiPathToVariable.put("/order", variableToInitialType);
         serviceToApiPath.put("ts-order-service", apiPathToVariable);
 
         // ts-consign-service
         variableToInitialType = new HashMap<>();
         apiPathToVariable = new HashMap<>();
         variableToInitialType.put("insertConsignCache", "2");
-        apiPathToVariable.put("/consign/insertConsign", variableToInitialType);
+        apiPathToVariable.put("/consign", variableToInitialType);
         serviceToApiPath.put("ts-consign-service", apiPathToVariable);
 
 
@@ -125,20 +125,20 @@ public class SharedVariableUtils {
         List<String> serviceVarNameList = new ArrayList<>();
 
         serviceVarNameList.add("insertConsignCache");
-        servicePassVarMap.put("/consign/insertConsign", serviceVarNameList);
+        servicePassVarMap.put("/consign", serviceVarNameList);
         passVarNameMap.put("ts-consign-service", servicePassVarMap);
 
         serviceVarNameList = new ArrayList<>();
         servicePassVarMap = new HashMap<>();
         serviceVarNameList.add("orderQueryCache");
-        servicePassVarMap.put("/order/query", serviceVarNameList);
+        servicePassVarMap.put("/order", serviceVarNameList);
         passVarNameMap.put("ts-order-service", servicePassVarMap);
 
 
         serviceVarNameList = new ArrayList<>();
         servicePassVarMap = new HashMap<>();
         serviceVarNameList.add("orderOtherQueryCache");
-        servicePassVarMap.put("/orderOther/query", serviceVarNameList);
+        servicePassVarMap.put("/orderOther", serviceVarNameList);
         passVarNameMap.put("ts-order-other-service", servicePassVarMap);
 
 
@@ -165,7 +165,7 @@ public class SharedVariableUtils {
         serviceVarNameList = new ArrayList<>();
         servicePassVarMap = new HashMap<>();
         serviceVarNameList.add("travel2QueryNumCache");
-        servicePassVarMap.put("/travel2/query", serviceVarNameList);
+        servicePassVarMap.put("/travel2", serviceVarNameList);
         passVarNameMap.put("ts-travel2-service", servicePassVarMap);
 
 
@@ -198,25 +198,25 @@ public class SharedVariableUtils {
         serviceVarNameList = new ArrayList<>();
         servicePassVarMap = new HashMap<>();
         serviceVarNameList.add("getFoodTimeCache");
-        servicePassVarMap.put("/food/getFood", serviceVarNameList);
+        servicePassVarMap.put("/food", serviceVarNameList);
         passVarNameMap.put("ts-food-service", servicePassVarMap);
 
 
         serviceVarNameList = new ArrayList<>();
         servicePassVarMap = new HashMap<>();
         serviceVarNameList.add("requestContactsNumCache");
-        servicePassVarMap.put("/contacts/findContacts", serviceVarNameList);
+        servicePassVarMap.put("/contacts", serviceVarNameList);
         passVarNameMap.put("ts-contacts-service", servicePassVarMap);
 
 
         serviceVarNameList = new ArrayList<>();
         servicePassVarMap = new HashMap<>();
         serviceVarNameList.add("collectNumCache");
-        servicePassVarMap.put("/execute/collected", serviceVarNameList);
+        servicePassVarMap.put("/execute", serviceVarNameList);
 
         serviceVarNameList = new ArrayList<>();
         serviceVarNameList.add("executeNumCache");
-        servicePassVarMap.put("/execute/execute", serviceVarNameList);
+        servicePassVarMap.put("/execute", serviceVarNameList);
         passVarNameMap.put("ts-execute-service", servicePassVarMap);
 
         return passVarNameMap;
@@ -239,13 +239,13 @@ public class SharedVariableUtils {
         return serviceValNumMap;
     }
 
-    public static void main(String[] args) {
-        System.out.println(getSharedVariableMap().get("ts-consign-service").get("/consign/insertConsign").get("insertConsignCache"));
-        System.out.println(getPassVarName().get("ts-execute-service").get("/execute/execute").get(0));
-        System.out.println(getPassVarName().get("ts-contacts-service").size());
-        System.out.println();
-
-    }
+//    public static void main(String[] args) {
+//        System.out.println(getSharedVariableMap().get("ts-consign-service").get("/consign/insertConsign").get("insertConsignCache"));
+//        System.out.println(getPassVarName().get("ts-execute-service").get("/execute/execute").get(0));
+//        System.out.println(getPassVarName().get("ts-contacts-service").size());
+//        System.out.println();
+//
+//    }
 
 
 }
