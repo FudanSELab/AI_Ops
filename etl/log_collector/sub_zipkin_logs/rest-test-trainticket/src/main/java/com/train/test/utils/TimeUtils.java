@@ -14,4 +14,13 @@ public class TimeUtils {
             e.printStackTrace();
         }
     }
+
+    public static void waitMILLISECONDS(int millSECONDS){
+        try {
+            TimeUnit.MILLISECONDS.sleep(millSECONDS);
+            //  TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 }

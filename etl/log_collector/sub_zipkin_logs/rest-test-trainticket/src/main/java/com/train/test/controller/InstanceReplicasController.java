@@ -13,14 +13,26 @@ public class InstanceReplicasController {
     @Autowired
     private InstanceErrorService instanceErrorService;
 
-    @RequestMapping(value = "/changeInstanceAndRun")
-    public String changeInstanceAndRun() {
+    @RequestMapping(value = "/testAllFlow")
+    public String testAllFlow() {
+        instanceErrorService.testInstanceErrorFlowOne();
+        instanceErrorService.testInstanceErrorCancelFlow();
+        return "all OVER";
+    }
+
+    @RequestMapping(value = "/testInstanceErrorFlowOne")
+    public String testInstanceErrorFlowOne() {
         return instanceErrorService.testInstanceErrorFlowOne();
     }
+
+    @RequestMapping(value = "/testInstanceErrorCancelFlow")
+    public String testInstanceErrorCancelFlow() {
+        return instanceErrorService.testInstanceErrorCancelFlow();
+    }
+
 
     @RequestMapping(value = "/testOneService")
     public String testOneService() {
         return instanceErrorService.testInstanceErrorOneService("ts-login-service", 2);
     }
-
 }

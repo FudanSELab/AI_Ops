@@ -108,6 +108,9 @@ public class SequenceRDD {
         callerDataset.write().saveAsTable(UrlCsvName.SEQ_CALLER);
 
 
+
+
+
         //  seq begin
 
         JavaRDD<Row> step3Rdd = step3Dataset.javaRDD().map(new Function<Row, Row>() {
@@ -194,6 +197,8 @@ public class SequenceRDD {
                     }
                 }
 
+
+
                 // 加caller service
                 // caller
                 String[] callerServiceAll = Copy_2_of_Service.callerServicePart2;
@@ -220,6 +225,9 @@ public class SequenceRDD {
                     else
                         rowDataList.add(cloumnValue);
                 }
+
+
+
                 return RowFactory.create(rowDataList.toArray());
             }
         });

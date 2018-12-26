@@ -1,6 +1,6 @@
 package hello.aiopsrdd;
 
-import hello.domain.*;
+import hello.domain.TraceAnnotation;
 import hello.util.*;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
@@ -46,25 +46,25 @@ public class AiOpsRDD {
         Dataset<Row> realSpanDataset = spark.sql(TempSQL.genRealSpan);
         realSpanDataset = realSpanDataset.dropDuplicates(new String[]{"span_id"});
         realSpanDataset.createOrReplaceTempView("real_span_trace_view");
-        //  realSpanDataset.write().saveAsTable("real_span_trace");
-        System.out.println("---------------  real_span_trace table created ---------------");
-
-        genRealInvocation(spark);
-
-        // 经过服务的api, instance_id 等   trace_passservice_view
-        combinePassServiceToTrace(spark);
-
-        // 42 个 sql 的 left out join
-        combineInstanceDataToTrace(spark);   // 产生 table  trace_combine_?
+//        //  realSpanDataset.write().saveAsTable("real_span_trace");
+//        System.out.println("---------------  real_span_trace table created ---------------");
+//
+//        genRealInvocation(spark);
+//
+//        // 经过服务的api, instance_id 等   trace_passservice_view
+//        combinePassServiceToTrace(spark);
+//
+//        // 42 个 sql 的 left out join
+//        combineInstanceDataToTrace(spark);   // 产生 table  trace_combine_?  trace_combine_instance
 
         // 竖着转行  service_config_data
-        serviceConfig(spark);
-        // 计算cpu,mem diff  trace_combine_?  ----   trace_combine_config_view
-        combineServiceConfigToTrace(spark);
-        // 从mysql 取y
-        combineYtoTrace(spark); // 产生  table  trace_y_?
+//        serviceConfig(spark);
+//        // 计算cpu,mem diff  trace_combine_?  ----   trace_combine_config_view
+//        combineServiceConfigToTrace(spark);
+//        // 从mysql 取y
+//        combineYtoTrace(spark); // 产生  table  trace_y_?
 
-        SequenceRDD.genSequencePart(spark);
+       SequenceRDD.genSequencePart(spark);
 
     }
 

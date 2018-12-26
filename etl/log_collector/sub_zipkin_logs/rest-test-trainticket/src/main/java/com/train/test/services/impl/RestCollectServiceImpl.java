@@ -89,8 +89,8 @@ public class RestCollectServiceImpl implements RestCollectService {
 
             if (MapUtils.isNotEmpty(responseServiceData) && MapUtils.isNotEmpty(responsePodData) && MapUtils.isNotEmpty(responseNodeData)) {
 
-                System.out.println("Request time: " + dateFormat.format(requestTime));
-                System.out.println("Response time: " + dateFormat.format(responseTime));
+                //System.out.println("Request time: " + dateFormat.format(requestTime));
+               // System.out.println("Response time: " + dateFormat.format(responseTime));
 
                 if (responseServiceData.get(STATUS).toString().equals(Boolean.TRUE.toString())) {
                     List<HashMap<String, Object>> servicesData = (List<HashMap<String, Object>>) responseServiceData.get(SERVICES);
@@ -106,7 +106,7 @@ public class RestCollectServiceImpl implements RestCollectService {
                     createCSVTableAndWriteHDFSFile(serviceInstanceData, SERVICE_INSTANCE_DATA, instanceDataFlag);
                 }
 
-                System.out.println("End write time: " + dateFormat.format(System.currentTimeMillis()));
+             //   System.out.println("End write time: " + dateFormat.format(System.currentTimeMillis()));
             } else {
                 throw new Exception("Get Service/Pod/Node data failed!");
             }
@@ -308,7 +308,7 @@ public class RestCollectServiceImpl implements RestCollectService {
         conf.set("fs.defaultFS", "hdfs://10.141.211.173:8020");
         FileSystem fs = FileSystem.get(conf);
 
-        System.out.println("================  begin create file =============");
+      //  System.out.println("================  begin create file =============");
 
         Path newFile = new Path("hdfs://10.141.211.173:8020/user/admin/" + fileName + ".csv");
         if (fs.exists(newFile)) {
@@ -316,6 +316,6 @@ public class RestCollectServiceImpl implements RestCollectService {
         }
 
         fs.copyFromLocalFile(new Path("/home/" + fileName + ".csv"), newFile);
-        System.out.println("================  end create file =============");
+        System.out.println(System.currentTimeMillis() + "   ================  end create file =============");
     }
 }

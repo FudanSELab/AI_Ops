@@ -64,6 +64,13 @@ public class SharedVariableUtils {
         apiPathToVariable.put("/preserve", variableToInitialType);
         serviceToApiPath.put("ts-preserve-service", apiPathToVariable);
 
+        // ts-preserve-other-service
+        variableToInitialType = new HashMap<>();
+        apiPathToVariable = new HashMap<>();
+        variableToInitialType.put("preserveOtherCache", "2");
+        apiPathToVariable.put("/preserveOther", variableToInitialType);
+        serviceToApiPath.put("ts-preserve-other-service", apiPathToVariable);
+
         // ts-travel-service
         variableToInitialType = new HashMap<>();
         apiPathToVariable = new HashMap<>();
@@ -142,15 +149,7 @@ public class SharedVariableUtils {
         passVarNameMap.put("ts-order-other-service", servicePassVarMap);
 
 
-        serviceVarNameList = new ArrayList<>();
         servicePassVarMap = new HashMap<>();
-        serviceVarNameList.add("cancelOrderCache");
-        servicePassVarMap.put("/cancelOrder", serviceVarNameList);
-        passVarNameMap.put("ts-cancel-service", servicePassVarMap);
-
-
-        servicePassVarMap = new HashMap<>();
-
         serviceVarNameList = new ArrayList<>();
         serviceVarNameList.add("cancelOrderCache");
         servicePassVarMap.put("/cancelOrder", serviceVarNameList);
@@ -181,6 +180,13 @@ public class SharedVariableUtils {
         serviceVarNameList.add("preserveCache");
         servicePassVarMap.put("/preserve", serviceVarNameList);
         passVarNameMap.put("ts-preserve-service", servicePassVarMap);
+
+
+        serviceVarNameList = new ArrayList<>();
+        servicePassVarMap = new HashMap<>();
+        serviceVarNameList.add("preserveOtherCache");
+        servicePassVarMap.put("/preserveOther", serviceVarNameList);
+        passVarNameMap.put("ts-preserve-other-service", servicePassVarMap);
 
 
         serviceVarNameList = new ArrayList<>();
@@ -227,11 +233,11 @@ public class SharedVariableUtils {
         serviceValNumMap.put("ts-consign-service", 1);
         serviceValNumMap.put("ts-order-service", 1);
         serviceValNumMap.put("ts-order-other-service", 1);
-        serviceValNumMap.put("ts-cancel-service", 1);
         serviceValNumMap.put("ts-cancel-service", 2);
         serviceValNumMap.put("ts-travel2-service", 1);
         serviceValNumMap.put("ts-travel-service", 1);
         serviceValNumMap.put("ts-preserve-service", 1);
+        serviceValNumMap.put("ts-preserve-other-service", 1);
         serviceValNumMap.put("ts-login-service", 2);
         serviceValNumMap.put("ts-food-service", 1);
         serviceValNumMap.put("ts-contacts-service", 1);

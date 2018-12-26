@@ -72,7 +72,7 @@ public class TempSQL {
 
     // service_config_data
     public static String combineServiceConfigToTrace =
-            "select a.* , b.* from  trace_combine_instance a, service_config_data  b " +
+            "select a.* , b.* from  trace_combine_instance3 a, service_config_data  b " +
             "where ( ( (( substr( a.entry_timestamp , 1 , 13) - 15000) < b.start_time )  And  ( ( substr( a.entry_timestamp , 1 , 13) + 15000) > b.start_time))  Or " +
                    " ( (( substr( a.entry_timestamp , 1 , 13) - 30000) < b.start_time )  And  ( ( substr( a.entry_timestamp , 1 , 13) + 15000) > b.start_time))  Or " +
                    " ( (( substr( a.entry_timestamp , 1 , 13) - 30000) < b.start_time )  And  ( ( substr( a.entry_timestamp , 1 , 13) + 30000) > b.start_time)))";
@@ -82,7 +82,7 @@ public class TempSQL {
             "select a.*, b.*  from  trace_passservice_view a, real_cpu_memory_view  b  " +
                     "where (((a.entry_timestamp + 60000) > b.ts_travel_service_start_time )  And  (a.entry_timestamp < b.ts_travel_service_end_time))";
 
-  // test_traces_view real_trace_view
+  //   trace_combine_config_view
    public static String combineYtoTrace =
            "select a.*, cast(b.expected_result as string), cast(b.error as string) y_exec_result , " +
                    " b.y_issue_ms, b.y_issue_dim_type, b.y_issue_dim_content  from trace_combine_config_view a, test_traces_mysql_view b  " +

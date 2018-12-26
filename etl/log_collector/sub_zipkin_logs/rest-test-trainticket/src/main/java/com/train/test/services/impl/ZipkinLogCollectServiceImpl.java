@@ -41,7 +41,7 @@ public class ZipkinLogCollectServiceImpl implements ZipkinLogCollectService {
             Configuration conf = new Configuration();
             conf.set("fs.defaultFS", "hdfs://10.141.211.173:8020");
             FileSystem fs = FileSystem.get(conf);
-            System.out.println("================  begin create Anno file =============");
+           // System.out.println("================  begin create Anno file =============");
             Path newFile = new Path("hdfs://10.141.211.173:8020/user/admin/new_span_trace_instance.csv");
 
             if (fs.exists(newFile)) {

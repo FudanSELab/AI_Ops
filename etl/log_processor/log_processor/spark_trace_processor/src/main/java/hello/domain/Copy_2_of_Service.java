@@ -79,7 +79,7 @@ public class Copy_2_of_Service {
         arrangeStr.add(0, "trace_id");
 
         System.out.println(arrangeStr.size() + "---------------------2333333");
-        for (int i = callerServicePart3.length - 1; i >= 0; i--) {
+        for (int i = 0; i < callerServicePart3.length ; i++) {
             arrangeStr.add(callerServicePart3[i]);
         }
         System.out.println(arrangeStr.size() + "---------------------2333333");
