@@ -26,7 +26,7 @@ public class ConfigErrorServiceImpl implements ConfigErrorService {
     private RestTemplate restTemplate;
 
     @Override
-    public void testConfigErrorFlowOne(int step) throws Exception {
+    public void testConfigErrorFlowOne(int resourceType) throws Exception {
         String bookingFlowUrl = "http://localhost:10101/test/bookingflow";
         String url2 = "localhost:10101/cancelflow";
         String url3 = "localhost:10101/consignFlow";
@@ -34,19 +34,27 @@ public class ConfigErrorServiceImpl implements ConfigErrorService {
 
         // get flow one passed services map
         Map<Integer, Map<Integer, String>> flowOnePassedServiceMap = BookingFlowPassServiceMapUtil.flowOnePassService();
-        // get trace passed services with specific step
-        Map<Integer, String> stepServiceMap = flowOnePassedServiceMap.get(step);
-        // get the arrange list which key is order, value is list such as [1, 1, 1, 1, ...]
-        HashMap<Integer, List<Integer>> oneTraceAllArrangeList = ArrangeInStanceNum.getAllrangeList(stepServiceMap.size());
 
-        for (Map.Entry<Integer, List<Integer>> configCase : oneTraceAllArrangeList.entrySet()) {
-            // get service names which need to be configured
-            List<String> configServiceNames = getConfigServices(configCase.getValue(), stepServiceMap);
-            // get the config requests
-            List<NewSingleDeltaCMResourceRequest> configRequests = constructConfigRequests(configServiceNames, 0, false);
+        for (int i = 0; i < flowOnePassedServiceMap.size(); i++) {
 
-            boolean configResult;
-            if (!configRequests.isEmpty()) {
+            // get trace passed services with specific step
+            // Map<Integer, String> stepServiceMap = flowOnePassedServiceMap.get(step);
+            Map<Integer, String> stepServiceMap = flowOnePassedServiceMap.get(i);
+
+            // get the arrange list which key is order, value is list such as [1, 1, 1, 1, ...]
+            HashMap<Integer, List<Integer>> oneTraceAllArrangeList = ArrangeInStanceNum.getAllrangeList(stepServiceMap.size());
+
+            for (int j = 0; j < oneTraceAllArrangeList.size(); j++) {
+
+                System.out.println(oneTraceAllArrangeList.get(j));
+
+                // get service names which need to be configured
+                Map<String, Integer> configServiceNames = getConfigServices(oneTraceAllArrangeList.get(j), stepServiceMap);
+
+                // get the config requests
+                List<NewSingleDeltaCMResourceRequest> configRequests = constructConfigRequests(configServiceNames, resourceType);
+
+                boolean configResult;
                 try {
                     configResult = setServiceResource(configRequests);
                 } catch (Exception e) {
@@ -54,33 +62,43 @@ public class ConfigErrorServiceImpl implements ConfigErrorService {
                     continue;
                 }
 
-            } else { // if no service need to be configured, such as the first time to run
-                configResult = true;
-            }
 
-            // execute test case
-            if (configResult) {
-                testBookingFlow(bookingFlowUrl);
-            } else {
-                logger.error("Set CPU or Memory failed!");
-                Thread.sleep(300000);
-                continue;
-            }
+                // execute test case
+                if (configResult) {
+                    Thread.sleep(60000);
+                    testBookingFlow(bookingFlowUrl);
+                    Thread.sleep(60000);
+                } else {
+                    logger.error("Set CPU or Memory failed!");
+                    Thread.sleep(300000);
+                    continue;
+                }
 
-            // reset the environment
-            configRequests = constructConfigRequests(configServiceNames, 0, true);
-            boolean resetResult = false;
-            try {
-                resetResult = setServiceResource(configRequests);
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            }
+                if (j == oneTraceAllArrangeList.size() - 1) { // the last time to configure in this trace, need to configure the biggest resource to the error service
+                    List<String> errorServices = BookingFlowPassServiceMapUtil.getErrorServiceInFlowOne().get(i);
 
-            // if not ready, sleep 5 min.
-            if (!resetResult) {
-                Thread.sleep(300000);
+                    configServiceNames = getResetConfigServices(errorServices, new ArrayList<>(stepServiceMap.values()));
+                    configRequests = constructConfigRequests(configServiceNames, resourceType);
+
+                    try {
+                        configResult = setServiceResource(configRequests);
+
+                    } catch (Exception e) {
+                        logger.error(e.getMessage());
+                    }
+
+                    if (configResult) {
+                        System.out.println("Step " + i + " is completed!");
+                        Thread.sleep(60000);
+                    } else {
+                        logger.error("Set CPU or Memory failed!");
+                        Thread.sleep(300000);
+                    }
+                }
+
             }
         }
+
     }
 
 
@@ -110,133 +128,128 @@ public class ConfigErrorServiceImpl implements ConfigErrorService {
 
     /**
      *
-     * @param serviceNames service names which need to be configured
-     * @param configType 0: cpu;  1: memory;  2: cpu and memory
-     * @param isReset true: reset; false: set config
+     * @param serviceConfigMap service names which need to be configured
+     * @param resourceType 0: cpu;  1: memory;  2: cpu and memory
      * @return the constructed config requests
      */
-    private List<NewSingleDeltaCMResourceRequest> constructConfigRequests(List<String> serviceNames, int configType, boolean isReset) {
+    private List<NewSingleDeltaCMResourceRequest> constructConfigRequests(Map<String, Integer> serviceConfigMap, int resourceType) {
         List<NewSingleDeltaCMResourceRequest> configRequests = new ArrayList<>();
 
         NewSingleDeltaCMResourceRequest resourceRequest;
         List<CMConfig> cmConfigs;
         CMConfig cmConfig;
 
-        if (isReset) { // reset configurations
-            switch (configType) {
-                case 0: { // cpu
-                    for (String serviceName : serviceNames) {
-                        resourceRequest = new NewSingleDeltaCMResourceRequest();
-                        cmConfigs = new ArrayList<>();
-                        cmConfig = new CMConfig();
+        switch (resourceType) {
+            case 0:
+            case 1: { // cpu or memory
+                for (Map.Entry<String, Integer> serviceConfigEntry : serviceConfigMap.entrySet()) {
+                    resourceRequest = new NewSingleDeltaCMResourceRequest();
+                    cmConfigs = new ArrayList<>();
+                    cmConfig = new CMConfig();
 
-                        resourceRequest.setServiceName(serviceName);
-                        cmConfig.setType("limits");
-                        cmConfig.setValues(Arrays.asList(new CM("cpu", "6000m")));
-                        cmConfigs.add(cmConfig);
-                        resourceRequest.setConfigs(cmConfigs);
-                        configRequests.add(resourceRequest);
-                    }
-                    break;
+                    resourceRequest.setServiceName(serviceConfigEntry.getKey());
+                    cmConfig.setType("limits");
+                    CM memory = getCMByArrangeValue(serviceConfigEntry.getValue(), resourceType);
+                    cmConfig.setValues(Arrays.asList(memory));
+                    cmConfigs.add(cmConfig);
+                    resourceRequest.setConfigs(cmConfigs);
+                    configRequests.add(resourceRequest);
                 }
-                case 1: {
-                    for (String serviceName : serviceNames) {
-                        resourceRequest = new NewSingleDeltaCMResourceRequest();
-                        cmConfigs = new ArrayList<>();
-                        cmConfig = new CMConfig();
-
-                        resourceRequest.setServiceName(serviceName);
-                        cmConfig.setType("limits");
-                        cmConfig.setValues(Arrays.asList(new CM("memory", "15360Mi")));
-                        cmConfigs.add(cmConfig);
-                        resourceRequest.setConfigs(cmConfigs);
-                        configRequests.add(resourceRequest);
-                    }
-                    break;
-                }
-                case 2: {
-                    for (String serviceName : serviceNames) {
-                        resourceRequest = new NewSingleDeltaCMResourceRequest();
-                        cmConfigs = new ArrayList<>();
-                        cmConfig = new CMConfig();
-
-                        resourceRequest.setServiceName(serviceName);
-                        cmConfig.setType("limits");
-                        cmConfig.setValues(Arrays.asList(new CM("cpu", "6000m"), new CM("memory", "15360Mi")));
-                        cmConfigs.add(cmConfig);
-                        resourceRequest.setConfigs(cmConfigs);
-                        configRequests.add(resourceRequest);
-                    }
-                    break;
-                }
-                default:
-                    break;
+                break;
             }
-        } else { // set configurations
-            switch (configType) {
-                case 0: { // cpu
-                    for (String serviceName : serviceNames) {
-                        resourceRequest = new NewSingleDeltaCMResourceRequest();
-                        cmConfigs = new ArrayList<>();
-                        cmConfig = new CMConfig();
+            case 2: { // cpu and memory
+                for (Map.Entry<String, Integer> serviceConfigEntry : serviceConfigMap.entrySet()) {
+                    resourceRequest = new NewSingleDeltaCMResourceRequest();
+                    cmConfigs = new ArrayList<>();
+                    cmConfig = new CMConfig();
 
-                        resourceRequest.setServiceName(serviceName);
-                        cmConfig.setType("limits");
-                        cmConfig.setValues(Arrays.asList(new CM("cpu", "200m")));
-                        cmConfigs.add(cmConfig);
-                        resourceRequest.setConfigs(cmConfigs);
-                        configRequests.add(resourceRequest);
-                    }
-                    break;
+                    resourceRequest.setServiceName(serviceConfigEntry.getKey());
+                    cmConfig.setType("limits");
+                    CM cpu = getCMByArrangeValue(serviceConfigEntry.getValue(), 0);
+                    CM memory = getCMByArrangeValue(serviceConfigEntry.getValue(), 1);
+                    cmConfig.setValues(Arrays.asList(cpu, memory));
+                    cmConfigs.add(cmConfig);
+                    resourceRequest.setConfigs(cmConfigs);
+                    configRequests.add(resourceRequest);
                 }
-                case 1: {
-                    for (String serviceName : serviceNames) {
-                        resourceRequest = new NewSingleDeltaCMResourceRequest();
-                        cmConfigs = new ArrayList<>();
-                        cmConfig = new CMConfig();
-
-                        resourceRequest.setServiceName(serviceName);
-                        cmConfig.setType("limits");
-                        cmConfig.setValues(Arrays.asList(new CM("memory", "800Mi")));
-                        cmConfigs.add(cmConfig);
-                        resourceRequest.setConfigs(cmConfigs);
-                        configRequests.add(resourceRequest);
-                    }
-                    break;
-                }
-                case 2: {
-                    for (String serviceName : serviceNames) {
-                        resourceRequest = new NewSingleDeltaCMResourceRequest();
-                        cmConfigs = new ArrayList<>();
-                        cmConfig = new CMConfig();
-
-                        resourceRequest.setServiceName(serviceName);
-                        cmConfig.setType("limits");
-                        cmConfig.setValues(Arrays.asList(new CM("cpu", "200m"), new CM("memory", "800Mi")));
-                        cmConfigs.add(cmConfig);
-                        resourceRequest.setConfigs(cmConfigs);
-                        configRequests.add(resourceRequest);
-                    }
-                    break;
-                }
-                default:
-                    break;
+                break;
             }
+            default:
+                break;
         }
-
         return configRequests;
     }
 
-    private List<String> getConfigServices(List<Integer> caseOrders, Map<Integer, String> orderToServiceMap) {
-        List<String> results = new ArrayList<>();
 
-        for (int caseOrder : caseOrders) {
 
-            if (2 == caseOrder && null != orderToServiceMap.get(caseOrders.indexOf(caseOrder))) {
-                results.add(orderToServiceMap.get(caseOrders.indexOf(caseOrder)));
-            }
+    /**
+     *
+     * @param caseOrders the arrange list, such as [1, 1, 2, 1 ...]
+     * @param orderToServiceMap the order of service in step, key is order, value is service name
+     * @return service config map, key is service name, value is 1 or 2, 1 -> don't configure, 2 -> configure
+     */
+    private Map<String, Integer>  getConfigServices(List<Integer> caseOrders, Map<Integer, String> orderToServiceMap) {
+        Map<String, Integer> results = new HashMap<>();
+
+        for (int i = 0; i< caseOrders.size(); i++) {
+            results.put(orderToServiceMap.get(i), caseOrders.get(i));
         }
 
         return results;
+    }
+
+    private Map<String, Integer> getResetConfigServices(List<String> errorServices,  List<String> stepServices) {
+        Map<String, Integer> resetConfigServices = new HashMap<>();
+
+        for (String service : stepServices) {
+            if (errorServices.contains(service)) {
+                resetConfigServices.put(service, 1);
+            }
+            else {
+                resetConfigServices.put(service, 0);
+            }
+        }
+
+        return resetConfigServices;
+    }
+
+    private CM getCMByArrangeValue(int arrangeValue, int resourceType) {
+        switch (resourceType) {
+            case 0: { //cpu
+                switch (arrangeValue) {
+                    case 0: {
+                        return new CM("cpu", "400m");
+                    }
+                    case 1: {
+                        return new CM("cpu", "1000m");
+                    }
+                    case 2: {
+                        return new CM("cpu", "200m");
+                    }
+                    default:{
+                        return new CM("cpu", "400m");
+                    }
+                }
+            }
+            case 1: {
+                switch (arrangeValue) {
+                    case 0: {
+                        return new CM("memory", "500Mi");
+                    }
+                    case 1: {
+                        return new CM("memory", "1000Mi");
+                    }
+                    case 2: {
+                        return new CM("memory", "800Mi");
+                    }
+                    default:{
+                        return new CM("memory", "500Mi");
+                    }
+                }
+            }
+            default:
+                return null;
+        }
+
     }
 }

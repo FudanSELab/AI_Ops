@@ -1,21 +1,20 @@
 package com.train.test.utils;
 
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class BookingFlowPassServiceMapUtil {
 
 
     public static Map<Integer, Map<Integer, String>> flowOnePassService() {
-        Map<Integer, Map<Integer, String>> allFlowOnePassServcie = new HashMap<>();
+        Map<Integer, Map<Integer, String>> allFlowOnePassService = new HashMap<>();
 
         // login
         Map<Integer, String> loginServiceMap = new HashMap<>();
         loginServiceMap.put(0, "ts-login-service");
         loginServiceMap.put(1, "ts-verification-code-service");
         loginServiceMap.put(2, "ts-sso-service");
-        allFlowOnePassServcie.put(0, loginServiceMap);
+        allFlowOnePassService.put(0, loginServiceMap);
 
         // query ticket
         Map<Integer, String> queryTicketMap = new HashMap<>();
@@ -27,14 +26,14 @@ public class BookingFlowPassServiceMapUtil {
         queryTicketMap.put(5, "ts-seat-service");
         queryTicketMap.put(6, "ts-order-service");
         queryTicketMap.put(7, "ts-train-service");
-        allFlowOnePassServcie.put(1, queryTicketMap);
+        allFlowOnePassService.put(1, queryTicketMap);
 
 
         // query contacts
         Map<Integer, String> queryContactsMap = new HashMap<>();
         queryContactsMap.put(0, "ts-contacts-service");
         queryContactsMap.put(1, "ts-sso-service");
-        allFlowOnePassServcie.put(2, queryContactsMap);
+        allFlowOnePassService.put(2, queryContactsMap);
 
         // query food
         Map<Integer, String> queryFoodMap = new HashMap<>();
@@ -42,7 +41,7 @@ public class BookingFlowPassServiceMapUtil {
         queryFoodMap.put(1, "ts-food-map-service");
         queryFoodMap.put(2, "ts-travel-service");
         queryFoodMap.put(3, "ts-station-service");
-        allFlowOnePassServcie.put(3, queryFoodMap);
+        allFlowOnePassService.put(3, queryFoodMap);
 
         // preserve ticket
         Map<Integer, String> preserveTicketMap = new HashMap<>();
@@ -56,7 +55,7 @@ public class BookingFlowPassServiceMapUtil {
         preserveTicketMap.put(7, "ts-order-service");
         preserveTicketMap.put(8, "ts-seat-service");
         preserveTicketMap.put(9, "ts-train-service");
-        allFlowOnePassServcie.put(4, preserveTicketMap);
+        allFlowOnePassService.put(4, preserveTicketMap);
 
         // ticket pay
         Map<Integer, String> ticketPaymentMap = new HashMap<>();
@@ -64,35 +63,36 @@ public class BookingFlowPassServiceMapUtil {
         ticketPaymentMap.put(1, "ts-order-service");
         ticketPaymentMap.put(2, "ts-order-other-service");
         ticketPaymentMap.put(3, "ts-payment-service");
-        allFlowOnePassServcie.put(5, ticketPaymentMap);
+        allFlowOnePassService.put(5, ticketPaymentMap);
 
         Map<Integer, String> ticketCollectMap = new HashMap<>();
         ticketCollectMap.put(0, "ts-execute-service");
         ticketCollectMap.put(1, "ts-order-service");
         ticketCollectMap.put(2, "ts-order-other-service");
-        allFlowOnePassServcie.put(6, ticketCollectMap);
+        allFlowOnePassService.put(6, ticketCollectMap);
 
         // enter station
         Map<Integer, String> enterStationMap = new HashMap<>();
         enterStationMap.put(0, "ts-execute-service");
         enterStationMap.put(1, "ts-order-service");
         enterStationMap.put(2, "ts-order-other-service");
-        allFlowOnePassServcie.put(7, enterStationMap);
+        allFlowOnePassService.put(7, enterStationMap);
 
 
-        return allFlowOnePassServcie;
+        return allFlowOnePassService;
     }
 
 
-    private Map<Integer, String> initOrderFlowService() {
-        Map<Integer, String> serviceIndexMap = new HashMap<>();
-        serviceIndexMap.put(0, "ts-login-service");
-        serviceIndexMap.put(1, "ts-travel2-service");
-        serviceIndexMap.put(2, "ts-travel-service");
-        serviceIndexMap.put(3, "ts-contacts-service");
-        serviceIndexMap.put(4, "ts-food-service");
-        serviceIndexMap.put(5, "ts-preserve-service");
-        serviceIndexMap.put(6, "ts-execute-service");
+    public static Map<Integer, List<String>> getErrorServiceInFlowOne() {
+        Map<Integer, List<String>> serviceIndexMap = new HashMap<>();
+        serviceIndexMap.put(0, Collections.singletonList("ts-login-service"));
+        serviceIndexMap.put(1, Arrays.asList("ts-travel2-service", "ts-travel-service"));
+        serviceIndexMap.put(2, Collections.singletonList("ts-contacts-service"));
+        serviceIndexMap.put(3, Collections.singletonList("ts-food-service"));
+        serviceIndexMap.put(4, Arrays.asList("ts-preserve-service", "ts-preserve-other-service"));
+        serviceIndexMap.put(5, Collections.singletonList("ts-inside-payment-service"));
+        serviceIndexMap.put(6, Collections.singletonList("ts-execute-service"));
+        serviceIndexMap.put(7, Collections.singletonList("ts-execute-service"));
         return serviceIndexMap;
     }
 

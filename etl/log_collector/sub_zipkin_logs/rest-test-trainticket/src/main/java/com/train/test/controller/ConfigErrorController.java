@@ -14,8 +14,8 @@ public class ConfigErrorController {
     @Autowired
     private ConfigErrorService configErrorService;
 
-    @GetMapping("/errorTest/flowOne/{step}")
-    public void testConfigError(@PathVariable int step) throws Exception {
-        configErrorService.testConfigErrorFlowOne(step);
+    @GetMapping("/errorTest/flowOne/{resourceType}")
+    public void testConfigError(@PathVariable int resourceType) throws Exception {
+        configErrorService.testConfigErrorFlowOne(resourceType);
     }
 }
