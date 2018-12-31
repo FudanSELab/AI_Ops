@@ -79,7 +79,7 @@ public class InstanceErrorServiceImpl implements InstanceErrorService {
             // 某一个trace 的
             for (int j = 0; j < oneTraceAllArrangeList.size(); j++) {
                 if (oneTraceAllArrangeList.get(j).get(0) == 2 && oneTraceAllArrangeList.get(j).get(1) == 2) {
-                    EVERY_THREAD_RUN_TIME = 1;
+                    EVERY_THREAD_RUN_TIME = 35;
                 } else {
                     //EVERY_THREAD_RUN_TIME = 3;
                     continue;
@@ -173,41 +173,53 @@ public class InstanceErrorServiceImpl implements InstanceErrorService {
     public void exeRemoteRequet(String testUrl) throws InterruptedException {
         logger.info("线程开始-------");
         // 每个线程5次 ，共15次
-        Thread t1 = new Thread(new ThreadWorker("thread-1", testUrl));
-        ///  Thread t2 = new Thread(new ThreadWorker("thread-2"));
-        //  Thread t3 = new Thread(new ThreadWorker("thread-3"));
-        t1.start();
-        //  t2.start();
-        //   t3.start();
-        t1.join();
+//        Thread t1 = new Thread(new ThreadWorker("thread-1", testUrl));
+//        ///  Thread t2 = new Thread(new ThreadWorker("thread-2"));
+//        //  Thread t3 = new Thread(new ThreadWorker("thread-3"));
+//        t1.start();
+//        //  t2.start();
+//        //   t3.start();
+//        t1.join();
         //  t2.join();
         //   t3.join();
+
+        for (int i = 0; i < EVERY_THREAD_RUN_TIME; i++) {
+            try {
+                //restTemplate.getForObject("http://localhost:10101/test/bookingflow", FlowTestResult.class);
+                restTemplate.getForObject(testUrl, FlowTestResult.class);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            TimeUtils.waitMILLISECONDS(500);
+            logger.info(i + "------ times ----" + "thread over ========");
+        }
+
         logger.info("线程结束-------");
     }
 
-
-    class ThreadWorker implements Runnable {
-        private String name;
-
-        private String testUrl;
-
-        public ThreadWorker(String name, String testUrl) {
-            this.name = name;
-            this.testUrl = testUrl;
-        }
-
-        @Override
-        public void run() {
-            for (int i = 0; i < EVERY_THREAD_RUN_TIME; i++) {
-                try {
-                    //restTemplate.getForObject("http://localhost:10101/test/bookingflow", FlowTestResult.class);
-                    restTemplate.getForObject(testUrl, FlowTestResult.class);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                TimeUtils.waitMILLISECONDS(500);
-                logger.info(i + "------ times ----" + "thread over ========" + name);
-            }
-        }
-    }
+//
+//    class ThreadWorker implements Runnable {
+//        private String name;
+//
+//        private String testUrl;
+//
+//        public ThreadWorker(String name, String testUrl) {
+//            this.name = name;
+//            this.testUrl = testUrl;
+//        }
+//
+//        @Override
+//        public void run() {
+//            for (int i = 0; i < EVERY_THREAD_RUN_TIME; i++) {
+//                try {
+//                    //restTemplate.getForObject("http://localhost:10101/test/bookingflow", FlowTestResult.class);
+//                    restTemplate.getForObject(testUrl, FlowTestResult.class);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//                TimeUtils.waitMILLISECONDS(500);
+//                logger.info(i + "------ times ----" + "thread over ========" + name);
+//            }
+//        }
+//    }
 }

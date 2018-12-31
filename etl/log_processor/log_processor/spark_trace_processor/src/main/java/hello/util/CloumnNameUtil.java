@@ -71,6 +71,14 @@ public class CloumnNameUtil {
             newCloumn.add(tempService + "_l_memory");
             newCloumn.add(tempService + "_confnumber");
             newCloumn.add(tempService + "_readynumber");
+            newCloumn.add(tempService + "_ready_delay");
+            newCloumn.add(tempService + "_down_delay");
+            newCloumn.add(tempService + "_shared_variable");
+            newCloumn.add(tempService + "_volume_support");
+            newCloumn.add(tempService + "_versioning");
+            newCloumn.add(tempService + "_version_ratio");
+            newCloumn.add(tempService + "_dependent_db");
+            newCloumn.add(tempService + "_dependent_cache");
         }
         return newCloumn;
     }
@@ -150,7 +158,12 @@ public class CloumnNameUtil {
                     "b.service_inst_node_cpu as " + tempService + "_inst_node_cpu , " +
                     "b.service_inst_node_memory as " + tempService + "_inst_node_memory , " +
                     "b.service_inst_node_cpu_limit as " + tempService + "_inst_node_cpu_limit , " +
-                    "b.service_inst_node_memory_limit as " + tempService + "_inst_node_memory_limit " +
+                    "b.service_inst_node_memory_limit as " + tempService + "_inst_node_memory_limit , " +
+                    "cast((b.service_inst_node_memory - b.service_inst_node_memory_limit) as string) as " + tempService +"_inst_node_mem_diff , " +
+                    "cast((b.service_inst_node_cpu - b.service_inst_node_cpu_limit) as string) as " + tempService +"_inst_node_cpu_diff , " +
+                    "b.service_node_instance_count as " + tempService + "_node_instance_count , " +
+                    "b.service_inst_up_time as " + tempService + "_inst_up_time , " +
+                    "b.service_app_thread_count as " + tempService + "_app_thread_count  " +
                     "from trace_passservice_view a left outer join service_instance_data b " +
                     "on  a." + tempService + "_inst_id" + " = b.service_inst_id And (substr(a.entry_timestamp , 1 , 13) + 60000 ) > b.start_time And (substr(a.entry_timestamp , 1 , 13)) < b.start_time";
 

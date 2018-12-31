@@ -41,7 +41,9 @@ public class TempSQL {
                     "concat_ws(',', collect_list(l_cpu)) l_cpu , " +
                     "concat_ws(',', collect_list(l_memory)) l_memory , " +
                     "concat_ws(',', collect_list(confNumber)) confNumber , " +
-                    "concat_ws(',', collect_list(readyNumber)) readyNumber " +
+                    "concat_ws(',', collect_list(readyNumber)) readyNumber , " +
+                    "concat_ws(',', collect_list(healthCheckDownDelay)) healthCheckDownDelay , " +
+                    "concat_ws(',', collect_list(healthCheckReadyDelay)) healthCheckReadyDelay , " +
                     "from config_server_view group by start_time, end_time";
     // 由real_span_trace表 查询出一个服务经过的service
     public static String getTracePassService =
@@ -72,7 +74,7 @@ public class TempSQL {
 
     // service_config_data
     public static String combineServiceConfigToTrace =
-            "select a.* , b.* from  trace_combine_instance3 a, service_config_data  b " +
+            "select a.* , b.* from   trace_combine_config a, service_config_data  b " +
             "where ( ( (( substr( a.entry_timestamp , 1 , 13) - 15000) < b.start_time )  And  ( ( substr( a.entry_timestamp , 1 , 13) + 15000) > b.start_time))  Or " +
                    " ( (( substr( a.entry_timestamp , 1 , 13) - 30000) < b.start_time )  And  ( ( substr( a.entry_timestamp , 1 , 13) + 15000) > b.start_time))  Or " +
                    " ( (( substr( a.entry_timestamp , 1 , 13) - 30000) < b.start_time )  And  ( ( substr( a.entry_timestamp , 1 , 13) + 30000) > b.start_time)))";

@@ -26,11 +26,50 @@ public class AiOpsRDD {
                 .master("yarn")
                 .getOrCreate();
         filter(spark);
-
+        // temp(spark);
         spark.close();
         System.out.println("==============spark sql closed====");
     }
 
+    private static void temp(SparkSession spark) {
+        Dataset<Row> invocationDataset = spark.sql("select * from trace_verified_instance1");
+        String[] basic_serviceCloumn = invocationDataset.columns();
+
+        JavaRDD<Row> lineConfigServerRDD = invocationDataset.toJavaRDD().map(new Function<Row, Row>() {
+            @Override
+            public Row call(Row row) throws Exception {
+                List<String> configDataList = new ArrayList<>();
+                for (int i = 0; i < basic_serviceCloumn.length; i++) {
+                    configDataList.add(row.getAs(i));
+                    if (basic_serviceCloumn[i].equals("ts_preserve_other_service_exec_time")) {
+                        String temp = row.getAs("ts_preserve_other_service_exec_time");
+                        if ("".equals(temp) || temp == null) {
+                            configDataList.add("");
+                        } else {
+                            configDataList.add("2");
+                        }
+                    }
+                }
+                return RowFactory.create(configDataList.toArray());
+            }
+        });
+        List<String> column = new ArrayList<>();
+        for (int i = 0; i < basic_serviceCloumn.length; i++) {
+            column.add(basic_serviceCloumn[i]);
+            if (basic_serviceCloumn[i].equals("ts_preserve_other_service_exec_time")) {
+                column.add("ts_preserve_other_service_var_0");
+            }
+        }
+
+        // 表头
+        List<StructField> structFields2 = new ArrayList<>();
+        for (int i = 0; i < column.size(); i++) {
+            structFields2.add(DataTypes.createStructField(column.get(i), DataTypes.StringType, true));
+        }
+        StructType structType = DataTypes.createStructType(structFields2);
+        Dataset<Row> configServerDataSet = spark.createDataFrame(lineConfigServerRDD, structType);
+        configServerDataSet.write().saveAsTable("trace_verified_instance3");
+    }
 
     private static void filter(SparkSession spark) {
 
@@ -46,27 +85,28 @@ public class AiOpsRDD {
         Dataset<Row> realSpanDataset = spark.sql(TempSQL.genRealSpan);
         realSpanDataset = realSpanDataset.dropDuplicates(new String[]{"span_id"});
         realSpanDataset.createOrReplaceTempView("real_span_trace_view");
-//        //  realSpanDataset.write().saveAsTable("real_span_trace");
-//        System.out.println("---------------  real_span_trace table created ---------------");
-//
-//        genRealInvocation(spark);
-//
-//        // 经过服务的api, instance_id 等   trace_passservice_view
-//        combinePassServiceToTrace(spark);
-//
-//        // 42 个 sql 的 left out join
-//        combineInstanceDataToTrace(spark);   // 产生 table  trace_combine_?  trace_combine_instance
+
+//        // System.out.println("---------------  real_span_trace table created ---------------");
+
+        genRealInvocation(spark);
+
+        // 经过服务的api, instance_id 等   trace_passservice_view
+        combinePassServiceToTrace(spark);
+
+        // 42 个 sql 的 left out join
+        combineInstanceDataToTrace(spark);   // 产生 table  trace_combine_?  trace_combine_instance
 
         // 竖着转行  service_config_data
-//        serviceConfig(spark);
-//        // 计算cpu,mem diff  trace_combine_?  ----   trace_combine_config_view
-//        combineServiceConfigToTrace(spark);
-//        // 从mysql 取y
-//        combineYtoTrace(spark); // 产生  table  trace_y_?
+        serviceConfig(spark);
+        // 计算cpu,mem diff  trace_combine_?  ----   trace_combine_config_view
+        combineServiceConfigToTrace(spark);
+        // 从mysql 取y
+        combineYtoTrace(spark); // 产生  table  trace_y_?
 
-       SequenceRDD.genSequencePart(spark);
 
+        SequenceRDD.genSequencePart(spark);
     }
+
 
     /**
      * 产生真的span
@@ -136,19 +176,29 @@ public class AiOpsRDD {
                 String[] l_memory = row.getAs("l_memory").toString().split(",");
                 String[] confNumber = row.getAs("confNumber").toString().split(",");
                 String[] readyNumber = row.getAs("readyNumber").toString().split(",");
+                String[] healthCheckDownDelay = row.getAs("healthCheckDownDelay").toString().split(",");
+                String[] healthCheckReadyDelay = row.getAs("healthCheckReadyDelay").toString().split(",");
+
                 Map<String, String> serviceNameMap = new HashMap<>();
                 Map<String, String> l_cpu_map = new HashMap<>();
                 Map<String, String> l_memoryMap = new HashMap<>();
                 Map<String, String> confNumberMap = new HashMap<>();
                 Map<String, String> readyNumberMap = new HashMap<>();
+                Map<String, String> healthCheckDownDelayMap = new HashMap<>();
+                Map<String, String> healthCheckReadyDelayMap = new HashMap<>();
+
                 for (int i = 0; i < serviceName.length; i++) {
                     serviceNameMap.put(serviceName[i], serviceName[i]);
                     l_cpu_map.put(serviceName[i], l_cpu[i]);
                     l_memoryMap.put(serviceName[i], l_memory[i]);
                     confNumberMap.put(serviceName[i], confNumber[i]);
                     readyNumberMap.put(serviceName[i], readyNumber[i]);
+                    healthCheckDownDelayMap.put(serviceName[i], healthCheckDownDelay[i]);
+                    healthCheckReadyDelayMap.put(serviceName[i], healthCheckReadyDelay[i]);
                 }
                 String[] allServiceName = CloumnNameUtil.tracePassServiceCloumn;
+                Map<String, Integer> dependentDB = DependentDbCache.getDependentDB();
+
                 for (int i = 0; i < allServiceName.length; i++) {
                     String currentName = serviceNameMap.get(allServiceName[i].replaceAll("_included", "").replaceAll("_", "-"));
                     if (currentName != null || currentName != "") {
@@ -157,12 +207,31 @@ public class AiOpsRDD {
                         configDataList.add(l_memoryMap.get(currentName));
                         configDataList.add(confNumberMap.get(currentName));
                         configDataList.add(readyNumberMap.get(currentName));
+                        configDataList.add(healthCheckDownDelayMap.get(currentName));
+                        configDataList.add(healthCheckReadyDelayMap.get(currentName));
+
+                        configDataList.add(""); // s?_shared_variable
+                        configDataList.add(""); // s?_volume_support
+                        configDataList.add(""); // s?_versioning
+                        configDataList.add(""); // s?_version_ratio
+                        configDataList.add(dependentDB.get(currentName)+""); // s?_dependent_db
+                        configDataList.add(""); // s?_dependent_cache
                     } else {
+                        // 如果服务被踢掉了 , 保持列不变
                         configDataList.add("");
                         configDataList.add("");
                         configDataList.add("");
                         configDataList.add("");
                         configDataList.add("");
+                        configDataList.add("");
+                        configDataList.add("");
+
+                        configDataList.add(""); // s?_shared_variable
+                        configDataList.add(""); // s?_volume_support
+                        configDataList.add(""); // s?_versioning
+                        configDataList.add(""); // s?_version_ratio
+                        configDataList.add(""); // s?_dependent_db
+                        configDataList.add(""); // s?_dependent_cache
                     }
                 }
                 return RowFactory.create(configDataList.toArray());
@@ -274,7 +343,7 @@ public class AiOpsRDD {
         Dataset<Row> trace_combine_config_diff_DataSet = spark.createDataFrame(traceRDD, structType);
         trace_combine_config_diff_DataSet = trace_combine_config_diff_DataSet.dropDuplicates(new String[]{"trace_id"});
         trace_combine_config_diff_DataSet.createOrReplaceTempView("trace_combine_config_view");
-       // trace_combine_config_diff_DataSet.write().saveAsTable("trace_combine_config_3");
+        // trace_combine_config_diff_DataSet.write().saveAsTable("trace_combine_config_3");
     }
 
 
@@ -426,7 +495,6 @@ public class AiOpsRDD {
         beforeTraceDataset.createOrReplaceTempView("trace_passservice_view");
         //beforeTraceDataset.write().saveAsTable("before_trace_sequence");
     }
-
 
 
 //
