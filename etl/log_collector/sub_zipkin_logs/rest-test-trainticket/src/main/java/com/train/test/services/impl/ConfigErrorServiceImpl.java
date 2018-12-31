@@ -19,7 +19,7 @@ import java.util.*;
 @Service
 public class ConfigErrorServiceImpl implements ConfigErrorService {
 
-    private static final int TEST_COUNT = 100;
+    private static final int TEST_COUNT = 50;
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -46,7 +46,7 @@ public class ConfigErrorServiceImpl implements ConfigErrorService {
 
             for (int j = 0; j < oneTraceAllArrangeList.size(); j++) {
 
-                System.out.println(oneTraceAllArrangeList.get(j));
+                System.out.println("In step " + i + ", the " + j + " arrange list is: " + oneTraceAllArrangeList.get(j));
 
                 // get service names which need to be configured
                 Map<String, Integer> configServiceNames = getConfigServices(oneTraceAllArrangeList.get(j), stepServiceMap);
@@ -107,6 +107,7 @@ public class ConfigErrorServiceImpl implements ConfigErrorService {
         for (int i = 0; i < TEST_COUNT; i++) {
             try {
                 restTemplate.getForObject(url, FlowTestResult.class);
+                Thread.sleep(500);
             } catch (Exception e) {
                 logger.error(e.getMessage());
             }

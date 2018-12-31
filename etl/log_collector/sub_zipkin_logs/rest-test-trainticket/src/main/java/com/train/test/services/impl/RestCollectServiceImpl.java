@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -35,6 +37,8 @@ public class RestCollectServiceImpl implements RestCollectService {
     private static final String SERVICE_INSTANCE_DATA = "serviceInstanceData_instance";
     private static final String START_TIME = "start_time";
     private static final String END_TIME = "end_time";
+    private static final String HEALTH_CHECK_READY_DELAY = "healthCheckReadyDelay";
+    private static final String HEALTH_CHECK_DOWN_DELAY = "healthCheckDownDelay";
 
     private Boolean flag = true;
 
@@ -117,11 +121,14 @@ public class RestCollectServiceImpl implements RestCollectService {
 
     private void constructServiceInstanceData(List<HashMap<String, Object>> podsData, List<HashMap<String, Object>> nodesData,
                                               LinkedList<LinkedHashMap<String, String>> serviceInstanceData, long requestTime, long responseTime) {
+        HashMap<String, HashMap<String, Integer>> nodeServiceInstanceCount = new HashMap<>();
+
         for (HashMap<String, Object> podItem : podsData) {
             LinkedHashMap<String, String> podData = new LinkedHashMap<>();
 
             // get service id
             String serviceId = podItem.get("serviceId").toString();
+            String nodeId = podItem.get("nodeId").toString();
 
             // filter the database data
             if (serviceId.contains("mongo") || serviceId.contains("mysql")) {
@@ -130,9 +137,12 @@ public class RestCollectServiceImpl implements RestCollectService {
 
             // add the pod data
             podData.put("service_inst_id", podItem.get("podId").toString());
-            podData.put("service_inst_node_id", podItem.get("nodeId").toString());
+            podData.put("service_inst_node_id", nodeId);
             podData.put("service_inst_service_version", podItem.get("serviceVersion").toString());
             podData.put("service_id", serviceId);
+            podData.put("service_inst_up_time", new BigDecimal(responseTime - Long.parseLong(podItem.get("createTime").toString()))
+                    .divide(new BigDecimal(1000), 0, RoundingMode.HALF_UP).toString());
+            podData.put("service_app_thread_count", podItem.get("threadCount").toString());
 
             Map<String, String> podUsage = (Map<String, String>) podItem.get("usage");
             if (MapUtils.isNotEmpty(podUsage)) {
@@ -145,7 +155,7 @@ public class RestCollectServiceImpl implements RestCollectService {
 
             // add the node data
             for (HashMap<String, Object> nodeItem : nodesData) {
-                if (podItem.get("nodeId").toString().equals(nodeItem.get("nodeId"))) {
+                if (nodeId.equals(nodeItem.get("nodeId"))) {
                     Map<String, String> nodeUsage = (Map<String, String>) nodeItem.get("usage");
                     Map<String, String> nodeConfig = (Map<String, String>) nodeItem.get("config");
                     if (MapUtils.isNotEmpty(nodeUsage)) {
@@ -168,10 +178,34 @@ public class RestCollectServiceImpl implements RestCollectService {
                 }
             }
 
+            if (nodeServiceInstanceCount.containsKey(nodeId)) {
+                HashMap<String, Integer> serviceInstanceCount = nodeServiceInstanceCount.get(nodeId);
+                if (serviceInstanceCount.containsKey(serviceId)) {
+                    serviceInstanceCount.put(serviceId, serviceInstanceCount.get(serviceId) + 1);
+                }
+                else {
+                    serviceInstanceCount.put(serviceId, 1);
+                }
+
+                nodeServiceInstanceCount.put(nodeId, serviceInstanceCount);
+            }
+            else {
+                HashMap<String, Integer> serviceInstanceCount = new HashMap<>();
+                serviceInstanceCount.put(serviceId, 1);
+                nodeServiceInstanceCount.put(nodeId, serviceInstanceCount);
+            }
+
             podData.put(START_TIME, requestTime + "");
             podData.put(END_TIME, responseTime + "");
             serviceInstanceData.add(podData);
         }
+
+        for (LinkedHashMap<String, String> service : serviceInstanceData) {
+            service.put("service_node_instance_count", nodeServiceInstanceCount
+                    .get(service.get("service_inst_node_id"))
+                    .get(service.get("service_id")).toString());
+        }
+
     }
 
     /**
@@ -183,7 +217,7 @@ public class RestCollectServiceImpl implements RestCollectService {
      * @return the result list
      */
     private LinkedList<LinkedHashMap<String, String>> constructServiceData(List<HashMap<String, Object>> servicesData, long requestTime, long responseTime) {
-        LinkedList<LinkedHashMap<String, String>> exportData = new LinkedList<LinkedHashMap<String, String>>();
+        LinkedList<LinkedHashMap<String, String>> exportData = new LinkedList<>();
 
         for (HashMap<String, Object> serviceData : servicesData) {
             LinkedHashMap<String, String> serviceDataMap = new LinkedHashMap<>();
@@ -194,7 +228,8 @@ public class RestCollectServiceImpl implements RestCollectService {
             }
 
             for (String key : serviceData.keySet()) {
-                if (SERVICE_NAME.equals(key) || CONF_NUMBER.equals(key) || READY_NUMBER.equals(key)) {
+                if (SERVICE_NAME.equals(key) || CONF_NUMBER.equals(key) || READY_NUMBER.equals(key)
+                    || HEALTH_CHECK_READY_DELAY.equals(key) || HEALTH_CHECK_DOWN_DELAY.equals(key) ) {
                     serviceDataMap.put(key, serviceData.get(key).toString());
                 }
 //            else if (REQUESTS.equals(key)) {
