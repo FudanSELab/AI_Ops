@@ -17,6 +17,8 @@ public class InstanceReplicasController {
     public String testAllFlow() {
         instanceErrorService.testInstanceErrorFlowOne();
         instanceErrorService.testInstanceErrorCancelFlow();
+        instanceErrorService.testConsignFlow();
+        instanceErrorService.testVoucherFlow();
         return "all OVER";
     }
 
@@ -29,6 +31,17 @@ public class InstanceReplicasController {
     public String testInstanceErrorCancelFlow() {
         return instanceErrorService.testInstanceErrorCancelFlow();
     }
+
+    @RequestMapping(value = "/testInstanceConsignFlow")
+    public String testConsignFlow() {
+        return instanceErrorService.testConsignFlow();
+    }
+
+    @RequestMapping(value = "/testInstanceVoucherFlow")
+    public String testVoucherFlow() {
+        return instanceErrorService.testVoucherFlow();
+    }
+
 
 
     @RequestMapping(value = "/testOneService")

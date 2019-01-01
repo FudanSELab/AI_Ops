@@ -101,10 +101,10 @@ public class AiOpsRDD {
         // 计算cpu,mem diff  trace_combine_?  ----   trace_combine_config_view
         combineServiceConfigToTrace(spark);
         // 从mysql 取y
-        combineYtoTrace(spark); // 产生  table  trace_y_?
-
-
-        SequenceRDD.genSequencePart(spark);
+//        combineYtoTrace(spark); // 产生  table  trace_y_?
+//
+//
+//        SequenceRDD.genSequencePart(spark);
     }
 
 
@@ -275,7 +275,7 @@ public class AiOpsRDD {
                 for (int i = 0; i < cpuMemdiffServerName.size(); i++) {
 
                     double i_mem = 0;
-                    if (row.getAs(cpuMemdiffServerName.get(i).get(1)) == null) {
+                    if (row.getAs(cpuMemdiffServerName.get(i).get(1)) == null || row.getAs(cpuMemdiffServerName.get(i).get(1)) == "") {
                         i_mem = 0;
                         // 说明这个不是经过的服务
                         traceDataList.add("");
@@ -286,7 +286,7 @@ public class AiOpsRDD {
                     }
 
                     double i_cpu = 0;
-                    if (row.getAs(cpuMemdiffServerName.get(i).get(3)) == null) {
+                    if (row.getAs(cpuMemdiffServerName.get(i).get(3)) == null  || row.getAs(cpuMemdiffServerName.get(i).get(3)) == "") {
                         i_cpu = 0;
                         // 说明这个不是经过的服务
                         traceDataList.add("");
@@ -297,7 +297,7 @@ public class AiOpsRDD {
                     }
 
                     double l_mem = 0;
-                    if (row.getAs(cpuMemdiffServerName.get(i).get(0)) == null) {
+                    if (row.getAs(cpuMemdiffServerName.get(i).get(0)) == null || row.getAs(cpuMemdiffServerName.get(i).get(0)) == "") {
                         l_mem = 0;
                     } else {
                         l_mem = Double.parseDouble(row.getAs(cpuMemdiffServerName.get(i).get(0)));
@@ -305,7 +305,7 @@ public class AiOpsRDD {
 
 
                     double l_cpu = 0;
-                    if (row.getAs(cpuMemdiffServerName.get(i).get(2)) == null) {
+                    if (row.getAs(cpuMemdiffServerName.get(i).get(2)) == null || row.getAs(cpuMemdiffServerName.get(i).get(2))  =="") {
                         l_cpu = 0;
                     } else {
                         l_cpu = Double.parseDouble(row.getAs(cpuMemdiffServerName.get(i).get(2)));
@@ -342,8 +342,8 @@ public class AiOpsRDD {
         // 填充数据
         Dataset<Row> trace_combine_config_diff_DataSet = spark.createDataFrame(traceRDD, structType);
         trace_combine_config_diff_DataSet = trace_combine_config_diff_DataSet.dropDuplicates(new String[]{"trace_id"});
-        trace_combine_config_diff_DataSet.createOrReplaceTempView("trace_combine_config_view");
-        // trace_combine_config_diff_DataSet.write().saveAsTable("trace_combine_config_3");
+       // trace_combine_config_diff_DataSet.createOrReplaceTempView("trace_combine_config_view");
+        trace_combine_config_diff_DataSet.write().saveAsTable("trace_combine_config");
     }
 
 

@@ -6,5 +6,9 @@ public interface InstanceErrorService {
 
     String testInstanceErrorCancelFlow();
 
+    String testConsignFlow();
+
+    String testVoucherFlow();
+
     String testInstanceErrorOneService(String serviceName , int replicasNum);
 }

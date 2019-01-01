@@ -6,10 +6,7 @@ import com.train.test.entity.instance.ServiceReplicasSetting;
 import com.train.test.entity.instance.SetServiceReplicasRequest;
 import com.train.test.entity.instance.SetServiceReplicasResponse;
 import com.train.test.services.InstanceErrorService;
-import com.train.test.utils.ArrangeInStanceNum;
-import com.train.test.utils.BookingFlowPassServiceMapUtil;
-import com.train.test.utils.CancelFlowPassServiceMapUtil;
-import com.train.test.utils.TimeUtils;
+import com.train.test.utils.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,8 +27,12 @@ public class InstanceErrorServiceImpl implements InstanceErrorService {
     private static String TEST_CASE_flowOne_URL = "http://10.141.212.140:10101/test/bookingflow";
     private static String INIT_CLIENT_CACHE_ACCESS_NUM = "http://10.141.212.140:10101/test/initBookingFlowCacheData";
 
-    private static String TEST_CASE_cancelFlow_URL = "http://10.141.212.140:10101/test/cancelflow";
+    private static String TEST_CASE_CANCEL_FLOW_URL = "http://10.141.212.140:10101/test/cancelflow";
     private static String INIT_CLIENT_CANCEL_CASHE_ACCESS_NUM = "http://10.141.212.140:10101/test/initCancelFlowCacheData";
+
+    private static String TEST_CASE_CONSIGN_FLOW_URL = "http://10.141.212.140:10101/test/consignFlow";
+    private static String TEST_CASE_VOUCHER_FLOW_URL = "http://10.141.212.140:10101/test/voucherFlow";
+    private static String INIT_CLIENT_CONSIGN_CASHE_ACCESS_NUM = "http://10.141.212.140:10101/test/initFlowThreeClientCacheData";
 
     @Autowired
     private RestTemplate restTemplate;
@@ -48,7 +49,23 @@ public class InstanceErrorServiceImpl implements InstanceErrorService {
     @Override
     public String testInstanceErrorCancelFlow() {
         Map<Integer, Map<Integer, String>> cancelFlowPassServiceMap = CancelFlowPassServiceMapUtil.cancelFlowPassService();
-        testFlowPublic(cancelFlowPassServiceMap, TEST_CASE_cancelFlow_URL, INIT_CLIENT_CANCEL_CASHE_ACCESS_NUM);
+        testFlowPublic(cancelFlowPassServiceMap, TEST_CASE_CANCEL_FLOW_URL, INIT_CLIENT_CANCEL_CASHE_ACCESS_NUM);
+        logger.info("all  over");
+        return "all over";
+    }
+
+    @Override
+    public String testConsignFlow() {
+        Map<Integer, Map<Integer, String>> consignFlowPassServiceMap = ConsignFlowPassServiceMapUtil.consignFlowPassService();
+        testFlowPublic(consignFlowPassServiceMap, TEST_CASE_CONSIGN_FLOW_URL, INIT_CLIENT_CONSIGN_CASHE_ACCESS_NUM);
+        logger.info("all  over");
+        return "all over";
+    }
+
+    @Override
+    public String testVoucherFlow() {
+        Map<Integer, Map<Integer, String>> consignFlowPassServiceMap = ConsignFlowPassServiceMapUtil.consignFlowPassService();
+        testFlowPublic(consignFlowPassServiceMap, TEST_CASE_VOUCHER_FLOW_URL, INIT_CLIENT_CONSIGN_CASHE_ACCESS_NUM);
         logger.info("all  over");
         return "all over";
     }

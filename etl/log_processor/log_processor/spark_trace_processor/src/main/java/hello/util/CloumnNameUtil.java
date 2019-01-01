@@ -151,24 +151,25 @@ public class CloumnNameUtil {
         for (int i = 0; i < basic_service.length; i++) {
             String tempService = basic_service[i].replaceAll("_included", "");
             String temp = "select a.*, " +
-                    "b.service_inst_memory as " + tempService + "_inst_memory , " +
-                    "b.service_inst_cpu as " + tempService + "_inst_cpu , " +
-                    "b.service_inst_service_version as " + tempService + "_inst_service_version , " +
-                    "b.service_inst_node_id as " + tempService + "_inst_node_id , " +
-                    "b.service_inst_node_cpu as " + tempService + "_inst_node_cpu , " +
-                    "b.service_inst_node_memory as " + tempService + "_inst_node_memory , " +
-                    "b.service_inst_node_cpu_limit as " + tempService + "_inst_node_cpu_limit , " +
-                    "b.service_inst_node_memory_limit as " + tempService + "_inst_node_memory_limit , " +
-                    "cast((b.service_inst_node_memory - b.service_inst_node_memory_limit) as string) as " + tempService +"_inst_node_mem_diff , " +
-                    "cast((b.service_inst_node_cpu - b.service_inst_node_cpu_limit) as string) as " + tempService +"_inst_node_cpu_diff , " +
-                    "b.service_node_instance_count as " + tempService + "_node_instance_count , " +
-                    "b.service_inst_up_time as " + tempService + "_inst_up_time , " +
-                    "b.service_app_thread_count as " + tempService + "_app_thread_count  " +
+                    "concat_ws(',', b.service_inst_memory) as " + tempService + "_inst_memory , " +
+                    "concat_ws(',', b.service_inst_cpu) as " + tempService + "_inst_cpu , " +
+                    "concat_ws(',', b.service_inst_service_version) as " + tempService + "_inst_service_version , " +
+                    "concat_ws(',', b.service_inst_node_id) as " + tempService + "_inst_node_id , " +
+                    "concat_ws(',', b.service_inst_node_cpu) as " + tempService + "_inst_node_cpu , " +
+                    "concat_ws(',', b.service_inst_node_memory) as " + tempService + "_inst_node_memory , " +
+                    "concat_ws(',', b.service_inst_node_cpu_limit) as " + tempService + "_inst_node_cpu_limit , " +
+                    "concat_ws(',', b.service_inst_node_memory_limit) as " + tempService + "_inst_node_memory_limit , " +
+                    "concat_ws(',', cast((b.service_inst_node_memory - b.service_inst_node_memory_limit) as string)) as " + tempService +"_inst_node_mem_diff , " +
+                    "concat_ws(',', cast((b.service_inst_node_cpu - b.service_inst_node_cpu_limit) as string)) as " + tempService +"_inst_node_cpu_diff , " +
+                    "concat_ws(',', b.service_node_instance_count) as " + tempService + "_node_instance_count , " +
+                    "concat_ws(',', b.service_inst_up_time) as " + tempService + "_inst_up_time , " +
+                    "concat_ws(',', b.service_app_thread_count) as " + tempService + "_app_thread_count  " +
                     "from trace_passservice_view a left outer join service_instance_data b " +
                     "on  a." + tempService + "_inst_id" + " = b.service_inst_id And (substr(a.entry_timestamp , 1 , 13) + 60000 ) > b.start_time And (substr(a.entry_timestamp , 1 , 13)) < b.start_time";
 
             tableNameAndSQl.put(tempService, temp);
         }
+
         return tableNameAndSQl;
     }
 }
