@@ -56,7 +56,7 @@ public class RestCollectServiceImpl implements RestCollectService {
             try {
                 msgSender.sendLoginInfoToSso(System.currentTimeMillis());
 
-                Thread.sleep(60000);
+                Thread.sleep(30000);
             } catch (Exception e) {
                 e.printStackTrace();
                 break;
