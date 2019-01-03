@@ -65,9 +65,8 @@ public class ConfigErrorServiceImpl implements ConfigErrorService {
 
                 // execute test case
                 if (configResult) {
-                    Thread.sleep(60000);
+                    Thread.sleep(30000);
                     testBookingFlow(bookingFlowUrl);
-                    Thread.sleep(60000);
                 } else {
                     logger.error("Set CPU or Memory failed!");
                     Thread.sleep(300000);
@@ -102,16 +101,35 @@ public class ConfigErrorServiceImpl implements ConfigErrorService {
     }
 
 
-    private void testBookingFlow(String url) {
+    private void testBookingFlow(String url) throws Exception {
 
-        for (int i = 0; i < TEST_COUNT; i++) {
-            try {
-                restTemplate.getForObject(url, FlowTestResult.class);
-                Thread.sleep(500);
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            }
-        }
+//        for (int i = 0; i < TEST_COUNT; i++) {
+//            try {
+//                restTemplate.getForObject(url, FlowTestResult.class);
+//                Thread.sleep(500);
+//            } catch (Exception e) {
+//                logger.error(e.getMessage());
+//            }
+//        }
+
+        logger.info("===============5 threads start!=============");
+        Thread thread1 = new Thread(new ThreadWorker("Thread 1", url));
+        Thread thread2 = new Thread(new ThreadWorker("Thread 2", url));
+        Thread thread3 = new Thread(new ThreadWorker("Thread 3", url));
+        Thread thread4 = new Thread(new ThreadWorker("Thread 4", url));
+        Thread thread5 = new Thread(new ThreadWorker("Thread 5", url));
+        thread1.start();
+        thread2.start();
+        thread3.start();
+        thread4.start();
+        thread5.start();
+        thread1.join();
+        thread2.join();
+        thread3.join();
+        thread4.join();
+        thread5.join();
+
+        logger.info("===============5 threads end!=============");
     }
 
 
@@ -252,5 +270,28 @@ public class ConfigErrorServiceImpl implements ConfigErrorService {
                 return null;
         }
 
+    }
+
+    class ThreadWorker implements Runnable {
+
+        private String name;
+        private String url;
+
+        public ThreadWorker(String name, String url) {
+            this.name = name;
+            this.url = url;
+        }
+
+        @Override
+        public void run() {
+            for (int i = 0; i < TEST_COUNT / 5; i++) {
+                try {
+                    restTemplate.getForObject(url, FlowTestResult.class);
+                    Thread.sleep(500);
+                } catch (Exception e) {
+                    logger.error(e.getMessage());
+                }
+            }
+        }
     }
 }
