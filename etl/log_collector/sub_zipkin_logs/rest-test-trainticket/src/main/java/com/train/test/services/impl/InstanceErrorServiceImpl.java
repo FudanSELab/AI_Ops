@@ -41,7 +41,7 @@ public class InstanceErrorServiceImpl implements InstanceErrorService {
     public String testInstanceErrorFlowOne() {
 
         Map<Integer, Map<Integer, String>> flowOnePassServiceMap = BookingFlowPassServiceMapUtil.flowOnePassService();
-        testFlowPublic(flowOnePassServiceMap, TEST_CASE_flowOne_URL,  INIT_CLIENT_CACHE_ACCESS_NUM);
+        testFlowPublic(flowOnePassServiceMap, TEST_CASE_flowOne_URL, INIT_CLIENT_CACHE_ACCESS_NUM);
         logger.info("all  over");
         return "all over";
     }
@@ -83,7 +83,7 @@ public class InstanceErrorServiceImpl implements InstanceErrorService {
     }
 
 
-    private void testFlowPublic(Map<Integer, Map<Integer, String>> flowMap, String testFlowUrl, String initCacheDataUrl){
+    private void testFlowPublic(Map<Integer, Map<Integer, String>> flowMap, String testFlowUrl, String initCacheDataUrl) {
         // 整个流程的服务和下标
         for (int i = 0; i < flowMap.size(); i++) {
             Map<Integer, String> oneTraceServiceMap = flowMap.get(i);
@@ -91,7 +91,7 @@ public class InstanceErrorServiceImpl implements InstanceErrorService {
 
             HashMap<Integer, List<Integer>> oneTraceAllArrangeList = ArrangeInStanceNum.getAllrangeList(serviceSize);
 
-            logger.info( "trace - " + i + "-------排列的数量-"+ oneTraceAllArrangeList.size() );
+            logger.info("trace - " + i + "-------排列的数量-" + oneTraceAllArrangeList.size());
 
             // 某一个trace 的
             for (int j = 0; j < oneTraceAllArrangeList.size(); j++) {
@@ -109,7 +109,7 @@ public class InstanceErrorServiceImpl implements InstanceErrorService {
                     // 请求改变实例数量
                     boolean isChangReplicasReady = true;
                     try {
-                      //  isChangReplicasReady = requestToChangeReplicas(oneTraceAllArrangeList.get(j), oneTraceServiceMap);
+                        //  isChangReplicasReady = requestToChangeReplicas(oneTraceAllArrangeList.get(j), oneTraceServiceMap);
                     } catch (Exception e) {
                         e.printStackTrace();
                         logger.info("------exception --- continue-1----");
@@ -120,7 +120,7 @@ public class InstanceErrorServiceImpl implements InstanceErrorService {
                     }
                     if (isChangReplicasReady) {
 
-                       // TimeUtils.waitMinutes(50);
+                        // TimeUtils.waitMinutes(50);
 
                         // 跑 24 次 case
                         logger.info("===================" + i + " times ====================");
@@ -134,7 +134,7 @@ public class InstanceErrorServiceImpl implements InstanceErrorService {
                     }
                 }
 
-               // TimeUtils.waitMinutes(50);
+                // TimeUtils.waitMinutes(50);
                 logger.info("------------ " + oneTraceAllArrangeList.get(j).toString() + "  一行 " + EVERY_THREAD_RUN_TIME + " 次 已经跑完 -------------");
             }
 
@@ -154,6 +154,7 @@ public class InstanceErrorServiceImpl implements InstanceErrorService {
             logger.info("-------" + i + "-- 次 trace 经过" + oneTraceServiceMap.size() + "服务, 排列大小---" + oneTraceAllArrangeList.size() + "  已经跑完-------");
         }
     }
+
     private List<Integer> resetInStanceReplicas(int serviceSize) {
         List<Integer> tempLsit = new ArrayList<>();
         for (int i = 0; i < serviceSize; i++) {
@@ -191,14 +192,14 @@ public class InstanceErrorServiceImpl implements InstanceErrorService {
         logger.info("线程开始-------");
         // 每个线程5次 ，共15次
 //        Thread t1 = new Thread(new ThreadWorker("thread-1", testUrl));
-//        ///  Thread t2 = new Thread(new ThreadWorker("thread-2"));
-//        //  Thread t3 = new Thread(new ThreadWorker("thread-3"));
+//        Thread t2 = new Thread(new ThreadWorker("thread-2", testUrl));
+//        Thread t3 = new Thread(new ThreadWorker("thread-3", testUrl));
 //        t1.start();
-//        //  t2.start();
-//        //   t3.start();
+//        t2.start();
+//        t3.start();
 //        t1.join();
-        //  t2.join();
-        //   t3.join();
+//        t2.join();
+//        t3.join();
 
         for (int i = 0; i < EVERY_THREAD_RUN_TIME; i++) {
             try {
@@ -214,7 +215,7 @@ public class InstanceErrorServiceImpl implements InstanceErrorService {
         logger.info("线程结束-------");
     }
 
-//
+
 //    class ThreadWorker implements Runnable {
 //        private String name;
 //

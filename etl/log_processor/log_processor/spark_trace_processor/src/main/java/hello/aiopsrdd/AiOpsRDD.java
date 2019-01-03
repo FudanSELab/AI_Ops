@@ -214,7 +214,12 @@ public class AiOpsRDD {
                         configDataList.add(""); // s?_volume_support
                         configDataList.add(""); // s?_versioning
                         configDataList.add(""); // s?_version_ratio
-                        configDataList.add(dependentDB.get(currentName)+""); // s?_dependent_db
+
+                        if (dependentDB.get(currentName) == null)
+                            configDataList.add(dependentDB.get(currentName) + ""); // s?_dependent_db
+                        else
+                            configDataList.add("");
+
                         configDataList.add(""); // s?_dependent_cache
                     } else {
                         // 如果服务被踢掉了 , 保持列不变
@@ -275,7 +280,7 @@ public class AiOpsRDD {
                 for (int i = 0; i < cpuMemdiffServerName.size(); i++) {
 
                     double i_mem = 0;
-                    if (row.getAs(cpuMemdiffServerName.get(i).get(1)) == null || row.getAs(cpuMemdiffServerName.get(i).get(1)) == "") {
+                    if ("".equals(row.getAs(cpuMemdiffServerName.get(i).get(1))) || row.getAs(cpuMemdiffServerName.get(i).get(1)) == null) {
                         i_mem = 0;
                         // 说明这个不是经过的服务
                         traceDataList.add("");
@@ -286,7 +291,7 @@ public class AiOpsRDD {
                     }
 
                     double i_cpu = 0;
-                    if (row.getAs(cpuMemdiffServerName.get(i).get(3)) == null  || row.getAs(cpuMemdiffServerName.get(i).get(3)) == "") {
+                    if ("".equals(row.getAs(cpuMemdiffServerName.get(i).get(3))) || row.getAs(cpuMemdiffServerName.get(i).get(3)) == null) {
                         i_cpu = 0;
                         // 说明这个不是经过的服务
                         traceDataList.add("");
@@ -297,7 +302,7 @@ public class AiOpsRDD {
                     }
 
                     double l_mem = 0;
-                    if (row.getAs(cpuMemdiffServerName.get(i).get(0)) == null || row.getAs(cpuMemdiffServerName.get(i).get(0)) == "") {
+                    if ("".equals(row.getAs(cpuMemdiffServerName.get(i).get(0))) || row.getAs(cpuMemdiffServerName.get(i).get(0)) == null) {
                         l_mem = 0;
                     } else {
                         l_mem = Double.parseDouble(row.getAs(cpuMemdiffServerName.get(i).get(0)));
@@ -305,7 +310,7 @@ public class AiOpsRDD {
 
 
                     double l_cpu = 0;
-                    if (row.getAs(cpuMemdiffServerName.get(i).get(2)) == null || row.getAs(cpuMemdiffServerName.get(i).get(2))  =="") {
+                    if ("".equals(row.getAs(cpuMemdiffServerName.get(i).get(2))) || row.getAs(cpuMemdiffServerName.get(i).get(2)) == null) {
                         l_cpu = 0;
                     } else {
                         l_cpu = Double.parseDouble(row.getAs(cpuMemdiffServerName.get(i).get(2)));
@@ -342,7 +347,7 @@ public class AiOpsRDD {
         // 填充数据
         Dataset<Row> trace_combine_config_diff_DataSet = spark.createDataFrame(traceRDD, structType);
         trace_combine_config_diff_DataSet = trace_combine_config_diff_DataSet.dropDuplicates(new String[]{"trace_id"});
-       // trace_combine_config_diff_DataSet.createOrReplaceTempView("trace_combine_config_view");
+        // trace_combine_config_diff_DataSet.createOrReplaceTempView("trace_combine_config_view");
         trace_combine_config_diff_DataSet.write().saveAsTable("trace_combine_config");
     }
 

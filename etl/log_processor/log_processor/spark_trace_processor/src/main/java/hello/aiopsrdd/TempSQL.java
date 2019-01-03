@@ -75,7 +75,8 @@ public class TempSQL {
     // service_config_data
     public static String combineServiceConfigToTrace =
             "select a.* , b.* from   trace_combine_instance a, service_config_data  b " +
-            "where ( ( (( substr( a.entry_timestamp , 1 , 13) - 15000) < b.start_time )  And  ( ( substr( a.entry_timestamp , 1 , 13) + 15000) > b.start_time))  Or " +
+            "where ( ( (( substr( a.entry_timestamp , 1 , 13) - 30001) < b.start_time )  And  ( ( substr( a.entry_timestamp , 1 , 13) + 1 ) > b.start_time))  Or " +
+                   " ( (( substr( a.entry_timestamp , 1 , 13) - 15000) < b.start_time )  And  ( ( substr( a.entry_timestamp , 1 , 13) + 15000) > b.start_time))  Or " +
                    " ( (( substr( a.entry_timestamp , 1 , 13) - 30000) < b.start_time )  And  ( ( substr( a.entry_timestamp , 1 , 13) + 15000) > b.start_time))  Or " +
                    " ( (( substr( a.entry_timestamp , 1 , 13) - 30000) < b.start_time )  And  ( ( substr( a.entry_timestamp , 1 , 13) + 30000) > b.start_time)))";
 
