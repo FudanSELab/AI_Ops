@@ -13,6 +13,8 @@
         <module>dt</module>
         <module>rf</module>
         <module>gbt</module>
+        <module>mlp</module>
+        <module>try</module>
     </modules>
 
     <properties>

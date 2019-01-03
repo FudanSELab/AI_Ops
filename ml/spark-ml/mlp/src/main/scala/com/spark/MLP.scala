@@ -1,25 +1,25 @@
 package com.spark
 
 import org.apache.spark.ml.{Pipeline, PipelineModel}
-import org.apache.spark.ml.classification.{RandomForestClassificationModel, RandomForestClassifier}
+import org.apache.spark.ml.classification.{MultilayerPerceptronClassificationModel, MultilayerPerceptronClassifier, RandomForestClassificationModel}
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
-import org.apache.spark.sql.functions.rand
 import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.functions.rand
 
 import scala.util.Random
 
 
-object RF extends App {
+object MLP extends App {
 
-  //  val master = "yarn"
-  //  val filePath = "hdfs://10.141.211.173:8020/user/admin/mock.csv"
+//  val master = "yarn"
+//  val filePath = "hdfs://10.141.211.173:8020/user/admin/mock.csv"
   val master = "local"
   val filePath = "y_ms_after_dimensionality_reduction.csv"
-  val appName = "Spark Random Forest"
+  val appName = "Spark MLP"
 
-  println("[Run]Random Forest Main")
+  println("[Run]MLP")
 
   val spark = SparkSession
     .builder()
@@ -43,17 +43,19 @@ object RF extends App {
   val vecDF: DataFrame = assembler.transform(dataDF)
   vecDF.orderBy(rand())
 
-  val featureAndLabel: DataFrame = vecDF.select("features", "y")
-
   val Array(trainingData, testData) = featureAndLabel.randomSplit(Array(0.8, 0.2))
 
-  // Train a RandomForest model.
-  val rf = new RandomForestClassifier()
-    .setLabelCol("y")
-    .setFeaturesCol("features")
-    .setNumTrees(10)
+  feature_num = 5
+  output_num = 3
+  val layers = Array[Int](feature_num, 10, 10, output_num)
+  // create the trainer and set its parameters
+  val mlp = new MultilayerPerceptronClassifier()
+    .setLayers(layers)
+    .setBlockSize(128)
+    .setSeed(1234L)
+    .setMaxIter(100)
 
-  val pipeline = new Pipeline().setStages(Array(rf))
+  val pipeline = new Pipeline().setStages(Array(mlp))
   val pipelineModel = pipeline.fit(trainingData)
 
   val predictions = pipelineModel.transform(testData)
@@ -67,19 +69,17 @@ object RF extends App {
   val accuracy = evaluator.evaluate(predictions)
   println("Test Error = " + (1.0 - accuracy))
 
-  val treeModel = pipelineModel.stages(0).asInstanceOf[RandomForestClassificationModel]
+  val treeModel = pipelineModel.stages(0).asInstanceOf[MultilayerPerceptronClassificationModel]
   println("Model: \n" + treeModel.toDebugString)
 
-  //pipelineModel.write.overwrite().save("model/rf/pipeline_model")
-  //val samePipelineModel = PipelineModel.load("model/rf/pipeline_model")
-
-
+  pipelineModel.write.overwrite().save("model/mlp/pipeline_model")
+  val samePipelineModel = PipelineModel.load("model/mlp/pipeline_model")
 
   // We use a ParamGridBuilder to construct a grid of parameters to search over.
   // TrainValidationSplit will try all combinations of values and determine best model using
   // the evaluator.
   val paramGrid = new ParamGridBuilder()
-    .addGrid(rf.maxDepth, Seq(5, 10, 20, 30))
+    .addGrid(mlp.maxIter, Seq(100, 1000, 5000))
     .build()
 
   // In this case the estimator is simply the linear regression.
@@ -110,5 +110,15 @@ object RF extends App {
     println()
   }
 
+  // Make predictions on test data. model is the model with combination of parameters
 
+  // that performed best.
+
+  print(testData.count())
+
+  bestPipelineModel.transform(testData)
+    .select("features", "y", "prediction")
+    .show(400)
 }
+
+
