@@ -1,4 +1,5 @@
 import preprocessing_set
+import model
 import pandas as pd
 from pandas import DataFrame
 
@@ -50,4 +51,9 @@ if __name__ == "__main__":
     df = preprocessing_set.convert_data(df)
 
     # You must save the preprocessing result.
-    df.to_csv("test_run.csv")
+    # df.to_csv("test_run.csv")
+    df.pop("trace_verified_instance.y_issue_ms")
+    df.pop("trace_verified_instance.y_issue_dim_type")
+
+    cv, parm = model.dt(df, "trace_verified_instance.y_final_result")
+    print_best_score(cv, parm)
