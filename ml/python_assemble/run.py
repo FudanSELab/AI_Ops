@@ -14,12 +14,12 @@ def print_best_score(gsearch, param_test):
 
 
 if __name__ == "__main__":
-    trace_csv = "trace_verified_instance2.csv"
-    trace_index_col = "trace_verified_instance.trace_id"
-    seq_csv = "seq_seq_instance2.csv"
-    seq_index_col = "seq_seq_instance.trace_id"
-    seq_caller_csv = "seq_caller_instance2.csv"
-    seq_caller_index_col = "seq_caller_instance.trace_id"
+    trace_csv = "17/trace_verified_instance.csv"
+    trace_index_col = "trace_verified_instance_1_7.trace_id"
+    seq_csv = "17/seq_seq_instance.csv"
+    seq_index_col = "seq_seq_instance2.trace_id"
+    seq_caller_csv = "17/seq_caller_instance.csv"
+    seq_caller_index_col = "seq_caller_instance2.trace_id"
 
     df_trace = pd.read_csv(trace_csv,
                            header=0,
@@ -48,12 +48,18 @@ if __name__ == "__main__":
 
     df = preprocessing_set.fill_empty_data(df)
 
+    df = df.loc[df["trace_verified_instance_1_7.y_issue_ms"] != "Success"]
+    df.pop("trace_verified_instance_1_7.y_final_result")
+    # df.pop("trace_verified_instance_1_7.y_issue_ms")
+    df.pop("trace_verified_instance_1_7.y_issue_dim_type")
+
     df = preprocessing_set.convert_data(df)
 
     # You must save the preprocessing result.
-    # df.to_csv("test_run.csv")
-    df.pop("trace_verified_instance.y_issue_ms")
-    df.pop("trace_verified_instance.y_issue_dim_type")
+    df.to_csv("test_run.csv")
 
-    cv, parm = model.dt(df, "trace_verified_instance.y_final_result")
-    print_best_score(cv, parm)
+
+    # cv, parm = model.dt(df, "trace_verified_instance_1_7.y_final_result")
+    # cv, parm = model.dt(df, "trace_verified_instance_1_7.y_issue_dim_type")
+    # cv, parm = model.dt(df, "trace_verified_instance_1_7.y_issue_dim_type")
+    # print_best_score(cv, parm)
