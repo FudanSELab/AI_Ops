@@ -5,6 +5,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.utils import shuffle
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
+import data_convert_set
 
 
 def merge_data(df_trace: DataFrame, df_seq: DataFrame, df_seq_caller: DataFrame):
@@ -17,11 +18,14 @@ def merge_data(df_trace: DataFrame, df_seq: DataFrame, df_seq_caller: DataFrame)
 
 def select_data(df_raw: DataFrame):
     for col in df_raw.keys():
-        if not(col.endswith(".trace_service")
-                or col.endswith(".trace_api")
-                or col.endswith("_readynumber")
-                or col.endswith("_seq")
-                or col.endswith("_caller")
+        if not(#col.endswith(".trace_service")
+                col.endswith(".trace_api")
+                # col.endswith("_readynumber")
+                # col.endswith("_diff")
+                # col.endswith("_variable")
+                # col.endswith("_included")
+                # col.endswith("_seq")
+                # col.endswith("_caller")
                 or col.endswith(".y_issue_ms")
                 or col.endswith(".y_final_result")
                 or col.endswith(".y_issue_dim_type")):
@@ -80,6 +84,11 @@ def convert_data(df_raw: DataFrame):
                 mapping[mapping_keys[i]] = i
             df_raw[col] = df_raw[col].map(mapping)
             # df_raw = pd.get_dummies(df_raw, columns=[col])
+        elif col.endswith("_mem_diff"):
+            df_raw[col] = df_raw[[col]].applymap(data_convert_set.transform_memory_diff)
+        elif col.endswith("_cpu_diff"):
+            df_raw[col] = df_raw[[col]].applymap(data_convert_set.transform_cpu_diff)
+
     return df_raw
 
     # TODO: DROP SOME USELESS COLUMNS AFTER EXTRACTION

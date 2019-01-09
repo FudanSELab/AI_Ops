@@ -32,14 +32,15 @@ if __name__ == "__main__":
                                 index_col=seq_caller_index_col)
 
     df_trace = preprocessing_set.drop_na_data(df_trace)
-    df_seq = preprocessing_set.drop_na_data(df_seq)
-    df_seq_caller = preprocessing_set.drop_na_data(df_seq_caller)
     df_trace = preprocessing_set.drop_all_same_data(df_trace)
-    df_seq = preprocessing_set.drop_all_same_data(df_seq)
-    df_seq_caller = preprocessing_set.drop_all_same_data(df_seq_caller)
-
     df_trace = preprocessing_set.select_data(df_trace)
+
+    df_seq = preprocessing_set.drop_na_data(df_seq)
+    df_seq = preprocessing_set.drop_all_same_data(df_seq)
     df_seq = preprocessing_set.select_data(df_seq)
+
+    df_seq_caller = preprocessing_set.drop_na_data(df_seq_caller)
+    df_seq_caller = preprocessing_set.drop_all_same_data(df_seq_caller)
     df_seq_caller = preprocessing_set.select_data(df_seq_caller)
 
     df = preprocessing_set.merge_data(df_trace=df_trace,
@@ -48,18 +49,24 @@ if __name__ == "__main__":
 
     df = preprocessing_set.fill_empty_data(df)
 
+
+    # df = preprocessing_set.convert_data(df)
+
+
+
     df = df.loc[df["trace_verified_instance_1_7.y_issue_ms"] != "Success"]
+
+    df = preprocessing_set.convert_data(df)
+
     df.pop("trace_verified_instance_1_7.y_final_result")
     # df.pop("trace_verified_instance_1_7.y_issue_ms")
     df.pop("trace_verified_instance_1_7.y_issue_dim_type")
-
-    df = preprocessing_set.convert_data(df)
 
     # You must save the preprocessing result.
     df.to_csv("test_run.csv")
 
 
     # cv, parm = model.dt(df, "trace_verified_instance_1_7.y_final_result")
+    cv, parm = model.dt(df, "trace_verified_instance_1_7.y_issue_ms")
     # cv, parm = model.dt(df, "trace_verified_instance_1_7.y_issue_dim_type")
-    # cv, parm = model.dt(df, "trace_verified_instance_1_7.y_issue_dim_type")
-    # print_best_score(cv, parm)
+    print_best_score(cv, parm)
