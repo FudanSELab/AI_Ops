@@ -6,7 +6,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import GridSearchCV
-
+import model_persistence
 
 def dt(df: DataFrame, y_name):
     x, y = df, df.pop(y_name)
@@ -49,6 +49,10 @@ def dt_single(df: DataFrame, y_name):
     test_x, test_y = test, test.pop(y_name)
     clf2 = DecisionTreeClassifier()
     clf2.fit(X=train_x, y=train_y)
+
+    model_persistence.model_save(clf2, "model/dt.m")
+    clf2 = model_persistence.model_load("model/dt.m")
+
     result = clf2.predict(test_x)
     count_success = 0
     for i in range(len(result)):
