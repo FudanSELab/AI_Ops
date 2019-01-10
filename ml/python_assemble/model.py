@@ -25,6 +25,23 @@ def dt(df: DataFrame, y_name):
     return grid_search_cv, param_test
 
 
+def dt_multi_label(df: DataFrame, y_multi_label):
+    x_val = df.values
+    y_val = y_multi_label
+    print(y_val)
+    for key in df.keys():
+        print("Feature name in X:", key)
+    clf = DecisionTreeClassifier()
+    param_test = {
+        "max_depth": [None, 10, 30, 100],
+    }
+    grid_search_cv = GridSearchCV(clf,
+                                  param_grid=param_test,
+                                  cv=5)
+    grid_search_cv.fit(X=x_val, y=y_val)
+    return grid_search_cv, param_test
+
+
 def dt_single(df: DataFrame, y_name):
     train = df.sample(frac=0.8)
     test = df.drop(train.index)

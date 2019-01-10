@@ -1,12 +1,12 @@
 from imblearn.over_sampling import RandomOverSampler
 from pandas import DataFrame
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, MultiLabelBinarizer
 from sklearn.utils import shuffle
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 import data_convert_set
-
+import pandas as pd
 
 def merge_data(df_trace: DataFrame, df_seq: DataFrame, df_seq_caller: DataFrame):
     df_merged_seq = df_seq.join(df_seq_caller, how="inner")
@@ -68,8 +68,8 @@ def fill_empty_data(df_raw: DataFrame):
 def convert_data(df_raw: DataFrame):
     keys = df_raw.keys()
     for col in keys:
-        if col.endswith("trace_verified_instance.y_issue_ms") \
-                or col.endswith("trace_verified_instance.y_issue_dim_type"):
+        if col.endswith("trace_verified_instance_1_7.y_issue_ms") \
+                or col.endswith("trace_verified_instance_1_7.y_issue_dim_type"):
             mapping_keys = df_raw[col].drop_duplicates().values
             mapping = {}
             for i in range(len(mapping_keys)):
@@ -88,11 +88,18 @@ def convert_data(df_raw: DataFrame):
             df_raw[col] = df_raw[[col]].applymap(data_convert_set.transform_memory_diff)
         elif col.endswith("_cpu_diff"):
             df_raw[col] = df_raw[[col]].applymap(data_convert_set.transform_cpu_diff)
-
     return df_raw
-
     # TODO: DROP SOME USELESS COLUMNS AFTER EXTRACTION
     # return df_raw
+
+
+def convert_y_multi_label(df_raw: DataFrame, y_name):
+    y_list = df_raw[y_name].tolist()
+    for i in range(len(y_list)):
+        y_list[i] = [y_list[i], 7]
+    y_multilabel = MultiLabelBinarizer().fit_transform(y_list)
+    df_raw.pop(y_name)
+    return df_raw, y_multilabel
 
 
 def dimensionless(df_raw: DataFrame):
