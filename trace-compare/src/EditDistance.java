@@ -68,6 +68,7 @@ public class EditDistance {
 
             }
         }
+        System.out.println("Distance:" + d[n][m]);
         return d[n][m];
     }
 

@@ -5,12 +5,13 @@ public class DistanceToFault {
 
     public static double distanceToFault(ArrayList<String> newTrace, ArrayList<ArrayList<String>> faultTraces) {
         int faultTraceNum = faultTraces.size();
-
+        System.out.println("Fault Trace Number:" + faultTraceNum);
         // 计算new_trace到这个fault下各个trace的距离
         double[] distances = new double[faultTraceNum];
         for(int i = 0; i < faultTraceNum; i++) {
             ArrayList<String> faultTrace = faultTraces.get(i);
             distances[i] = EditDistance.editDitanceOfArray(newTrace, faultTrace);
+            System.out.println("Distance-" + i + " " + distances[i]);
         }
 
         // 求距离的标准差
