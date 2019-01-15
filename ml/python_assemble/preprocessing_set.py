@@ -5,8 +5,60 @@ from sklearn.preprocessing import MinMaxScaler, MultiLabelBinarizer
 from sklearn.utils import shuffle
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
+import numpy as np
 import data_convert_set
-import pandas as pd
+
+
+service_index_map = {
+    "ts-admin-basic-info-service": 0,
+    "ts-admin-order-service": 1,
+    "ts-admin-route-service": 2,
+    "ts-admin-travel-service": 3,
+    "ts-admin-user-service": 4,
+    "ts-assurance-service": 5,
+    "ts-basic-service": 6,
+    "ts-cancel-service": 7,
+    "ts-config-service": 8,
+    "ts-consign-price-service": 9,
+    "ts-consign-service": 10,
+    "ts-contacts-service": 11,
+    "ts-execute-service": 12,
+    "ts-food-map-service": 13,
+    "ts-food-service": 14,
+    "ts-inside-payment-service": 15,
+    "ts-login-service": 16,
+    "ts-news-service": 17,
+    "ts-notification-service": 18,
+    "ts-order-other-service": 19,
+    "ts-order-service": 20,
+    "ts-payment-service": 21,
+    "ts-preserve-other-service": 22,
+    "ts-preserve-service": 23,
+    "ts-price-service": 24,
+    "ts-rebook-service": 25,
+    "ts-register-service": 26,
+    "ts-route-plan-service": 27,
+    "ts-route-service": 28,
+    "ts-seat-service": 29,
+    "ts-security-service": 30,
+    "ts-sso-service": 31,
+    "ts-station-service": 32,
+    "ts-ticket-office-service": 33,
+    "ts-ticketinfo-service": 34,
+    "ts-train-service": 35,
+    "ts-travel-plan-service": 36,
+    "ts-travel-service": 37,
+    "ts-travel2-service": 38,
+    "ts-ui-dashboard": 39,
+    "ts-verification-code-service": 40,
+    "ts-voucher-service": 41
+}
+
+
+def append_data(df_one: DataFrame, df_two: DataFrame):
+    df_total = df_one.append(df_two)
+    return df_total
+
 
 def merge_data(df_trace: DataFrame, df_seq: DataFrame, df_seq_caller: DataFrame):
     df_merged_seq = df_seq.join(df_seq_caller, how="inner")
@@ -18,17 +70,17 @@ def merge_data(df_trace: DataFrame, df_seq: DataFrame, df_seq_caller: DataFrame)
 
 def select_data(df_raw: DataFrame):
     for col in df_raw.keys():
-        if not(#col.endswith(".trace_service")
-                col.endswith(".trace_api")
-                # col.endswith("_readynumber")
-                # col.endswith("_diff")
-                # col.endswith("_variable")
-                # col.endswith("_included")
-                # col.endswith("_seq")
-                # col.endswith("_caller")
-                or col.endswith(".y_issue_ms")
-                or col.endswith(".y_final_result")
-                or col.endswith(".y_issue_dim_type")):
+        if not(col.endswith("trace_service")
+               or col.endswith("trace_api")
+               #or col.endswith("_readynumber")
+               #or col.endswith("_diff")
+               #or col.endswith("_variable")
+               #or col.endswith("_included")
+               #or col.endswith("_seq")
+               #or col.endswith("_caller")
+               or col.endswith("y_issue_ms")
+               or col.endswith("y_final_result")
+               or col.endswith("y_issue_dim_type")):
             df_raw.drop(columns=col, axis=1, inplace=True)
             print("Drop:" + col)
     print("Reserved:" + df_raw.keys())
@@ -50,7 +102,7 @@ def drop_all_same_data(df_raw: DataFrame):
 def fill_empty_data(df_raw: DataFrame):
     keys = df_raw.keys()
     for col in keys:
-        if col.endswith("_diff"):
+        if col.endswith("_diff") or col.endswith("_readynumber"):
             df_raw[col].fillna(0, inplace=True)
             print("Fill Empty: " + col)
         elif col.endswith("_seq"):
@@ -68,15 +120,15 @@ def fill_empty_data(df_raw: DataFrame):
 def convert_data(df_raw: DataFrame):
     keys = df_raw.keys()
     for col in keys:
-        if col.endswith("trace_verified_instance_1_7.y_issue_ms") \
-                or col.endswith("trace_verified_instance_1_7.y_issue_dim_type"):
+        if col.endswith("y_issue_ms_") \
+                or col.endswith("y_issue_dim_type"):
             mapping_keys = df_raw[col].drop_duplicates().values
             mapping = {}
             for i in range(len(mapping_keys)):
                 mapping[mapping_keys[i]] = i
             df_raw[col] = df_raw[col].map(mapping)
-        elif col.endswith(".trace_service") \
-                or col.endswith(".trace_api") \
+        elif col.endswith("trace_service") \
+                or col.endswith("trace_api") \
                 or col.endswith("_caller"):
             mapping_keys = df_raw[col].drop_duplicates().values
             mapping = {}
@@ -84,10 +136,10 @@ def convert_data(df_raw: DataFrame):
                 mapping[mapping_keys[i]] = i
             df_raw[col] = df_raw[col].map(mapping)
             # df_raw = pd.get_dummies(df_raw, columns=[col])
-        elif col.endswith("_mem_diff"):
-            df_raw[col] = df_raw[[col]].applymap(data_convert_set.transform_memory_diff)
-        elif col.endswith("_cpu_diff"):
-            df_raw[col] = df_raw[[col]].applymap(data_convert_set.transform_cpu_diff)
+        # elif col.endswith("_mem_diff"):
+        #     df_raw[col] = df_raw[[col]].applymap(data_convert_set.transform_memory_diff)
+        # elif col.endswith("_cpu_diff"):
+        #     df_raw[col] = df_raw[[col]].applymap(data_convert_set.transform_cpu_diff)
     return df_raw
     # TODO: DROP SOME USELESS COLUMNS AFTER EXTRACTION
     # return df_raw
@@ -96,10 +148,29 @@ def convert_data(df_raw: DataFrame):
 def convert_y_multi_label(df_raw: DataFrame, y_name):
     y_list = df_raw[y_name].tolist()
     for i in range(len(y_list)):
-        y_list[i] = [y_list[i], 7]
+        y_list[i] = [y_list[i]]
     y_multilabel = MultiLabelBinarizer().fit_transform(y_list)
+    print(y_multilabel)
     df_raw.pop(y_name)
     return df_raw, y_multilabel
+
+
+def convert_y_multi_label_by_name(df_raw: DataFrame, y_name):
+    y_list = df_raw[y_name].tolist()
+    y_multi_label = []
+    for i in range(len(y_list)):
+        y_service_name = y_list[i]
+        y_index = service_index_map.get(y_service_name)
+        temp_y_multi_label = np.zeros(42)
+        temp_y_multi_label[y_index] = 1
+        y_multi_label.append(temp_y_multi_label)
+        if temp_y_multi_label[0] == 1 and temp_y_multi_label[0] == temp_y_multi_label[41]:
+            print(y_service_name)
+    #     y_list[i] = [y_list[i]]
+    # y_multilabel = MultiLabelBinarizer().fit_transform(y_list)
+
+    df_raw.pop(y_name)
+    return df_raw, y_multi_label
 
 
 def dimensionless(df_raw: DataFrame):

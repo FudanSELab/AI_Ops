@@ -7,6 +7,11 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import GridSearchCV
 import model_persistence
+import preprocessing_set
+import pydotplus
+from sklearn import tree
+from sklearn.externals.six import StringIO
+
 
 def dt(df: DataFrame, y_name):
     x, y = df, df.pop(y_name)
@@ -28,7 +33,6 @@ def dt(df: DataFrame, y_name):
 def dt_multi_label(df: DataFrame, y_multi_label):
     x_val = df.values
     y_val = y_multi_label
-    print(y_val)
     for key in df.keys():
         print("Feature name in X:", key)
     clf = DecisionTreeClassifier()
@@ -40,6 +44,18 @@ def dt_multi_label(df: DataFrame, y_multi_label):
                                   cv=5)
     grid_search_cv.fit(X=x_val, y=y_val)
     return grid_search_cv, param_test
+
+
+def dt_multi_label_single(df: DataFrame, y_name):
+    train = df.sample(frac=0.8)
+    test = df.drop(train.index)
+    train_x, train_y = preprocessing_set.convert_y_multi_label_by_name(train, y_name)
+    test_x, test_y = preprocessing_set.convert_y_multi_label_by_name(test, y_name)
+    clf2 = DecisionTreeClassifier()
+    clf2.fit(X=train_x, y=train_y)
+    result = clf2.predict(test_x)
+    # for i in range(len(result)):
+    #     print(str(result[i]) + " - " + str(test_y[i]))
 
 
 def dt_single(df: DataFrame, y_name):
@@ -60,6 +76,18 @@ def dt_single(df: DataFrame, y_name):
         if result[i] == test_y.values[i]:
             count_success += 1
     print("Predict Success:", str(count_success) + " : " + str(len(result)))
+
+    # dot_data = StringIO()
+    # tree.export_graphviz(clf2,
+    #                      out_file=dot_data,
+    #                      feature_names=train_x.keys(),
+    #                      class_names=["Success", "Failure"],
+    #                      filled=True,
+    #                      rounded=True,
+    #                      special_characters=True)
+    # graph = pydotplus.graph_from_dot_data(dot_data.getvalue())
+    # graph.write_pdf("dst_cut.pdf")
+
 
 
 def rf(df: DataFrame, y_name):
