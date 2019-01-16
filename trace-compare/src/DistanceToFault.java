@@ -21,22 +21,27 @@ public class DistanceToFault {
             gaussianInfluence[i] = CalculationSet.GaussianInfluence(distances[i], sd);
         }
 
+        // 高斯影响的均值，就是trace与这个类型的fault的距离
         return CalculationSet.Average(gaussianInfluence);
     }
 
-    public static void GetTopKNearestFaults() {
-
-    }
 
     public static ArrayList<String> TopKNearestFaults(ArrayList<String> newTrace, int K,
                                                       HashMap<String, ArrayList<ArrayList<String>>> faultAndTraces) {
 
+        //前K个故障
         ArrayList<String> TopKF = new ArrayList<>();
+        //前K个故障对应的距离
         ArrayList<Double> TopKD = new ArrayList<>();
+
+        // 每个故障的距离
         ArrayList<Double> distances = new ArrayList<>();
+        // 每个故障的名称
         ArrayList<String> faultNames = new ArrayList<>();
 
         ArrayList<String> oldFaultNameSet = new ArrayList<>(faultAndTraces.keySet());
+
+        // 计算trace与各个fault之间的距离
         for(int i = 0; i < oldFaultNameSet.size(); i++){
             String faultName = oldFaultNameSet.get(i);
             double dtf = distanceToFault(newTrace, faultAndTraces.get(faultName));
@@ -46,6 +51,7 @@ public class DistanceToFault {
             System.out.println( faultName + "值:" + dtf);
         }
 
+        // 挑出前K个最接近的
         for(int i = 0; i < K; i++) {
             double max_value = distances.get(0);
             int max_index = 0;

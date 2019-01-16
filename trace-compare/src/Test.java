@@ -55,26 +55,34 @@ public class Test {
         trace7.add("2");
         trace7.add("a");
 
+        // 第一种故障类型和相关的trace
         ArrayList< ArrayList<String>> fault1 = new ArrayList<>();
         fault1.add(trace1);
         fault1.add(trace2);
 
+        // 第二种故障类型和相关的trace
         ArrayList<ArrayList<String>> fault2 = new ArrayList<>();
         fault2.add(trace1);
         fault2.add(trace4);
         fault2.add(trace5);
 
+        // 第三种故障类型和相关的trace
         ArrayList<ArrayList<String>> fault3 = new ArrayList<>();
         fault3.add(trace6);
         fault3.add(trace7);
 
+        // 故障名称和相关trace的集合
         HashMap<String, ArrayList<ArrayList<String>>> faults = new HashMap<>();
         faults.put("FAULT-ONE", fault1);
         faults.put("FAULT-TWO", fault2);
         faults.put("FAULT-THREE", fault3);
 
+        // 把Trace1作为准备预测的Trace
+        // K=2 我们找出两个最接近的Fault Type
+        // Faults 各种故障对应的Trace
         ArrayList<String> kFaults = DistanceToFault.TopKNearestFaults(trace1,2,faults);
 
+        // 输出结果
         for(int i = 0; i < kFaults.size(); i++){
             System.out.println("我们选择：" + kFaults.get(i));
         }

@@ -6,7 +6,6 @@ from sklearn.utils import shuffle
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 import numpy as np
-import data_convert_set
 
 
 service_index_map = {
@@ -71,7 +70,7 @@ def merge_data(df_trace: DataFrame, df_seq: DataFrame, df_seq_caller: DataFrame)
 def select_data(df_raw: DataFrame):
     for col in df_raw.keys():
         if not(col.endswith("trace_service")
-               or col.endswith("trace_api")
+               #or col.endswith("trace_api")
                #or col.endswith("_readynumber")
                #or col.endswith("_diff")
                #or col.endswith("_variable")

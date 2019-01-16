@@ -8,9 +8,15 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import GridSearchCV
 import model_persistence
 import preprocessing_set
-import pydotplus
-from sklearn import tree
-from sklearn.externals.six import StringIO
+
+
+def compare_multi_label(x, y):
+    if len(x) != len(y):
+        return False
+    for i in range(len(x)):
+        if x[i] != y[i]:
+            return False
+    return True
 
 
 def dt(df: DataFrame, y_name):
@@ -54,8 +60,12 @@ def dt_multi_label_single(df: DataFrame, y_name):
     clf2 = DecisionTreeClassifier()
     clf2.fit(X=train_x, y=train_y)
     result = clf2.predict(test_x)
-    # for i in range(len(result)):
-    #     print(str(result[i]) + " - " + str(test_y[i]))
+    count = 0
+    for i in range(len(result)):
+        print(str(result[i]) + " - " + str(test_y[i]))
+        if compare_multi_label(result[i], test_y[i]):
+            count = count + 1
+    print("Predict:", len(result), " Success:", count)
 
 
 def dt_single(df: DataFrame, y_name):
@@ -76,18 +86,6 @@ def dt_single(df: DataFrame, y_name):
         if result[i] == test_y.values[i]:
             count_success += 1
     print("Predict Success:", str(count_success) + " : " + str(len(result)))
-
-    # dot_data = StringIO()
-    # tree.export_graphviz(clf2,
-    #                      out_file=dot_data,
-    #                      feature_names=train_x.keys(),
-    #                      class_names=["Success", "Failure"],
-    #                      filled=True,
-    #                      rounded=True,
-    #                      special_characters=True)
-    # graph = pydotplus.graph_from_dot_data(dot_data.getvalue())
-    # graph.write_pdf("dst_cut.pdf")
-
 
 
 def rf(df: DataFrame, y_name):
