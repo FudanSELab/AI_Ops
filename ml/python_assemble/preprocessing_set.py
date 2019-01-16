@@ -70,13 +70,13 @@ def merge_data(df_trace: DataFrame, df_seq: DataFrame, df_seq_caller: DataFrame)
 def select_data(df_raw: DataFrame):
     for col in df_raw.keys():
         if not(col.endswith("trace_service")
-               #or col.endswith("trace_api")
-               #or col.endswith("_readynumber")
-               #or col.endswith("_diff")
-               #or col.endswith("_variable")
-               #or col.endswith("_included")
-               #or col.endswith("_seq")
-               #or col.endswith("_caller")
+               or col.endswith("trace_api")
+               or col.endswith("_readynumber")
+               or col.endswith("_diff")
+               or col.endswith("_variable")
+               or col.endswith("_included")
+               or col.endswith("_seq")
+               or col.endswith("_caller")
                or col.endswith("y_issue_ms")
                or col.endswith("y_final_result")
                or col.endswith("y_issue_dim_type")):
@@ -163,8 +163,6 @@ def convert_y_multi_label_by_name(df_raw: DataFrame, y_name):
         temp_y_multi_label = np.zeros(42)
         temp_y_multi_label[y_index] = 1
         y_multi_label.append(temp_y_multi_label)
-        if temp_y_multi_label[0] == 1 and temp_y_multi_label[0] == temp_y_multi_label[41]:
-            print(y_service_name)
     #     y_list[i] = [y_list[i]]
     # y_multilabel = MultiLabelBinarizer().fit_transform(y_list)
 
