@@ -71,10 +71,17 @@ def select_data(df_raw: DataFrame):
     for col in df_raw.keys():
         if not(col.endswith("trace_service")
                or col.endswith("trace_api")
+               or col.endswith("_api")
+               or col.endswith("_exec_time")
                or col.endswith("_readynumber")
                or col.endswith("_diff")
                or col.endswith("_variable")
                or col.endswith("_included")
+               or col.endswith("_dependent_db")
+               or col.endswith("_dependent_cache")
+               or col.endswith("_shared_variable")
+               or col.endswith("_app_thread_count")
+               or col.endswith("_inst_status_code")
                or col.endswith("_seq")
                or col.endswith("_caller")
                or col.endswith("y_issue_ms")
@@ -101,13 +108,22 @@ def drop_all_same_data(df_raw: DataFrame):
 def fill_empty_data(df_raw: DataFrame):
     keys = df_raw.keys()
     for col in keys:
-        if col.endswith("_diff") or col.endswith("_readynumber"):
+        if col.endswith("_diff") \
+                or col.endswith("_readynumber") \
+                or col.endswith("_exec_time") \
+                or col.endswith("_app_thread_count"):
             df_raw[col].fillna(0, inplace=True)
             print("Fill Empty: " + col)
-        elif col.endswith("_seq"):
+        elif col.endswith("_seq") \
+                or col.endswith("_shared_variable") \
+                or col.endswith("_dependent_cache") \
+                or col.endswith("_dependent_db") \
+                or col.endswith("_variable"):
             df_raw[col].fillna(-1, inplace=True)
             print("Fill Empty: " + col)
-        elif col.endswith("_caller"):
+        elif col.endswith("_caller") \
+                or col.endswith("_api") \
+                or col.endswith("_inst_status_code"):
             df_raw[col].fillna("No", inplace=True)
             print("Fill Empty: " + col)
         elif col.endswith("y_issue_ms"):
@@ -127,8 +143,10 @@ def convert_data(df_raw: DataFrame):
                 mapping[mapping_keys[i]] = i
             df_raw[col] = df_raw[col].map(mapping)
         elif col.endswith("trace_service") \
-                or col.endswith("trace_api") \
+                or col.endswith("_api") \
+                or col.endswith("_inst_status_code") \
                 or col.endswith("_caller"):
+            print("Convert:", col)
             mapping_keys = df_raw[col].drop_duplicates().values
             mapping = {}
             for i in range(len(mapping_keys)):

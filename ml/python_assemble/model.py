@@ -115,7 +115,7 @@ def dt_rf_multi_label_single_privided_train_test(df_train: DataFrame, df_test: D
     train_x, train_y = preprocessing_set.convert_y_multi_label_by_name(df_train, y_name)
     print(train_x.keys())
     test_x, test_y = preprocessing_set.convert_y_multi_label_by_name(df_test, y_name)
-    clf2 = RandomForestClassifier(min_samples_leaf=100, n_estimators=50)
+    clf2 = RandomForestClassifier(min_samples_leaf=1000, n_estimators=10)
     # clf2 = MLPClassifier(hidden_layer_sizes=(30, 30), max_iter=1000)
     clf2.fit(X=train_x, y=train_y)
     result = clf2.predict(test_x)

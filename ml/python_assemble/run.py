@@ -88,6 +88,25 @@ def preprocessing():
     df_total.to_csv("ready_use.csv")
 
 
+def test_inspect():
+
+    svc_name = "ts-travel-service"
+    svc_name_prefix = "ts_travel_service"
+
+    print("Label中的微服务总览")
+    df = pd.read_csv("ready_use.csv", header=0, index_col=0)
+    print(df["y_issue_ms"].value_counts())
+
+    print("Label中的微服务不是指定的微服务，但trace中包含该微服务")
+    df_one = df.loc[(df["y_issue_ms"] != svc_name) & (df[svc_name_prefix + "_included"] == 1)]
+    print(df_one["y_issue_ms"].value_counts())
+    print(df_one["y_issue_dim_type"].value_counts())
+
+    print("Label中的微服务是指定为服务")
+    df_test = df.loc[(df["y_issue_ms"] == svc_name)]
+    print(df_test["y_issue_dim_type"].value_counts())
+
+
 def train():
     # 读入之前准备好的数据
     df = pd.read_csv("ready_use.csv", header=0, index_col=0)
@@ -109,14 +128,17 @@ def train():
     df.pop("trace_service")
 
     # 选择训练和测试数据集
-    df_train = df.loc[(df["y_issue_ms"] != "ts-travel2-service") | (df["y_issue_dim_type"] != "config")]
-    df_test = df.loc[(df["y_issue_ms"] == "ts-travel2-service") & (df["y_issue_dim_type"] == "config")]
+    # df_train = df.loc[(df["y_issue_ms"] != "ts-travel-service") & (df["y_issue_dim_type"] == "instance") & (df["ts_travel_service_included"] == 1)]
+    # df_test = df.loc[(df["y_issue_ms"] == "ts-travel-service") & (df["y_issue_dim_type"] == "instance")]
+    df_train = df.loc[(df["y_issue_ms"] != "ts-preserve-service")]
+    df_test = df.loc[(df["y_issue_ms"] == "ts-preserve-service")]
     # df_train = df.loc[(df["y_issue_ms"] != "ts-preserve-other-service")]
     # df_test = df.loc[(df["y_issue_ms"] == "ts-preserve-other-service")]
     df_train.pop("y_issue_dim_type")
     df_test.pop("y_issue_dim_type")
 
-
+    # 按照某个Label对数据进行过采样以平衡样本数量
+    df_train = preprocessing_set.sampling(df_train, "y_issue_ms")
 
     # 拿去训练
     model.dt_rf_multi_label_single_privided_train_test(df_train=df_train,
@@ -128,8 +150,11 @@ if __name__ == "__main__":
 
     # preprocessing()
 
-    train()
 
+
+    test_inspect()
+
+    train()
 
 # if __name__ == "__main__":
 #     trace_csv = "17/trace_verified_instance.csv"
