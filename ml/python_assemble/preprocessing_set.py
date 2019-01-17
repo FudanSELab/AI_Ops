@@ -120,7 +120,7 @@ def convert_data(df_raw: DataFrame):
     keys = df_raw.keys()
     for col in keys:
         if col.endswith("y_issue_ms_") \
-                or col.endswith("y_issue_dim_type"):
+                or col.endswith("y_issue_dim_type_"):
             mapping_keys = df_raw[col].drop_duplicates().values
             mapping = {}
             for i in range(len(mapping_keys)):

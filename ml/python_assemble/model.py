@@ -89,7 +89,8 @@ def dt_rf_multi_label_single(df: DataFrame, y_name):
     print(train_x.keys())
 
     test_x, test_y = preprocessing_set.convert_y_multi_label_by_name(test, y_name)
-    clf2 = RandomForestClassifier(min_samples_leaf=4000, n_estimators=50)
+    clf2 = MLPClassifier()
+    # clf2 = RandomForestClassifier(min_samples_leaf=4000, n_estimators=50)
     clf2.fit(X=train_x, y=train_y)
     result = clf2.predict(test_x)
     pred = clf2.predict_proba(test_x)
@@ -108,6 +109,36 @@ def dt_rf_multi_label_single(df: DataFrame, y_name):
         if compare_multi_label(result[i], test_y[i]):
             count = count + 1
     print("Predict:", len(result), " Success:", count)
+
+
+def dt_rf_multi_label_single_privided_train_test(df_train: DataFrame, df_test: DataFrame, y_name):
+    train_x, train_y = preprocessing_set.convert_y_multi_label_by_name(df_train, y_name)
+    print(train_x.keys())
+    test_x, test_y = preprocessing_set.convert_y_multi_label_by_name(df_test, y_name)
+    clf2 = RandomForestClassifier(min_samples_leaf=100, n_estimators=50)
+    # clf2 = MLPClassifier(hidden_layer_sizes=(30, 30), max_iter=1000)
+    clf2.fit(X=train_x, y=train_y)
+    result = clf2.predict(test_x)
+    pred = clf2.predict_proba(test_x)
+    count = 0
+    print("Len Pred:", len(pred))
+    print("Len Pred[0]:", len(pred[0]))
+    print("Len Result:", len(result))
+    for i in range(len(result)):
+        if compare_multi_label(result[i], test_y[i]):
+            count = count + 1
+        else:
+            print("=====")
+            print("Result:", result[i])
+            print("Origin:", test_y[i])
+            print("Proba:", end='')
+            for j in range(42):
+                print(str(j), "-", pred[j][i], end=' ')
+            print("")
+    print("Predict:", len(result), " Success:", count)
+    print(train_x.__len__())
+    print(test_x.__len__())
+
 
 
 def dt_single(df: DataFrame, y_name):
