@@ -11,12 +11,20 @@ import preprocessing_set
 
 
 def compare_multi_label(x, y):
+    result_setted = False
+    result = False
+    targeted = False
     if len(x) != len(y):
-        return False
+        return False, targeted
     for i in range(len(x)):
-        if x[i] != y[i]:
-            return False
-    return True
+        if x[i] == y[i] == 1:
+            targeted = True
+        if x[i] != y[i] and result_setted is False:
+            result_setted = True
+            result = False
+    if result_setted is False:
+        result = True
+    return result, targeted
 
 
 def dt(df: DataFrame, y_name):
@@ -76,7 +84,8 @@ def dt_multi_label_single(df: DataFrame, y_name):
         for j in range(42):
             print(pred[j][i], end=' ')
         print("")
-        if compare_multi_label(result[i], test_y[i]):
+        result_temp, targeted = compare_multi_label(result[i], test_y[i])
+        if result_temp:
             count = count + 1
     print("Predict:", len(result), " Success:", count)
 
@@ -106,7 +115,8 @@ def dt_rf_multi_label_single(df: DataFrame, y_name):
         for j in range(42):
             print(pred[j][i], end=' ')
         print("")
-        if compare_multi_label(result[i], test_y[i]):
+        result_temp, targeted = compare_multi_label(result[i], test_y[i])
+        if result_temp:
             count = count + 1
     print("Predict:", len(result), " Success:", count)
 
@@ -121,11 +131,13 @@ def dt_rf_multi_label_single_privided_train_test(df_train: DataFrame, df_test: D
     result = clf2.predict(test_x)
     pred = clf2.predict_proba(test_x)
     count = 0
+    targeted_count = 0
     print("Len Pred:", len(pred))
     print("Len Pred[0]:", len(pred[0]))
     print("Len Result:", len(result))
     for i in range(len(result)):
-        if compare_multi_label(result[i], test_y[i]):
+        result_temp, targeted = compare_multi_label(result[i], test_y[i])
+        if result_temp:
             count = count + 1
         else:
             print("=====")
@@ -135,7 +147,10 @@ def dt_rf_multi_label_single_privided_train_test(df_train: DataFrame, df_test: D
             for j in range(42):
                 print(str(j), "-", pred[j][i], end=' ')
             print("")
+        if targeted:
+            targeted_count += 1
     print("Predict:", len(result), " Success:", count)
+    print("命中", targeted_count, "次")
     print(train_x.__len__())
     print(test_x.__len__())
 

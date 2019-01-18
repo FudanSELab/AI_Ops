@@ -85,7 +85,7 @@ def preprocessing():
     # 过采样后打乱数据
     df_total = shuffle(df_total)
     # 输出数据
-    df_total.to_csv("ready_use.csv")
+    df_total.to_csv("ready_use_min.csv")
 
 
 def train():
@@ -105,12 +105,18 @@ def train():
     # df.pop("y_issue_dim_type")
 
     # 尝试丢掉一些属性
-    df.pop("trace_api")
-    df.pop("trace_service")
+    # df.pop("trace_api")
+    # df.pop("trace_service")
 
     # 选择训练和测试数据集
-    df_train = df.loc[(df["y_issue_ms"] != "ts-travel2-service") | (df["y_issue_dim_type"] != "config")]
-    df_test = df.loc[(df["y_issue_ms"] == "ts-travel2-service") & (df["y_issue_dim_type"] == "config")]
+    df_train = df.loc[(df["y_issue_ms"] != "ts-contacts-service")
+                      & (df["ts_contacts_service_included"] == 1)
+                      & (df["y_issue_dim_type"] == "config")]
+
+    #df_train = preprocessing_set.sampling(df_train, "y_issue_ms")
+
+    df_test = df.loc[(df["y_issue_ms"] == "ts-contacts-service")
+                     & (df["y_issue_dim_type"] == "config")]
     # df_train = df.loc[(df["y_issue_ms"] != "ts-preserve-other-service")]
     # df_test = df.loc[(df["y_issue_ms"] == "ts-preserve-other-service")]
     df_train.pop("y_issue_dim_type")
@@ -124,11 +130,51 @@ def train():
                                                        y_name="y_issue_ms")
 
 
+def inspect():
+    df = pd.read_csv("ready_use.csv", header=0, index_col=0)
+    print(df["y_issue_ms"].value_counts())
+    df.pop("y_final_result")
+    df_train = df.loc[(df["y_issue_ms"] != "ts-contacts-service")
+                      & (df["ts_contacts_service_included"] == 1)
+                      & (df["y_issue_dim_type"] == "config")]
+    df_test = df.loc[(df["y_issue_ms"] == "ts-contacts-service") ]
+    print("故障服务不是该服务但Trace途径该服务")
+    print(df_train["y_issue_ms"].value_counts())
+    print(df_train["y_issue_dim_type"].value_counts())
+    print("故障服务是该服务")
+    print(df_test["y_issue_dim_type"].value_counts())
+
+
+def cut():
+    df = pd.read_csv("110/trace_verified_instance2.csv", header=0, index_col=0)
+    cols = df.keys()
+    for col in cols:
+        if col.endswith("_diff")\
+                or col.endswith("_cpu") \
+                or col.endswith("_memory") \
+                or col.endswith("_limit"):
+            df[col].fillna(0, inplace=True)
+            df[col] = pd.cut(df[col], bins=5, labels=[1, 2, 3, 4, 5])
+            print("Cut:", col)
+        elif col.endswith("_api"):
+            mapping_keys = df[col].drop_duplicates().values
+            mapping = {}
+            for i in range(len(mapping_keys)):
+                mapping[mapping_keys[i]] = i
+            df[col] = df[col].map(mapping)
+
+    df.to_csv("trace_verified_instance2_discretization.csv")
+    return df
+
+
 if __name__ == "__main__":
 
     # preprocessing()
 
-    train()
+    cut()
+
+    # train()
+    # inspect()
 
 
 # if __name__ == "__main__":
