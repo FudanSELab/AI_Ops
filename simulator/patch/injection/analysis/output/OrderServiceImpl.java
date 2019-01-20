@@ -174,7 +174,8 @@ public class OrderServiceImpl implements OrderService {
     public ArrayList<String> queryForStationId(ArrayList<String> ids, HttpHeaders headers) {
         QueryByIdBatch batch = new QueryByIdBatch(ids);
         HttpEntity requestEntity = new HttpEntity(batch, headers);
-        CompletableFuture<String> f1 = CompletableFuture.supplyAsync(() -> {ResponseEntity<QueryByIdBatchResult> re = restTemplate.exchange("http://ts-station-service:12345/station/queryByIdBatch", HttpMethod.POST, requestEntity, QueryByIdBatchResult.class);}, executor);
+        ResponseEntity<QueryByIdBatchResult> re  = null;
+        CompletableFuture<String> f1 = CompletableFuture.supplyAsync(() -> {re = restTemplate.exchange("http://ts-station-service:12345/station/queryByIdBatch", HttpMethod.POST, requestEntity, QueryByIdBatchResult.class);}, executor);
         QueryByIdBatchResult names = re.getBody();
         return names.getStationNameList();
     }

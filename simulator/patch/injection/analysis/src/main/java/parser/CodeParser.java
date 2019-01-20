@@ -43,25 +43,34 @@ public class CodeParser {
             if(n.getName().toString().contains("queryForStationId")) {
                 System.out.println(n.getBody());
 
-                String stmtString = "";
+                Statement stmt = null;
                 int index = 0;
 
                 NodeList nl = n.getBody().get().getStatements();
                 for (int i = 0; i < nl.size(); i++) {
-                    Statement stmt = (Statement) nl.get(i);
-                    if(stmt.toString().contains("restTemplate")){
-                        stmtString = stmt.toString();
+                    Statement s = (Statement) nl.get(i);
+                    if(s.toString().contains("restTemplate")){
+                        stmt = s;
                         index = i;
+                        break;
                     }
                 }
+                String stmtString = stmt.toString();
                 n.getBody().get().getStatements().add(index, new ExpressionStmt(
                         new AssignExpr(
-                                new NameExpr("CompletableFuture<String> f1"),
-                                new NameExpr("CompletableFuture.supplyAsync(() -> {" + stmtString + "}, executor)"),
+                                new NameExpr(stmtString.substring(0, stmtString.indexOf("="))),
+                                new NameExpr("null"),
                                 AssignExpr.Operator.ASSIGN
                         ))
                 );
-                n.getBody().get().getStatements().remove(index+1);
+                n.getBody().get().getStatements().add(index+1, new ExpressionStmt(
+                        new AssignExpr(
+                                new NameExpr("CompletableFuture<String> f1"),
+                                new NameExpr("CompletableFuture.supplyAsync(() -> {" + stmtString.substring(stmtString.indexOf("=")-3) + "}, executor)"),
+                                AssignExpr.Operator.ASSIGN
+                        ))
+                );
+                n.getBody().get().getStatements().remove(index+2);
 
             }
 
