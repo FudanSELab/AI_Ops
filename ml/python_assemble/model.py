@@ -199,6 +199,7 @@ def dt_rf_multi_label_single_privided_train_test(df_train: DataFrame, df_test: D
     print(test_x.__len__())
 
 
+# 随机森林【不需要】做数据归一化
 def rf(df: DataFrame, y_name):
     x, y = df, df.pop(y_name)
     x_val = x.values
@@ -217,6 +218,7 @@ def rf(df: DataFrame, y_name):
     return grid_search_cv, param_test
 
 
+# 极端随机树【不需要】做数据归一化
 def et(df: DataFrame, y_name):
     x, y = df, df.pop(y_name)
     x_val = x.values
@@ -236,6 +238,7 @@ def et(df: DataFrame, y_name):
     return grid_search_cv, param_test
 
 
+# 梯度上升树【需要】做数据归一化
 def gbc(df: DataFrame, y_name):
     x, y = df, df.pop(y_name)
     x_val = x.values
@@ -255,6 +258,7 @@ def gbc(df: DataFrame, y_name):
     return grid_search_cv, param_test
 
 
+# 支持向量机【需要】做数据归一化
 def svc(df: DataFrame, y_name):
     x, y = df, df.pop(y_name)
     x_val = x.values
@@ -275,6 +279,7 @@ def svc(df: DataFrame, y_name):
     return grid_search_cv, param_test
 
 
+# 多层感知机【需要】做数据归一化
 def mlp(df: DataFrame, y_name):
     x, y = df, df.pop(y_name)
     x_val = x.values
