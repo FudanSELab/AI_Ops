@@ -81,16 +81,30 @@ def preprocessing():
     # 把不规则的值转换成数字
     df_total = preprocessing_set.convert_data(df_total)
     # 按照某个Label对数据进行过采样以平衡样本数量
-    df_total = preprocessing_set.sampling(df_total, "y_issue_ms")
+    # df_total = preprocessing_set.sampling(df_total, "y_final_result")
     # 过采样后打乱数据
     df_total = shuffle(df_total)
     # 输出数据
-    df_total.to_csv("ready_use_min.csv")
+    df_total.to_csv("ready_use_max_without_sampling.csv")
+
+
+# 读取准备好的数据，丢弃无用列，分割训练集和测试集合，对训练集过采样保持分类平衡，并开始训练
+def train_version_2():
+    # 读入之前准备好的数据
+    df = pd.read_csv("ready_use_max_without_sampling.csv", header=0, index_col="trace_id")
+    df.pop("y_final_result")
+    df.pop("y_issue_ms")
+    df.pop("trace_api")
+    df.pop("trace_service")
+    df_train_raw, df_test = preprocessing_set.split_data(df, 0.8)
+    df_train = preprocessing_set.sampling(df_train_raw, "y_issue_dim_type")
+    model.dt_rf_multi_label_single_privided_train_test(df_train, df_test, "y_issue_dim_type")
+    # model.dt_rf_multi_label_single_privided_train_test_no_multi_label(df_train,df_test,"y_final_result")
 
 
 def train():
     # 读入之前准备好的数据
-    df = pd.read_csv("ready_use.csv", header=0, index_col=0)
+    df = pd.read_csv("ready_use_max.csv", header=0, index_col=0)
 
     # 准备做无量纲化操作 - 决策树、随机森林不需要这一步骤
     # temp1 = df.pop("y_issue_dim_type")
@@ -105,24 +119,23 @@ def train():
     # df.pop("y_issue_dim_type")
 
     # 尝试丢掉一些属性
-    # df.pop("trace_api")
-    # df.pop("trace_service")
+    df.pop("trace_api")
+    df.pop("trace_service")
 
     # 选择训练和测试数据集
-    df_train = df.loc[(df["y_issue_ms"] != "ts-contacts-service")
-                      & (df["ts_contacts_service_included"] == 1)
-                      & (df["y_issue_dim_type"] == "config")]
+    df_train = df.loc[(df["y_issue_ms"] != "ts-preserve-service")
+                       | (df["y_issue_dim_type"] != "seq")]
+
 
     #df_train = preprocessing_set.sampling(df_train, "y_issue_ms")
 
-    df_test = df.loc[(df["y_issue_ms"] == "ts-contacts-service")
-                     & (df["y_issue_dim_type"] == "config")]
+    df_test = df.loc[(df["y_issue_ms"] == "ts-preserve-service")
+                     & (df["y_issue_dim_type"] == "seq")]
+                     # & (df["y_issue_dim_type"] == "config")]
     # df_train = df.loc[(df["y_issue_ms"] != "ts-preserve-other-service")]
     # df_test = df.loc[(df["y_issue_ms"] == "ts-preserve-other-service")]
     df_train.pop("y_issue_dim_type")
     df_test.pop("y_issue_dim_type")
-
-
 
     # 拿去训练
     model.dt_rf_multi_label_single_privided_train_test(df_train=df_train,
@@ -134,10 +147,8 @@ def inspect():
     df = pd.read_csv("ready_use.csv", header=0, index_col=0)
     print(df["y_issue_ms"].value_counts())
     df.pop("y_final_result")
-    df_train = df.loc[(df["y_issue_ms"] != "ts-contacts-service")
-                      & (df["ts_contacts_service_included"] == 1)
-                      & (df["y_issue_dim_type"] == "config")]
-    df_test = df.loc[(df["y_issue_ms"] == "ts-contacts-service") ]
+    df_train = df.loc[(df["y_issue_ms"] != "ts-travel-service")]
+    df_test = df.loc[(df["y_issue_ms"] == "ts-travel-service") ]
     print("故障服务不是该服务但Trace途径该服务")
     print(df_train["y_issue_ms"].value_counts())
     print(df_train["y_issue_dim_type"].value_counts())
@@ -145,6 +156,7 @@ def inspect():
     print(df_test["y_issue_dim_type"].value_counts())
 
 
+# 将连续数值按照等分区间离散化
 def cut():
     df = pd.read_csv("110/trace_verified_instance2.csv", header=0, index_col=0)
     cols = df.keys()
@@ -170,8 +182,8 @@ def cut():
 if __name__ == "__main__":
 
     # preprocessing()
-
-    cut()
+    train_version_2()
+    # cut()
 
     # train()
     # inspect()

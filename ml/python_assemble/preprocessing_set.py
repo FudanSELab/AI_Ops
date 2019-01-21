@@ -6,7 +6,7 @@ from sklearn.utils import shuffle
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 import numpy as np
-
+import pandas as pd
 
 
 service_index_map = {
@@ -54,6 +54,17 @@ service_index_map = {
     "ts-voucher-service": 41
 }
 
+dim_index_map = {
+    "seq": 0,
+    "config": 1,
+    "instance": 2
+}
+
+result_index_map = {
+    "0": 0,
+    "1": 1,
+}
+
 
 def append_data(df_one: DataFrame, df_two: DataFrame):
     df_total = df_one.append(df_two)
@@ -72,10 +83,15 @@ def select_data(df_raw: DataFrame):
     for col in df_raw.keys():
         if not(col.endswith("trace_service")
                or col.endswith("trace_api")
+               or col.endswith("_api")
                or col.endswith("_readynumber")
                or col.endswith("_diff")
                or col.endswith("_variable")
                or col.endswith("_included")
+               or col.endswith("_app_thread_count")
+               or col.endswith("_shared_variable")
+               or col.endswith("_dependent_db")
+               or col.endswith("_dependent_cache")
                or col.endswith("_seq")
                or col.endswith("_caller")
                or col.endswith("y_issue_ms")
@@ -102,7 +118,9 @@ def drop_all_same_data(df_raw: DataFrame):
 def fill_empty_data(df_raw: DataFrame):
     keys = df_raw.keys()
     for col in keys:
-        if col.endswith("_diff") or col.endswith("_readynumber"):
+        if col.endswith("_diff") \
+                or col.endswith("_readynumber")\
+                or col.endswith("_app_thread_count"):
             df_raw[col].fillna(0, inplace=True)
             print("Fill Empty: " + col)
         elif col.endswith("_seq"):
@@ -114,6 +132,7 @@ def fill_empty_data(df_raw: DataFrame):
         elif col.endswith("y_issue_ms"):
             df_raw[col].fillna("Success", inplace=True)
             print("Fill Empty: " + col)
+
     return df_raw
 
 
@@ -128,23 +147,27 @@ def convert_data(df_raw: DataFrame):
                 mapping[mapping_keys[i]] = i
             df_raw[col] = df_raw[col].map(mapping)
         elif col.endswith("trace_service") \
-                or col.endswith("trace_api") \
+                or col.endswith("_api") \
                 or col.endswith("_caller"):
+            df_raw[col].fillna("No", inplace=True)
             mapping_keys = df_raw[col].drop_duplicates().values
             mapping = {}
             for i in range(len(mapping_keys)):
                 mapping[mapping_keys[i]] = i
             df_raw[col] = df_raw[col].map(mapping)
             # df_raw = pd.get_dummies(df_raw, columns=[col])
-        # elif col.endswith("_mem_diff"):
-        #     df_raw[col] = df_raw[[col]].applymap(data_convert_set.transform_memory_diff)
-        # elif col.endswith("_cpu_diff"):
-        #     df_raw[col] = df_raw[[col]].applymap(data_convert_set.transform_cpu_diff)
+        elif col.endswith("_diff") \
+                or col.endswith("_cpu") \
+                or col.endswith("_memory") \
+                or col.endswith("_limit"):
+            df_raw[col].fillna(0, inplace=True)
+            df_raw[col] = pd.cut(df_raw[col], bins=5, labels=[1, 2, 3, 4, 5])
     return df_raw
     # TODO: DROP SOME USELESS COLUMNS AFTER EXTRACTION
     # return df_raw
 
 
+# 这个方法将一列y数值自动转换成[0 1 0 0]的形式（不会有额外的标签产生
 def convert_y_multi_label(df_raw: DataFrame, y_name):
     y_list = df_raw[y_name].tolist()
     for i in range(len(y_list)):
@@ -155,13 +178,16 @@ def convert_y_multi_label(df_raw: DataFrame, y_name):
     return df_raw, y_multilabel
 
 
+# 这个方法将一列y数值手动转换成[0 1 0 0]的形式
 def convert_y_multi_label_by_name(df_raw: DataFrame, y_name):
     y_list = df_raw[y_name].tolist()
     y_multi_label = []
     for i in range(len(y_list)):
         y_service_name = y_list[i]
-        y_index = service_index_map.get(y_service_name)
-        temp_y_multi_label = np.zeros(42)
+        # TODO: 需要注意，不同类型的列用的index_map不一样
+        # y_index = service_index_map.get(y_service_name)
+        y_index = dim_index_map.get(y_service_name)
+        temp_y_multi_label = np.zeros(3)
         temp_y_multi_label[y_index] = 1
         y_multi_label.append(temp_y_multi_label)
     #     y_list[i] = [y_list[i]]
