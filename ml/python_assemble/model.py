@@ -9,6 +9,8 @@ from sklearn.model_selection import GridSearchCV
 import model_persistence
 import preprocessing_set
 
+f = open("log.txt", 'w+')
+
 
 def compare_multi_label(x, y):
     result_setted = False
@@ -166,7 +168,7 @@ def dt_rf_multi_label_single_privided_train_test_no_multi_label(df_train: DataFr
 # 多标签预测决策树，使用提供好的训练集和测试集
 def dt_rf_multi_label_single_privided_train_test(df_train: DataFrame, df_test: DataFrame, y_name):
     train_x, train_y = preprocessing_set.convert_y_multi_label_by_name(df_train, y_name)
-    print(train_x.keys())
+    print(train_x.keys(), file=f)
     test_x, test_y = preprocessing_set.convert_y_multi_label_by_name(df_test, y_name)
     clf2 = RandomForestClassifier(min_samples_leaf=1200, n_estimators=10)
     clf2.fit(X=train_x, y=train_y)
@@ -174,17 +176,17 @@ def dt_rf_multi_label_single_privided_train_test(df_train: DataFrame, df_test: D
     pred = clf2.predict_proba(test_x)
     count = 0
     targeted_count = 0
-    print("Len Pred:", len(pred))
-    print("Len Pred[0]:", len(pred[0]))
-    print("Len Result:", len(result))
+    print("Len Pred:", len(pred), file=f)
+    print("Len Pred[0]:", len(pred[0]), file=f)
+    print("Len Result:", len(result), file=f)
     for i in range(len(result)):
-        print("=====")
-        print("Result:", result[i])
-        print("Origin:", test_y[i])
-        print("Proba:", end='')
+        print("=====", file=f)
+        print("Result:", result[i], file=f)
+        print("Origin:", test_y[i], file=f)
+        print("Proba:", end='', file=f)
         for j in range(2):
-            print(str(j), "-", pred[j][i], end=' ')
-        print("")
+            print(str(j), "-", pred[j][i], end=' ', file=f)
+        print("", file=f)
         result_temp, targeted = compare_multi_label(result[i], test_y[i])
         if result_temp:
             count = count + 1
