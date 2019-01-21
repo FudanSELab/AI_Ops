@@ -1,0 +1,12 @@
+4
+fault_one,1
+a,s,d,f
+fault_two,2
+a,s
+s,a
+fault_three,3
+s,a
+s,a
+s,a
+fault_four,1
+a,s,d
