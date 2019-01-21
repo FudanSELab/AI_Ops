@@ -3,19 +3,19 @@
 test_trace_id
 test_case_id
 trace_type
-trace_service
-trace_api
+trace_service - 有
+trace_api - 有
 trace_req_type
 entry_timestamp
 exit_timestamp
 trace_duration_ql
 trace_service_span
 
-?_included
-?_api
+?_included - 有
+?_api - 有
 ?_inst_id
-?_inst_status_code
-?_exec_time
+?_inst_status_code - 有
+?_exec_time - 有
 ?_var_0
 ?_var_1
 
@@ -27,28 +27,28 @@ trace_service_span
 ?_inst_node_memory
 ?_inst_node_cpu_limit
 ?_inst_node_memory_limit
-?_inst_node_mem_diff
-?_inst_node_cpu_diff
+?_inst_node_mem_diff  - 有
+?_inst_node_cpu_diff  - 有
 ?_node_instance_count
 ?_inst_up_time
-?_app_thread_count
+?_app_thread_count - 有
 
 ?_servicename
 ?_l_cpu
 ?_l_memory
 ?_confnumber
-?_readynumber
+?_readynumber - 有
 ?_ready_delay
 ?_down_delay
-?_shared_variable
+?_shared_variable - 有
 ?_volume_support
 ?_versioning
 ?_version_ratio
-?_dependent_db
-?_dependent_cache
+?_dependent_db - 有
+?_dependent_cache - 有
 
-?_inst_mem_diff
-?_inst_cpu_diff
+?_inst_mem_diff - 有
+?_inst_cpu_diff - 有
 
 expected_result
 y_exec_result
