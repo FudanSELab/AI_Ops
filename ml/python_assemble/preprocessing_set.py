@@ -7,6 +7,8 @@ from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
 
 
 service_index_map = {
@@ -167,7 +169,7 @@ def convert_data(df_raw: DataFrame):
     # return df_raw
 
 
-# 这个方法将一列y数值自动转换成[0 1 0 0]的形式（不会有额外的标签产生
+# 这个方法将一列y数值自动转换成[0 1 0 0]的形式(不会有额外的标签产生)
 def convert_y_multi_label(df_raw: DataFrame, y_name):
     y_list = df_raw[y_name].tolist()
     for i in range(len(y_list)):
@@ -218,6 +220,20 @@ def split_data(df_raw: DataFrame, ratio):
     ratio_part = df_raw.sample(frac=ratio)
     rest_part = df_raw.drop(ratio_part.index)
     return ratio_part, rest_part
+
+
+def data_split_train_test(df: DataFrame, y_name, test_ratio):
+    df_X, df_Y = df, df.pop(y_name)
+    X_train, X_test, Y_train, Y_test = train_test_split(df_X, df_Y,
+                                                        test_size=test_ratio,
+                                                        stratify=df_Y)
+    X_train_total = X_train
+    X_train_total[y_name] = Y_train
+    X_test_total = X_test
+    X_test_total[y_name] = Y_test
+    print("训练集大小：", len(X_train_total))
+    print("测试集大小：", len(X_test_total))
+    return X_train_total, X_test_total
 
 
 # 这里需要重新检查

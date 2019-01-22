@@ -230,9 +230,9 @@ def cut():
 
 
 if __name__ == "__main__":
-    # for_model_2()
+    for_model_2()
     # preprocessing()
-    train_version_2()
+    # train_version_2()
     # cut()
 
     # train()
