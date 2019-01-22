@@ -9,7 +9,7 @@ all_dim_label = [
 ]
 
 if __name__ == "__main__":
-    chunker = pd.read_csv("ready_use_max_without_sampling.csv", chunksize=1000, header=0, index_col="trace_id")
+    chunker = pd.read_csv(  "ready_use_max_without_sampling.csv", chunksize=1000, header=0, index_col="trace_id")
     i = 0
     clf = MLPClassifier()
     for piece in chunker:
@@ -20,6 +20,7 @@ if __name__ == "__main__":
         y_val = y.values
         clf.partial_fit(x_val, y_val, all_dim_label)
 
+    # 下面部分是抽出测试集用于测试，不是Partial_fit的一部分
     data = pd.read_csv("ready_use_max_without_sampling.csv", header=0, index_col="trace_id")
     data.pop("y_final_result")
     data.pop("y_issue_ms")

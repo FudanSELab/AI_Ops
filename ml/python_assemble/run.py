@@ -1,5 +1,6 @@
 import preprocessing_set
 import model
+import multi_label_model
 from pandas import DataFrame
 import pandas as pd
 from sklearn.utils import shuffle
@@ -32,6 +33,55 @@ def inspect_data(file_name, index_name):
     for col in cols:
         print(col)
 
+
+def for_model_2():
+    # First Set of CSV
+    trace_csv_one = ["110/trace_verified_sequence.csv",
+                     "110/seq_seq_sequence.csv",
+                     "110/seq_caller_sequence.csv"]
+    # Second Set of CSV
+    trace_csv_two = ["110/trace_verified_instance3.csv",
+                     "110/seq_seq_instance3.csv",
+                     "110/seq_caller_instance3.csv"]
+    # Third Set of CSV
+    trace_csv_three = ["110/trace_verified_config_2.csv",
+                       "110/seq_seq_config.csv",
+                       "110/seq_caller_config.csv"]
+    # Index Column Name
+    index_col = "trace_id"
+    # Read CONFIG and INSTANCE
+    df_one_0 = pd.read_csv(trace_csv_one[0], header=0, index_col=index_col)
+    df_one_1 = pd.read_csv(trace_csv_one[1], header=0, index_col=index_col)
+    df_one_1.pop("test_trace_id")
+    df_one_1.pop("test_case_id")
+    df_one_2 = pd.read_csv(trace_csv_one[2], header=0, index_col=index_col)
+    # 将各个部分的数据JOIN起来
+    df_total1 = preprocessing_set.merge_data(df_trace=df_one_0,
+                                             df_seq=df_one_1,
+                                             df_seq_caller=df_one_2)
+    df_total1.to_csv("110/model_1_seq_total")
+
+    df_two_0 = pd.read_csv(trace_csv_two[0], header=0, index_col=index_col)
+    df_two_1 = pd.read_csv(trace_csv_two[1], header=0, index_col=index_col)
+    df_two_1.pop("test_trace_id")
+    df_two_1.pop("test_case_id")
+    df_two_2 = pd.read_csv(trace_csv_two[2], header=0, index_col=index_col)
+    # 将各个部分的数据JOIN起来
+    df_total2 = preprocessing_set.merge_data(df_trace=df_two_0,
+                                             df_seq=df_two_1,
+                                             df_seq_caller=df_two_2)
+    df_total2.to_csv("110/model_1_inst_total")
+
+    df_three_0 = pd.read_csv(trace_csv_three[0], header=0, index_col=index_col)
+    df_three_1 = pd.read_csv(trace_csv_three[1], header=0, index_col=index_col)
+    df_three_1.pop("test_trace_id")
+    df_three_1.pop("test_case_id")
+    df_three_2 = pd.read_csv(trace_csv_three[2], header=0, index_col=index_col)
+    # 将各个部分的数据JOIN起来
+    df_total3 = preprocessing_set.merge_data(df_trace=df_three_0,
+                                             df_seq=df_three_1,
+                                             df_seq_caller=df_three_2)
+    df_total3.to_csv("110/model_1_config_total")
 
 # 完成预处理并保存数据集
 def preprocessing():
@@ -98,7 +148,8 @@ def train_version_2():
     df.pop("trace_service")
     df_train_raw, df_test = preprocessing_set.split_data(df, 0.8)
     df_train = preprocessing_set.sampling(df_train_raw, "y_issue_dim_type")
-    model.dt_rf_multi_label_single_privided_train_test(df_train, df_test, "y_issue_dim_type")
+    multi_label_model.knn_multi_label_provided_train_test(df_train,df_test,"y_issue_dim_type")
+    # model.dt_rf_multi_label_single_privided_train_test(df_train, df_test, "y_issue_dim_type")
     # model.dt_rf_multi_label_single_privided_train_test_no_multi_label(df_train,df_test,"y_final_result")
 
 
@@ -125,7 +176,6 @@ def train():
     # 选择训练和测试数据集
     df_train = df.loc[(df["y_issue_ms"] != "ts-preserve-service")
                        | (df["y_issue_dim_type"] != "seq")]
-
 
     #df_train = preprocessing_set.sampling(df_train, "y_issue_ms")
 
@@ -180,77 +230,10 @@ def cut():
 
 
 if __name__ == "__main__":
-
+    # for_model_2()
     # preprocessing()
     train_version_2()
     # cut()
 
     # train()
     # inspect()
-
-
-# if __name__ == "__main__":
-#     trace_csv = "17/trace_verified_instance.csv"
-#     trace_index_col = "trace_verified_instance_1_7.trace_id"
-#     seq_csv = "17/seq_seq_instance.csv"
-#     seq_index_col = "seq_seq_instance2.trace_id"
-#     seq_caller_csv = "17/seq_caller_instance.csv"
-#     seq_caller_index_col = "seq_caller_instance2.trace_id"
-#
-#     df_trace = pd.read_csv(trace_csv,
-#                            header=0,
-#                            index_col=trace_index_col)
-#     df_seq = pd.read_csv(seq_csv,
-#                          header=0,
-#                          index_col=seq_index_col)
-#     df_seq_caller = pd.read_csv(seq_caller_csv,
-#                                 header=0,
-#                                 index_col=seq_caller_index_col)
-#
-#     df_trace = preprocessing_set.drop_na_data(df_trace)
-#     df_trace = preprocessing_set.drop_all_same_data(df_trace)
-#     df_trace = preprocessing_set.select_data(df_trace)
-#
-#     df_seq = preprocessing_set.drop_na_data(df_seq)
-#     df_seq = preprocessing_set.drop_all_same_data(df_seq)
-#     df_seq = preprocessing_set.select_data(df_seq)
-#
-#     df_seq_caller = preprocessing_set.drop_na_data(df_seq_caller)
-#     df_seq_caller = preprocessing_set.drop_all_same_data(df_seq_caller)
-#     df_seq_caller = preprocessing_set.select_data(df_seq_caller)
-#
-#     df = preprocessing_set.merge_data(df_trace=df_trace,
-#                                       df_seq=df_seq,
-#                                       df_seq_caller=df_seq_caller)
-#
-#     df = preprocessing_set.fill_empty_data(df)
-#
-#
-#     # df = preprocessing_set.convert_data(df)
-#
-#
-#
-#     # df = df.loc[df["trace_verified_instance_1_7.y_issue_ms"] != "Success"]
-#
-#     df = preprocessing_set.convert_data(df)
-#     # df, y_multi_label = preprocessing_set.convert_y_multi_label(df, "trace_verified_instance_1_7.y_issue_ms")
-#     # df = preprocessing_set.convert_y_multi_label(df, "trace_verified_instance_1_7.y_issue_dim_type")
-#
-#     df.pop("trace_verified_instance_1_7.y_final_result")
-#     # df.pop("trace_verified_instance_1_7.y_issue_ms")
-#     df.pop("trace_verified_instance_1_7.y_issue_dim_type")
-#
-#     model.dt_single(df, "trace_verified_instance_1_7.y_issue_ms")
-#
-#
-#     # cv, parm = model.dt_multi_label(df, y_multi_label)
-#     # print_best_score(cv, parm)
-#
-#     # You must save the preprocessing result.
-#     # df.to_csv("test_run.csv")
-#
-#
-#     # cv, parm = model.dt(df, "trace_verified_instance_1_7.y_final_result")
-#     # cv, parm = model.dt(df, "trace_verified_instance_1_7.y_issue_ms")
-#     # # cv, parm = model.dt(df, "trace_verified_instance_1_7.y_issue_dim_type")
-#     # print_best_score(cv, parm)
