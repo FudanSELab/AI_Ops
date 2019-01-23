@@ -230,7 +230,18 @@ def cut():
 
 
 if __name__ == "__main__":
-    for_model_2()
+    df = pd.read_csv("ready_use_max_without_sampling.csv", header=0, index_col="trace_id")
+    df.pop("y_final_result")
+    df.pop("y_issue_ms")
+    df.pop("trace_api")
+    df.pop("trace_service")
+    multi_label_model.grid_search_knn(df=df, y_name="y_issue_dim_type",n_neighbors_list=[20, 50])
+    # average_precise = multi_label_model.cross_validation_knn(df=df,
+    #                                                          y_name="y_issue_dim_type",
+    #                                                          n_neighbors=100,
+    #                                                          n_splits=5)
+    # print(average_precise)
+    # for_model_2()
     # preprocessing()
     # train_version_2()
     # cut()
