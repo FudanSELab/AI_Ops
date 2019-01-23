@@ -4,16 +4,6 @@ import multi_label_model
 from pandas import DataFrame
 import pandas as pd
 from sklearn.utils import shuffle
-import numpy as np
-
-
-def print_best_score(gsearch, param_test, log_file_name):
-    f = open(log_file_name, 'w+')
-    print("Best score: %0.3f" % gsearch.best_score_, file=f)
-    print("Best parameters set:", file=f)
-    best_parameters = gsearch.best_params_
-    for param_name in sorted(param_test.keys()):
-        print("\t%s: %r" % (param_name, best_parameters[param_name]), file=f)
 
 
 # 尽可能缩小数据集以防内存占满
@@ -27,13 +17,7 @@ def get_min_data(df_raw: DataFrame):
     return df_raw
 
 
-def inspect_data(file_name, index_name):
-    df_raw = pd.read_csv(file_name, header=0, index_col=index_name)
-    cols = df_raw.keys()
-    for col in cols:
-        print(col)
-
-
+# 为向麒麟准备Mock的数据
 def for_model_2():
     # First Set of CSV
     trace_csv_one = ["110/trace_verified_sequence.csv",
@@ -82,6 +66,7 @@ def for_model_2():
                                              df_seq=df_three_1,
                                              df_seq_caller=df_three_2)
     df_total3.to_csv("110/model_1_config_total")
+
 
 # 完成预处理并保存数据集
 def preprocessing():
@@ -206,45 +191,13 @@ def inspect():
     print(df_test["y_issue_dim_type"].value_counts())
 
 
-# 将连续数值按照等分区间离散化
-def cut():
-    df = pd.read_csv("110/trace_verified_instance2.csv", header=0, index_col=0)
-    cols = df.keys()
-    for col in cols:
-        if col.endswith("_diff")\
-                or col.endswith("_cpu") \
-                or col.endswith("_memory") \
-                or col.endswith("_limit"):
-            df[col].fillna(0, inplace=True)
-            df[col] = pd.cut(df[col], bins=5, labels=[1, 2, 3, 4, 5])
-            print("Cut:", col)
-        elif col.endswith("_api"):
-            mapping_keys = df[col].drop_duplicates().values
-            mapping = {}
-            for i in range(len(mapping_keys)):
-                mapping[mapping_keys[i]] = i
-            df[col] = df[col].map(mapping)
-
-    df.to_csv("trace_verified_instance2_discretization.csv")
-    return df
-
-
 if __name__ == "__main__":
     df = pd.read_csv("ready_use_max_without_sampling.csv", header=0, index_col="trace_id")
     df.pop("y_final_result")
     df.pop("y_issue_ms")
     df.pop("trace_api")
     df.pop("trace_service")
-    multi_label_model.grid_search_knn(df=df, y_name="y_issue_dim_type",n_neighbors_list=[20, 50])
-    # average_precise = multi_label_model.cross_validation_knn(df=df,
-    #                                                          y_name="y_issue_dim_type",
-    #                                                          n_neighbors=100,
-    #                                                          n_splits=5)
-    # print(average_precise)
-    # for_model_2()
-    # preprocessing()
-    # train_version_2()
-    # cut()
-
-    # train()
-    # inspect()
+    multi_label_model.knn_total(df=df,
+                               y_name="y_issue_dim_type",
+                               test_ratio=0.2,
+                               n_neighbors_list=[5,30,100])
