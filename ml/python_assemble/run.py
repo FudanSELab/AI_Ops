@@ -6,17 +6,6 @@ import pandas as pd
 from sklearn.utils import shuffle
 
 
-# 尽可能缩小数据集以防内存占满
-def get_min_data(df_raw: DataFrame):
-    # 丢弃全列为NA的数据
-    df_raw = preprocessing_set.drop_na_data(df_raw)
-    # 丢弃全列值相同的数据
-    df_raw = preprocessing_set.drop_all_same_data(df_raw)
-    # 丢弃不需要的列
-    df_raw = preprocessing_set.select_data(df_raw)
-    return df_raw
-
-
 # 为向麒麟准备Mock的数据
 def for_model_2():
     # First Set of CSV
@@ -66,6 +55,17 @@ def for_model_2():
                                              df_seq=df_three_1,
                                              df_seq_caller=df_three_2)
     df_total3.to_csv("110/model_1_config_total")
+
+########################以下方法仅限Model_1#########################
+# 尽可能缩小数据集以防内存占满
+def get_min_data(df_raw: DataFrame):
+    # 丢弃全列为NA的数据
+    df_raw = preprocessing_set.drop_na_data(df_raw)
+    # 丢弃全列值相同的数据
+    df_raw = preprocessing_set.drop_all_same_data(df_raw)
+    # 丢弃不需要的列
+    df_raw = preprocessing_set.select_data(df_raw)
+    return df_raw
 
 
 # 完成预处理并保存数据集
@@ -191,13 +191,34 @@ def inspect():
     print(df_test["y_issue_dim_type"].value_counts())
 
 
+########################以下方法仅限Model_2#########################
+def preprocessing_model2():
+    df = pd.read_csv("model2/model2.csv", header=0, index_col=None)
+    keys = df.keys()
+    for key in keys:
+        print(key)
+
+
 if __name__ == "__main__":
-    df = pd.read_csv("ready_use_max_without_sampling.csv", header=0, index_col="trace_id")
-    df.pop("y_final_result")
-    df.pop("y_issue_ms")
-    df.pop("trace_api")
-    df.pop("trace_service")
-    multi_label_model.knn_total(df=df,
-                               y_name="y_issue_dim_type",
-                               test_ratio=0.2,
-                               n_neighbors_list=[5,30,100])
+   preprocessing()
+
+
+
+
+
+
+
+
+
+
+
+
+    # df = pd.read_csv("ready_use_max_without_sampling.csv", header=0, index_col="trace_id")
+    # df.pop("y_final_result")
+    # df.pop("y_issue_ms")
+    # df.pop("trace_api")
+    # df.pop("trace_service")
+    # multi_label_model.knn_total(df=df,
+    #                            y_name="y_issue_dim_type",
+    #                            test_ratio=0.2,
+    #                            n_neighbors_list=[5,30,100])

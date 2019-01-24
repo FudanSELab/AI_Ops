@@ -1,0 +1,64 @@
+S1__S2_seq
+S2__S1_seq
+S1__S3_seq
+S3__S1_seq
+S1__S4_seq
+S4__S1_seq
+S1__S5_seq
+S5__S1_seq
+S1__S6_seq
+S6__S1_seq
+S2__S3_seq
+S3__S2_seq
+S2__S4_seq
+S4__S2_seq
+S2__S5_seq
+S5__S2_seq
+S2__S6_seq
+S6__S2_seq
+S3__S4_seq
+S4__S3_seq
+S3__S5_seq
+S5__S3_seq
+S3__S6_seq
+S6__S3_seq
+S4__S5_seq
+S5__S4_seq
+S4__S6_seq
+S6__S4_seq
+S5__S6_seq
+S6__S5_seq 以上所有都被选中
+status_code 选中
+exec_time 选中
+var0 选中
+inst_mem
+inst_cpu
+node_id
+node_cpu
+node_mem
+node_cpu_limit
+node_mem_limit
+node_mem_diff 选中
+node_cpu_diff 选中
+inst_up_time
+app_thread_count 选中
+service_cpu_limit
+service_mem_limit
+service_inst_config_number
+service_inst_ready_number 选中
+ready_delay
+down_delay
+shared_variable 选中
+volume_support
+service_versioning
+version_ratio
+dependent_db 选中
+dependent_cache 选中
+inst_mem_diff 选中
+inst_cpu_diff 选中
+expected_result
+exec_result
+issue_ms 选中
+issue_type 选中
+issue_content
+final_result 选中
