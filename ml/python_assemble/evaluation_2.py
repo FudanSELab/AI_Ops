@@ -50,29 +50,31 @@ def split_data_to_10_parts(df: DataFrame, file_list):
 
 # 在使用前需要注意准备好数据
 def calculate_parts(n_parts, file_list, y_name):
-    df_train = pd.read_csv(file_list[0], header=0, index_col="trace_id")
-    df_test = pd.read_csv(file_list[9], header=0, index_col="trace_id")
-    i = 1
-    while i <= n_parts:
-        df_train_new = pd.read_csv(file_list[i], header=0, index_col="trace_id")
+    df_train = pd.read_csv(file_list[0], header=0, index_col=0)
+    df_test = pd.read_csv(file_list[9], header=0, index_col=0)
+    i = 0
+    while i < n_parts:
+        df_train_new = pd.read_csv(file_list[i], header=0, index_col=0)
         df_train = preprocessing_set.append_data(df_train, df_train_new)
         i += 1
     precise = multi_label_model.rf_multi_label_provided_train_test_given_params(
         df_train=df_train,
         df_test=df_test,
         y_name=y_name,
-        n_estimators=10,
-        min_samples_leaf=1000
+        n_estimators=3,
+        min_samples_leaf=2000
     )
     print("目标类型", y_name, "比例:", str((n_parts+1)/10.0), precise)
 
 
 if __name__ == "__main__":
-    df = pd.read_csv("fault_without_sampling.csv", header=0, index_col="trace_id")
-    df.pop("y_final_result")
+    df = pd.read_csv("ready_use_max_final_result.csv", header=0, index_col="trace_id")
+    df = df.sample(frac=0.1)
+    df.pop("y_issue_dim_type")
     df.pop("y_issue_ms")
     df.pop("trace_api")
     df.pop("trace_service")
-    split_data_to_10_parts(df,data_fault_list)
+    df = preprocessing_set.sampling(df, "y_final_result")
+    split_data_to_10_parts(df, data_total_list)
     for i in range(0, 9):
-        calculate_parts(i, data_fault_list, "y_issue_dim_type")
+        calculate_parts(i, data_total_list, "y_final_result")

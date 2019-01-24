@@ -93,15 +93,22 @@ def convert_y_multi_label_by_name(df_raw: DataFrame, y_name):
     y_multi_label = []
     for i in range(len(y_list)):
         y_service_name = y_list[i]
-        # TODO: 需要注意，不同类型的列用的index_map不一样
-        # y_index = service_index_map.get(y_service_name)
-        y_index = dim_index_map.get(y_service_name)
-        temp_y_multi_label = np.zeros(3)
-        temp_y_multi_label[y_index] = 1
-        y_multi_label.append(temp_y_multi_label)
-    #     y_list[i] = [y_list[i]]
-    # y_multilabel = MultiLabelBinarizer().fit_transform(y_list)
-
+        if y_name.endswith("ms"):
+            y_index = service_index_map.get(y_service_name)
+            temp_y_multi_label = np.zeros(42)
+            temp_y_multi_label[y_index] = 1
+            y_multi_label.append(temp_y_multi_label)
+        elif y_name.endswith("dim_type"):
+            y_index = dim_index_map.get(y_service_name)
+            temp_y_multi_label = np.zeros(3)
+            temp_y_multi_label[y_index] = 1
+            y_multi_label.append(temp_y_multi_label)
+        else:
+            y_service_name = str(y_service_name)
+            y_index = result_index_map.get(y_service_name)
+            temp_y_multi_label = np.zeros(2)
+            temp_y_multi_label[y_index] = 1
+            y_multi_label.append(temp_y_multi_label)
     df_raw.pop(y_name)
     return df_raw, y_multi_label
 
