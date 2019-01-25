@@ -57,19 +57,30 @@ def calculate_parts(n_parts, file_list, y_name):
         df_train_new = pd.read_csv(file_list[i], header=0, index_col=0)
         df_train = preprocessing_set.append_data(df_train, df_train_new)
         i += 1
-    precise = multi_label_model.rf_multi_label_provided_train_test_given_params(
-        df_train=df_train,
-        df_test=df_test,
-        y_name=y_name,
-        n_estimators=3,
-        min_samples_leaf=2000
-    )
-    print("目标类型", y_name, "比例:", str((n_parts+1)/10.0), precise)
+    if y_name.endswith("_final_result"):
+        accuracy, recall = multi_label_model.rf_multi_label_provided_train_test_given_params(
+            df_train=df_train,
+            df_test=df_test,
+            y_name=y_name,
+            n_estimators=3,
+            min_samples_leaf=2000
+        )
+        F = (2 * accuracy * recall) / (accuracy + recall)
+        print("目标类型", y_name, "比例:", str((n_parts+1)/10.0), "准确率:", accuracy, "召回率:", recall)
+        print("F值:" + str(F))
+    else:
+        accuracy = multi_label_model.rf_multi_label_provided_train_test_given_params(
+            df_train=df_train,
+            df_test=df_test,
+            y_name=y_name,
+            n_estimators=3,
+            min_samples_leaf=2000
+        )
+        print("目标类型", y_name, "比例:", str((n_parts+1)/10.0), "准确率:", accuracy)
 
 
 if __name__ == "__main__":
     df = pd.read_csv("ready_use_max_final_result.csv", header=0, index_col="trace_id")
-    df = df.sample(frac=0.1)
     df.pop("y_issue_dim_type")
     df.pop("y_issue_ms")
     df.pop("trace_api")

@@ -90,6 +90,20 @@ def calculate_precise(test_y, result):
     return count / total_count
 
 
+# Recall率仅仅用于T-F预测
+def calculte_recall(test_y, result):
+    total_count = len(test_y)
+    real_fault_count = 0
+    targeted_fault_count = 0
+    for i in range(total_count):
+        if test_y[i][0] == 0 and test_y[i][1] == 1:
+            real_fault_count = real_fault_count + 1
+            if result[i][0] == 0 and result[i][1] == 1:
+                targeted_fault_count = targeted_fault_count + 1
+    recall = targeted_fault_count / real_fault_count
+    return recall
+
+
 # 给定参数的多标签MLP
 def mlp_multi_label_provided_train_test_given_params(df_train: DataFrame,
                                                      df_test: DataFrame,
@@ -132,8 +146,12 @@ def rf_multi_label_provided_train_test_given_params(df_train: DataFrame,
                                  n_estimators=n_estimators)
     clf.fit(X=train_x, y=train_y)
     result = clf.predict(test_x)
-    precise = calculate_precise(test_y, result)
-    return precise
+    accuracy = calculate_precise(test_y, result)
+    if y_name.endswith("_final_result"):
+        recall = calculte_recall(test_y, result)
+        return accuracy, recall
+    else:
+        return accuracy
 
 
 

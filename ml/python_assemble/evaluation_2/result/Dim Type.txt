@@ -1,20 +1,4 @@
-﻿D:\Python\Python35\python.exe "D:\Program Files\JetBrains\PyCharm 2018.3.1\helpers\pydev\pydevconsole.py" --mode=client --port=13651
-import sys; print('Python %s on %s' % (sys.version, sys.platform))
-sys.path.extend(['E:\\Documents\\GitHub\\AI_Ops\\trace-compare', 'E:\\Documents\\GitHub\\AI_Ops\\trace-compare\\src', 'E:/Documents/GitHub/AI_Ops/trace-compare'])
-PyDev console: starting.
-Python 3.5.4 (v3.5.4:3f56838, Aug  8 2017, 02:17:05) [MSC v.1900 64 bit (AMD64)] on win32
-runfile('E:/Documents/GitHub/AI_Ops/ml/python_assemble/evaluation_2.py', wdir='E:/Documents/GitHub/AI_Ops/ml/python_assemble')
-完成 evaluation_2/evaluation_fault_part0.csv 数量 2897
-完成 evaluation_2/evaluation_fault_part1.csv 数量 2897
-完成 evaluation_2/evaluation_fault_part2.csv 数量 2897
-完成 evaluation_2/evaluation_fault_part3.csv 数量 2897
-完成 evaluation_2/evaluation_fault_part4.csv 数量 2897
-完成 evaluation_2/evaluation_fault_part5.csv 数量 2897
-完成 evaluation_2/evaluation_fault_part6.csv 数量 2897
-完成 evaluation_2/evaluation_fault_part7.csv 数量 2896
-完成 evaluation_2/evaluation_fault_part8.csv 数量 2896
-完成 evaluation_2/evaluation_fault_part9.csv 数量 2896
-数据拆分完成
+﻿======第一次======
 
 比例: 0.0(随机) 0.33
 比例: 0.1 0.42955801104972374
