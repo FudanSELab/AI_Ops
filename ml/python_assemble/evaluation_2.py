@@ -58,15 +58,16 @@ def calculate_parts(n_parts, file_list, y_name):
         df_train = preprocessing_set.append_data(df_train, df_train_new)
         i += 1
     if y_name.endswith("_final_result"):
-        accuracy, recall = multi_label_model.rf_multi_label_provided_train_test_given_params(
+        accuracy, recall, precision = multi_label_model.rf_multi_label_provided_train_test_given_params(
             df_train=df_train,
             df_test=df_test,
             y_name=y_name,
             n_estimators=3,
             min_samples_leaf=2000
         )
-        F = (2 * accuracy * recall) / (accuracy + recall)
-        print("目标类型", y_name, "比例:", str((n_parts+1)/10.0), "准确率:", accuracy, "召回率:", recall)
+        F = (2 * precision * recall) / (precision + recall)
+        print("目标类型", y_name, "比例:", str((n_parts+1)/10.0),
+              "Accuracy:", accuracy, "Recall:", recall, "Precision:", precision)
         print("F值:" + str(F))
     else:
         accuracy = multi_label_model.rf_multi_label_provided_train_test_given_params(
