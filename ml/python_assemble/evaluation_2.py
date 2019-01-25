@@ -74,19 +74,29 @@ def calculate_parts(n_parts, file_list, y_name):
             df_train=df_train,
             df_test=df_test,
             y_name=y_name,
-            n_estimators=3,
-            min_samples_leaf=2000
+            n_estimators=10,
+            min_samples_leaf=600
         )
-        print("目标类型", y_name, "比例:", str((n_parts+1)/10.0), "准确率:", accuracy)
+        print("目标类型", y_name, "比例:", str((n_parts+1)/10.0), "Accuracy:", accuracy)
 
 
 if __name__ == "__main__":
-    df = pd.read_csv("ready_use_max_final_result.csv", header=0, index_col="trace_id")
+    # df = pd.read_csv("ready_use_max_final_result.csv", header=0, index_col="trace_id")
+    # df.pop("y_issue_dim_type")
+    # df.pop("y_issue_ms")
+    # df.pop("trace_api")
+    # df.pop("trace_service")
+    # df = preprocessing_set.sampling(df, "y_final_result")
+    # split_data_to_10_parts(df, data_total_list)
+    # for i in range(0, 9):
+    #     calculate_parts(i, data_total_list, "y_final_result")
+
+    df = pd.read_csv("fault_without_sampling.csv", header=0, index_col="trace_id")
     df.pop("y_issue_dim_type")
-    df.pop("y_issue_ms")
+    # df.pop("y_issue_ms")
     df.pop("trace_api")
     df.pop("trace_service")
-    df = preprocessing_set.sampling(df, "y_final_result")
-    split_data_to_10_parts(df, data_total_list)
+    # df = preprocessing_set.sampling(df, "y_issue_ms")
+    split_data_to_10_parts(df, data_fault_list)
     for i in range(0, 9):
-        calculate_parts(i, data_total_list, "y_final_result")
+        calculate_parts(i, data_fault_list, "y_issue_ms")
