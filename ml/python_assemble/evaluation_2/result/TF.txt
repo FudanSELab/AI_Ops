@@ -5,6 +5,7 @@ PyDev console: starting.
 Python 3.5.4 (v3.5.4:3f56838, Aug  8 2017, 02:17:05) [MSC v.1900 64 bit (AMD64)] on win32
 runfile('E:/Documents/GitHub/AI_Ops/ml/python_assemble/evaluation_2.py', wdir='E:/Documents/GitHub/AI_Ops/ml/python_assemble')
 Base: 0.5
+目标类型 y_final_result 比例: 0.0(随机) 0.50
 目标类型 y_final_result 比例: 0.1 0.7003657749408305
 目标类型 y_final_result 比例: 0.2 0.7676970522843004
 目标类型 y_final_result 比例: 0.3 0.8166678620096106

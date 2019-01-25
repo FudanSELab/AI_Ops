@@ -15,7 +15,7 @@ runfile('E:/Documents/GitHub/AI_Ops/ml/python_assemble/evaluation_2.py', wdir='E
 完成 evaluation_2/evaluation_fault_part8.csv 数量 2896
 完成 evaluation_2/evaluation_fault_part9.csv 数量 2896
 数据拆分完成
-Base: 0.9
+目标类型 y_issue_ms 比例: 0.0(随机) 0.091
 目标类型 y_issue_ms 比例: 0.1 0.21236187845303867
 目标类型 y_issue_ms 比例: 0.2 0.40814917127071826
 目标类型 y_issue_ms 比例: 0.3 0.5904696132596685
