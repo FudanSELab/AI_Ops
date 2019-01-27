@@ -4,6 +4,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 import preprocessing_set
 from sklearn.model_selection import KFold
+import calculation
 
 
 def compare_multi_label(x, y):
@@ -154,17 +155,22 @@ def rf_multi_label_provided_train_test_given_params(df_train: DataFrame,
                                                     min_samples_leaf):
     train_x, train_y = preprocessing_set.convert_y_multi_label_by_name(df_train, y_name)
     test_x, test_y = preprocessing_set.convert_y_multi_label_by_name(df_test, y_name)
+    print(test_y)
     clf = RandomForestClassifier(min_samples_leaf=min_samples_leaf,
                                  n_estimators=n_estimators)
     clf.fit(X=train_x, y=train_y)
     result = clf.predict(test_x)
     accuracy = calculate_accuracy(test_y, result)
     if y_name.endswith("_final_result"):
-        recall = calculate_recall(test_y, result)
-        precision = calculate_precision(test_y, result)
-        return accuracy, recall, precision
-    else:
-        return accuracy
+        return calculation.calculate_a_p_r_f(test_y,result,2)
+        # recall = calculate_recall(test_y, result)
+        # precision = calculate_precision(test_y, result)
+        # return accuracy, recall, precision
+    elif y_name.endswith("_dim_type"):
+        return calculation.calculate_a_p_r_f(test_y,result,3)
+        # return accuracy
+    elif y_name.endswith("_ms"):
+        return calculation.calculate_a_p_r_f(test_y,result,42)
 
 
 # 给定参数和总数据集，计算交叉验证准确率

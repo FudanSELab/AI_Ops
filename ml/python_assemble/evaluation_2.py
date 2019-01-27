@@ -57,46 +57,57 @@ def calculate_parts(n_parts, file_list, y_name):
         df_train_new = pd.read_csv(file_list[i], header=0, index_col=0)
         df_train = preprocessing_set.append_data(df_train, df_train_new)
         i += 1
-    if y_name.endswith("_final_result"):
-        accuracy, recall, precision = multi_label_model.rf_multi_label_provided_train_test_given_params(
-            df_train=df_train,
-            df_test=df_test,
-            y_name=y_name,
-            n_estimators=3,
-            min_samples_leaf=2000
-        )
-        F = (2 * precision * recall) / (precision + recall)
-        print("目标类型", y_name, "比例:", str((n_parts+1)/10.0),
-              "Accuracy:", accuracy, "Recall:", recall, "Precision:", precision)
-        print("F值:" + str(F))
-    else:
-        accuracy = multi_label_model.rf_multi_label_provided_train_test_given_params(
-            df_train=df_train,
-            df_test=df_test,
-            y_name=y_name,
-            n_estimators=10,
-            min_samples_leaf=600
-        )
-        print("目标类型", y_name, "比例:", str((n_parts+1)/10.0), "Accuracy:", accuracy)
+
+    print("================Part", n_parts)
+    multi_label_model.rf_multi_label_provided_train_test_given_params(
+        df_train=df_train,
+        df_test=df_test,
+        y_name=y_name,
+        n_estimators=3,
+        min_samples_leaf=9000
+    )
+    # if y_name.endswith("_final_result"):
+    #     accuracy, recall, precision = multi_label_model.rf_multi_label_provided_train_test_given_params(
+    #         df_train=df_train,
+    #         df_test=df_test,
+    #         y_name=y_name,
+    #         n_estimators=3,
+    #         min_samples_leaf=2000
+    #     )
+    #     F = (2 * precision * recall) / (precision + recall)
+    #     print("目标类型", y_name, "比例:", str((n_parts+1)/10.0),
+    #           "Accuracy:", accuracy, "Recall:", recall, "Precision:", precision)
+    #     print("F值:" + str(F))
+    # else:
+    #     accuracy = multi_label_model.rf_multi_label_provided_train_test_given_params(
+    #         df_train=df_train,
+    #         df_test=df_test,
+    #         y_name=y_name,
+    #         n_estimators=10,
+    #         min_samples_leaf=600
+    #     )
+    #     print("目标类型", y_name, "比例:", str((n_parts+1)/10.0), "Accuracy:", accuracy)
 
 
 if __name__ == "__main__":
-    # df = pd.read_csv("ready_use_max_final_result.csv", header=0, index_col="trace_id")
-    # df.pop("y_issue_dim_type")
+    df = pd.read_csv("ready_use_max_final_result.csv", header=0, index_col="trace_id")
+    df.pop("y_issue_dim_type")
+    df.pop("y_issue_ms")
+    df.pop("trace_api")
+    df.pop("trace_service")
+    df = df.loc[(df["y_final_result"] == 0)
+                       | (df["y_final_result"] == 1)]
+    df = preprocessing_set.sampling(df, "y_final_result")
+    split_data_to_10_parts(df, data_total_list)
+    for i in range(0, 9):
+        calculate_parts(i, data_total_list, "y_final_result")
+
+    # df = pd.read_csv("fault_without_sampling.csv", header=0, index_col="trace_id")
+    # # df.pop("y_issue_dim_type")
     # df.pop("y_issue_ms")
     # df.pop("trace_api")
     # df.pop("trace_service")
-    # df = preprocessing_set.sampling(df, "y_final_result")
-    # split_data_to_10_parts(df, data_total_list)
+    # # df = preprocessing_set.sampling(df, "y_issue_dim_type")
+    # split_data_to_10_parts(df, data_fault_list)
     # for i in range(0, 9):
-    #     calculate_parts(i, data_total_list, "y_final_result")
-
-    df = pd.read_csv("fault_without_sampling.csv", header=0, index_col="trace_id")
-    df.pop("y_issue_dim_type")
-    # df.pop("y_issue_ms")
-    df.pop("trace_api")
-    df.pop("trace_service")
-    # df = preprocessing_set.sampling(df, "y_issue_ms")
-    split_data_to_10_parts(df, data_fault_list)
-    for i in range(0, 9):
-        calculate_parts(i, data_fault_list, "y_issue_ms")
+    #     calculate_parts(i, data_fault_list, "y_issue_dim_type")
