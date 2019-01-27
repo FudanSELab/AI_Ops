@@ -11,10 +11,10 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
               test_trace_file_path, test_spans_file_path,
               ml_name):
 
-    clf_LE = None
-    clf_MS = None
-    clf_FT = None
-    clf_Model2 = None
+    clf_le = None
+    clf_ms = None
+    clf_ft = None
+    clf_model2 = None
 
     # Train LE Model
     print("LE Model训练开始")
@@ -30,14 +30,14 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     le_train_x, le_train_y = preprocessing_set.convert_y_multi_label_by_name(df_tf_all, y_le)
     if ml_name == "rf":
         print("Big Model", "LE", "RF")
-        clf_LE = RandomForestClassifier(min_samples_leaf=3000, n_estimators=10)
+        clf_le = RandomForestClassifier(min_samples_leaf=3000, n_estimators=10)
     elif ml_name == "knn":
         print("Big Model", "LE", "KNN")
-        clf_LE = KNeighborsClassifier(n_neighbors=200)
+        clf_le = KNeighborsClassifier(n_neighbors=200)
     else:
         print("Big Model", "LE", "MLP")
-        clf_LE = MLPClassifier(hidden_layer_sizes=[10, 10], max_iter=200)
-    clf_LE.fit(le_train_x, le_train_y)
+        clf_le = MLPClassifier(hidden_layer_sizes=[10, 10], max_iter=200)
+    clf_le.fit(le_train_x, le_train_y)
     print("LE Model训练完毕")
 
     # Train MS Model
@@ -51,14 +51,14 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     ms_train_x, ms_train_y = preprocessing_set.convert_y_multi_label_by_name(df_fault_all_ms, y_ms)
     if ml_name == "rf":
         print("Big Model", "MS", "RF")
-        clf_MS = RandomForestClassifier(min_samples_leaf=300, n_estimators=10)
+        clf_ms = RandomForestClassifier(min_samples_leaf=300, n_estimators=10)
     elif ml_name == "knn":
         print("Big Model", "MS", "KNN")
-        clf_MS = KNeighborsClassifier(n_neighbors=200)
+        clf_ms = KNeighborsClassifier(n_neighbors=200)
     else:
         print("Big Model", "MS", "MLP")
-        clf_MS = MLPClassifier(hidden_layer_sizes=[10, 10], max_iter=200)
-    clf_MS.fit(X=ms_train_x, y=ms_train_y)
+        clf_ms = MLPClassifier(hidden_layer_sizes=[10, 10], max_iter=200)
+    clf_ms.fit(X=ms_train_x, y=ms_train_y)
     print("MS Model训练结束")
 
     # Train FT Model
@@ -72,14 +72,14 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     ft_train_x, ft_train_y = preprocessing_set.convert_y_multi_label_by_name(df_fault_all_ft, y_ft)
     if ml_name == "rf":
         print("Big Model", "FT", "RF")
-        clf_FT = RandomForestClassifier(min_samples_leaf=1200, n_estimators=10)
+        clf_ft = RandomForestClassifier(min_samples_leaf=1200, n_estimators=10)
     elif ml_name == "knn":
         print("Big Model", "FT", "KNN")
-        clf_FT = KNeighborsClassifier(n_neighbors=200)
+        clf_ft = KNeighborsClassifier(n_neighbors=200)
     else:
         print("Big Model", "FT", "MLP")
-        clf_FT = MLPClassifier(hidden_layer_sizes=[10, 10], max_iter=200)
-    clf_FT.fit(X=ft_train_x, y=ft_train_y)
+        clf_ft = MLPClassifier(hidden_layer_sizes=[10, 10], max_iter=200)
+    clf_ft.fit(X=ft_train_x, y=ft_train_y)
     print("FT Model训练结束")
 
     # Train Model_2
@@ -93,21 +93,25 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     model2_train_x, model2_train_y = preprocessing_set.convert_y_multi_label_by_name(df_model2_all, y_model2)
     if ml_name == "rf":
         print("Big Model", "MODEL_2", "RF")
-        clf_Model2 = RandomForestClassifier(min_samples_leaf=1200, n_estimators=10)
+        clf_model2 = RandomForestClassifier(min_samples_leaf=1200, n_estimators=10)
     elif ml_name == "knn":
         print("Big Model", "MODEL_2", "KNN")
-        clf_Model2 = KNeighborsClassifier(n_neighbors=200)
+        clf_model2 = KNeighborsClassifier(n_neighbors=200)
     else:
         print("Big Model", "MODEL_2", "MLP")
-        clf_Model2 = MLPClassifier(hidden_layer_sizes=[10, 10], max_iter=200)
-    clf_Model2.fit(X=model2_train_x, y=model2_train_y)
+        clf_model2 = MLPClassifier(hidden_layer_sizes=[10, 10], max_iter=200)
+    clf_model2.fit(X=model2_train_x, y=model2_train_y)
     print("Model2 Model训练结束")
 
     print("四个小模型训练完成，开始进行测试集读取，每条测试集需要抽取")
+
+    # ======================预测部分
+    # 用来储存最终德结果集
     le_test_result = []
     ms_test_result = []
     ft_test_result = []
 
+    # 读入测试数据，并分离出真实的final_result,ms和dim_type
     df_test_trace = pd.read_csv(test_trace_file_path, header=0, index_col="trace_id")
     real_ms = df_test_trace.pop("y_issue_ms")
     df_test_trace = df_test_trace.loc[(df_test_trace["y_final_result"] == 1)]
@@ -117,29 +121,77 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     # real_result = df_test_trace.pop("y_final_result")
     df_test_trace.pop("trace_api")
     df_test_trace.pop("trace_service")
+    # 读入SPAN测试数据。这个与前面读入的测试数据的Index是匹配的，只是Trace拆分出的Span而已
     df_test_spans = pd.read_csv(test_spans_file_path, header=0, index_col=None)
 
-    indexs = df_test_trace.index.tolist()
-
+    # 记录使用了Model_1和Model_2的数量
     model_2_count = 0
     model_1_count = 0
+
+    # 记录所有Trace的Index以便后=后续进行记录和提取
+    indexs = df_test_trace.index.tolist()
     for temp_trace_index in indexs:
+        # 抽出测试集中的一条Trace
         temp_trace = df_test_trace.loc[temp_trace_index, :]
         temp_trace = [temp_trace]
-
-        temp_trace_result = clf_LE.predict(temp_trace)
-        temp_trace_proba = clf_LE.predict_proba(temp_trace)
-
+        # 预测这个Trace故障与否以及结果的置信度
+        temp_trace_result = clf_le.predict(temp_trace)
+        temp_trace_proba = clf_le.predict_proba(temp_trace)
+        # 如果置信度不符合预期，则进行Model_2预测，否则使用Model_1现有的模型预测
         if (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[1][0][1] < 0.3) \
                 or (temp_trace_result[0][0] == 1 and temp_trace_result[0][1] == 0 and temp_trace_proba[0][0][1] < 0.3):
             model_2_count += 1
+            # 根据Trace_id把对应的一串Span抽取出来
+            spans_set = df_test_spans.loc[df_test_spans["trace_id"] == temp_trace_index]
+            # 服务名不代入训练模型，但是有用，要先记录下来
+            spans_set_ms_set = preprocessing_set.convert_y_multi_label_by_name(spans_set, "y_issue_ms")
+            spans_set_ms_set = spans_set.pop("y_issue_ms") # todo 检查一下服务名那列到底是什么属性名
+            # 准备储存这些Span的结果，以便后续转化输出
+            spans_set_size = len(spans_set)
+            span_set_dim_result_collect = []
+            span_set_dim_confidence_collect = []
+            # 执行并存储每个Span的结果
+            for i in range(spans_set_size):
+                temp_span = spans_set.iloc[i]
+                temp_span_result = clf_model2.predict(temp_span)
+                temp_span_proba = clf_model2.predict_proba(temp_span)
+                span_set_dim_result_collect.append(temp_span_result[0])
+                span_set_dim_confidence_collect.append([temp_span_proba[0][0], temp_span_proba[1][0], temp_span_proba[2][0]])
+            # 计算最终结果 1.计算le
+            temp_trace_model2_le = True
+            for i in range(spans_set_size):
+                if span_set_dim_result_collect[i][0] != 0 \
+                    or span_set_dim_result_collect[i][1] != 0 \
+                        or span_set_dim_result_collect[i][2] != 0:
+                            temp_trace_model2_le = False
+                            break
+            if temp_trace_model2_le == False:
+                le_test_result.append([0, 1])
+            else:
+                le_test_result.append([1, 0])
+            # 计算最终结果 2.计算Dim_Type
+            temp_trace_model_2_max_index = -1
+            temp_trace_model_2_max_confidence = -1.0
+            for i in range(spans_set_size):
+                temp_confidence = max(span_set_dim_confidence_collect[i][0][0], span_set_dim_confidence_collect[i][0][1]) \
+                                  + max(span_set_dim_confidence_collect[i][1][0], span_set_dim_confidence_collect[i][1][1]) \
+                                  + max(span_set_dim_confidence_collect[i][1][0], span_set_dim_confidence_collect[i][2][1])
+                if temp_confidence > temp_trace_model_2_max_confidence:
+                    temp_trace_model_2_max_index = i
+                    temp_trace_model_2_max_confidence = temp_confidence
+            ft_test_result.append(span_set_dim_result_collect[temp_trace_model_2_max_index])
+            # 计算最终结果 3.计算MS
+            ms_test_result.append(spans_set_ms_set[temp_trace_model_2_max_index])
+
         else:
             model_1_count += 1
-            ms_pred_result = clf_MS.predict(temp_trace)
-            ft_pred_result = clf_FT.predict(temp_trace)
+            ms_pred_result = clf_ms.predict(temp_trace)
+            ft_pred_result = clf_ft.predict(temp_trace)
             le_test_result.append(temp_trace_result[0])
             ms_test_result.append(ms_pred_result[0])
             ft_test_result.append(ft_pred_result[0])
+
+    # 输出结果并计算Precision, Recall与F1值
     print("使用Model1", model_1_count, "使用Model2", model_2_count)
     calculation.calculate_a_p_r_f(real_dim_type, ft_test_result, 3)
     calculation.calculate_a_p_r_f(real_result, le_test_result, 2)
