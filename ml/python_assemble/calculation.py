@@ -1,6 +1,42 @@
+def calculate_a_p_f_single_label(y_real, y_predict):
+    real = []
+    result = []
+    test_num = len(y_real)
+
+    # 0为负，1为正
+    for j in range(test_num):
+        if y_real[j][0] == 1 and y_real[j][1] == 0:
+            real.append(0)
+        else:
+            real.append(1)
+        if y_predict[j][0] == 1 and y_predict[j][1] == 0:
+            result.append(0)
+        else:
+            result.append(1)
+    TP = 1  # 预测为正，实际为正
+    FP = 1  # 预测为正，实际为负
+    TN = 1  # 预测为负，实际为负
+    FN = 1  # 预测为负，实际为正
+    for j in range(test_num):
+        if real[j] == 1 and result[j] == 1:
+            TP += 1
+        elif real[j] == 0 and result[j] == 1:
+            FP += 1
+        elif real[j] == 0 and result[j] == 0:
+            TN += 1
+        else:
+            FN += 1
+    precision = TP / (TP + FP)
+    recall = TP / (TP + FN)
+    F1 = (2 * precision * recall) / (precision + recall)
+    print("单Recall", recall, "单Precision", precision, "单F1", F1)
+    return precision, recall, F1
 
 
 def calculate_a_p_r_f(y_real, y_predict, label_num):
+    if label_num == 2:
+        return calculate_a_p_f_single_label(y_real, y_predict)
+
     test_num = len(y_real)
 
     total_accuracy = 0.0   # (TP+TN)/(TP+TN+FN+FP)
@@ -11,10 +47,10 @@ def calculate_a_p_r_f(y_real, y_predict, label_num):
     valid_label_count = 0
 
     for i in range(label_num):
-        TP = 0  # 预测为正，实际为正
-        FP = 0  # 预测为正，实际为负
-        TN = 0  # 预测为负，实际为负
-        FN = 0  # 预测为负，实际为正
+        TP = 1  # 预测为正，实际为正
+        FP = 1  # 预测为正，实际为负
+        TN = 1  # 预测为负，实际为负
+        FN = 1  # 预测为负，实际为正
 
         # 0为负，1为正
         for j in range(test_num):

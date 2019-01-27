@@ -24,10 +24,13 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     df_tf_all.pop("y_issue_dim_type")
     df_tf_all.pop("trace_api")
     df_tf_all.pop("trace_service")
+    df_tf_all = df_tf_all.loc[(df_tf_all["y_final_result"] == 0)
+                       | (df_tf_all["y_final_result"] == 1)]
+    df_tf_all = preprocessing_set.sampling(df_tf_all,"y_final_result")
     le_train_x, le_train_y = preprocessing_set.convert_y_multi_label_by_name(df_tf_all, y_le)
     if ml_name == "rf":
         print("Big Model", "LE", "RF")
-        clf_LE = RandomForestClassifier(min_samples_leaf=1200, n_estimators=10)
+        clf_LE = RandomForestClassifier(min_samples_leaf=3000, n_estimators=10)
     elif ml_name == "knn":
         print("Big Model", "LE", "KNN")
         clf_LE = KNeighborsClassifier(n_neighbors=200)
@@ -107,37 +110,39 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
 
     df_test_trace = pd.read_csv(test_trace_file_path, header=0, index_col="trace_id")
     real_ms = df_test_trace.pop("y_issue_ms")
-    real_dim_type = df_test_trace.pop("y_issue_dim_type")
-    real_result = df_test_trace.pop("y_final_result")
+    df_test_trace = df_test_trace.loc[(df_test_trace["y_final_result"] == 1)]
+    df_test_trace, real_dim_type = preprocessing_set.convert_y_multi_label_by_name(df_test_trace, "y_issue_dim_type")
+    df_test_trace, real_result = preprocessing_set.convert_y_multi_label_by_name(df_test_trace, "y_final_result")
+    # real_dim_type = df_test_trace.pop("y_issue_dim_type")
+    # real_result = df_test_trace.pop("y_final_result")
     df_test_trace.pop("trace_api")
     df_test_trace.pop("trace_service")
     df_test_spans = pd.read_csv(test_spans_file_path, header=0, index_col=None)
+
     indexs = df_test_trace.index.tolist()
 
     model_2_count = 0
     model_1_count = 0
     for temp_trace_index in indexs:
-        print(temp_trace_index)
         temp_trace = df_test_trace.loc[temp_trace_index, :]
         temp_trace = [temp_trace]
 
         temp_trace_result = clf_LE.predict(temp_trace)
         temp_trace_proba = clf_LE.predict_proba(temp_trace)
 
-        if (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[1][0][1] < 0.6) \
-                or (temp_trace_result[0][0] == 1 and temp_trace_result[0][1] == 0 and temp_trace_proba[0][0][1] < 0.6):
-            print("选用Model-2")
+        if (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[1][0][1] < 0.3) \
+                or (temp_trace_result[0][0] == 1 and temp_trace_result[0][1] == 0 and temp_trace_proba[0][0][1] < 0.3):
             model_2_count += 1
         else:
-            print("选用Model-1")
             model_1_count += 1
             ms_pred_result = clf_MS.predict(temp_trace)
             ft_pred_result = clf_FT.predict(temp_trace)
             le_test_result.append(temp_trace_result[0])
             ms_test_result.append(ms_pred_result[0])
             ft_test_result.append(ft_pred_result[0])
-    print(le_test_result, ms_test_result, ft_test_result)
     print("使用Model1", model_1_count, "使用Model2", model_2_count)
+    calculation.calculate_a_p_r_f(real_dim_type, ft_test_result, 3)
+    calculation.calculate_a_p_r_f(real_result, le_test_result, 2)
 
 
 def prepare_data_for_big_model():
