@@ -102,12 +102,12 @@ if __name__ == "__main__":
     for i in range(0, 9):
         calculate_parts(i, data_total_list, "y_final_result")
 
-    # df = pd.read_csv("fault_without_sampling.csv", header=0, index_col="trace_id")
-    # # df.pop("y_issue_dim_type")
-    # df.pop("y_issue_ms")
-    # df.pop("trace_api")
-    # df.pop("trace_service")
-    # # df = preprocessing_set.sampling(df, "y_issue_dim_type")
-    # split_data_to_10_parts(df, data_fault_list)
-    # for i in range(0, 9):
-    #     calculate_parts(i, data_fault_list, "y_issue_dim_type")
+    df = pd.read_csv("fault_without_sampling.csv", header=0, index_col="trace_id")
+    # df.pop("y_issue_dim_type")
+    df.pop("y_issue_ms")
+    df.pop("trace_api")
+    df.pop("trace_service")
+    # df = preprocessing_set.sampling(df, "y_issue_dim_type")
+    split_data_to_10_parts(df, data_fault_list)
+    for i in range(0, 9):
+        calculate_parts(i, data_fault_list, "y_issue_dim_type")
