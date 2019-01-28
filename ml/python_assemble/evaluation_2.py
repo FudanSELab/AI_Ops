@@ -90,21 +90,21 @@ def calculate_parts(n_parts, file_list, y_name):
 
 
 if __name__ == "__main__":
-    df = pd.read_csv("ready_use_max_final_result.csv", header=0, index_col="trace_id")
-    df.pop("y_issue_dim_type")
-    df.pop("y_issue_ms")
-    df.pop("trace_api")
-    df.pop("trace_service")
-    df = df.loc[(df["y_final_result"] == 0)
-                       | (df["y_final_result"] == 1)]
-    df = preprocessing_set.sampling(df, "y_final_result")
-    split_data_to_10_parts(df, data_total_list)
-    for i in range(0, 9):
-        calculate_parts(i, data_total_list, "y_final_result")
+    # df = pd.read_csv("ready_use_max_final_result.csv", header=0, index_col="trace_id")
+    # # df.pop("y_issue_dim_type")
+    # # df.pop("y_issue_ms")
+    # df.pop("trace_api")
+    # df.pop("trace_service")
+    # df = df.loc[(df["y_final_result"] == 0)
+    #                    | (df["y_final_result"] == 1)]
+    # # df = preprocessing_set.sampling(df, "y_final_result")
+    # split_data_to_10_parts(df, data_total_list)
+    # for i in range(0, 9):
+    #     calculate_parts(i, data_total_list, "y_final_result")
 
     df = pd.read_csv("fault_without_sampling.csv", header=0, index_col="trace_id")
     # df.pop("y_issue_dim_type")
-    df.pop("y_issue_ms")
+    # df.pop("y_issue_ms")
     df.pop("trace_api")
     df.pop("trace_service")
     # df = preprocessing_set.sampling(df, "y_issue_dim_type")

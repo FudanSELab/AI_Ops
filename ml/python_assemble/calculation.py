@@ -3,29 +3,30 @@ def calculate_a_p_f_single_label(y_real, y_predict):
     result = []
     test_num = len(y_real)
 
-    # 0为负，1为正
+    # 0为正，1为负
     for j in range(test_num):
-        if y_real[j][0] == 1 and y_real[j][1] == 0:
-            real.append(0)
-        else:
+        if y_real[j][0] == 0 and y_real[j][1] == 1:
             real.append(1)
-        if y_predict[j][0] == 1 and y_predict[j][1] == 0:
-            result.append(0)
         else:
+            real.append(0)
+        if y_predict[j][0] == 0 and y_predict[j][1] == 1:
             result.append(1)
+        else:
+            result.append(0)
     TP = 1  # 预测为正，实际为正
     FP = 1  # 预测为正，实际为负
     TN = 1  # 预测为负，实际为负
     FN = 1  # 预测为负，实际为正
     for j in range(test_num):
-        if real[j] == 1 and result[j] == 1:
+        if real[j] == 0 and result[j] == 0:
             TP += 1
-        elif real[j] == 0 and result[j] == 1:
+        elif real[j] == 1 and result[j] == 0:
             FP += 1
-        elif real[j] == 0 and result[j] == 0:
+        elif real[j] == 1 and result[j] == 1:
             TN += 1
         else:
             FN += 1
+    print(TP, FP, TN, FN)
     precision = TP / (TP + FP)
     recall = TP / (TP + FN)
     F1 = (2 * precision * recall) / (precision + recall)

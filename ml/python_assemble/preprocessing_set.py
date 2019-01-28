@@ -93,15 +93,23 @@ def convert_y_multi_label_by_name(df_raw: DataFrame, y_name):
     for i in range(len(y_list)):
         y_service_name = y_list[i]
         if y_name.endswith("_ms"):
-            y_index = service_index_map.get(y_service_name)
-            temp_y_multi_label = np.zeros(42)
-            temp_y_multi_label[y_index] = 1
-            y_multi_label.append(temp_y_multi_label)
+            if y_service_name.endswith("Success"):
+                temp_y_multi_label = np.zeros(42)
+                y_multi_label.append(temp_y_multi_label)
+            else:
+                y_index = service_index_map.get(y_service_name)
+                temp_y_multi_label = np.zeros(42)
+                temp_y_multi_label[y_index] = 1
+                y_multi_label.append(temp_y_multi_label)
         elif y_name.endswith("_type"):
-            y_index = dim_index_map.get(y_service_name)
-            temp_y_multi_label = np.zeros(3)
-            temp_y_multi_label[y_index] = 1
-            y_multi_label.append(temp_y_multi_label)
+            if y_service_name.endswith("Success"):
+                temp_y_multi_label = np.zeros(3)
+                y_multi_label.append(temp_y_multi_label)
+            else:
+                y_index = dim_index_map.get(y_service_name)
+                temp_y_multi_label = np.zeros(3)
+                temp_y_multi_label[y_index] = 1
+                y_multi_label.append(temp_y_multi_label)
         else:
             y_service_name = str(y_service_name)
             y_index = result_index_map.get(y_service_name)
@@ -258,7 +266,7 @@ def fill_empty_data(df_raw: DataFrame):
         elif col.endswith("_caller"):
             df_raw[col].fillna("No", inplace=True)
             print("Fill Empty: " + col)
-        elif col.endswith("y_issue_ms"):
+        elif col.endswith("y_issue_ms") or col.endswith("y_issue_dim_type"):
             df_raw[col].fillna("Success", inplace=True)
             print("Fill Empty: " + col)
 

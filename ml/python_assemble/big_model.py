@@ -31,7 +31,7 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     le_train_x, le_train_y = preprocessing_set.convert_y_multi_label_by_name(df_tf_all, y_le)
     if ml_name == "rf":
         print("Big Model", "LE", "RF")
-        clf_le = RandomForestClassifier(min_samples_leaf=3000, n_estimators=10)
+        clf_le = RandomForestClassifier(min_samples_leaf=3000, n_estimators=5)
     elif ml_name == "knn":
         print("Big Model", "LE", "KNN")
         clf_le = KNeighborsClassifier(n_neighbors=200)
@@ -73,7 +73,7 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     ft_train_x, ft_train_y = preprocessing_set.convert_y_multi_label_by_name(df_fault_all_ft, y_ft)
     if ml_name == "rf":
         print("Big Model", "FT", "RF")
-        clf_ft = RandomForestClassifier(min_samples_leaf=1200, n_estimators=10)
+        clf_ft = RandomForestClassifier(min_samples_leaf=600, n_estimators=5)
     elif ml_name == "knn":
         print("Big Model", "FT", "KNN")
         clf_ft = KNeighborsClassifier(n_neighbors=200)
@@ -84,7 +84,6 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     print("FT Model训练结束")
 
     # Train Model_2
-    # TODO
     print("Model2 Model训练开始")
     y_model2 = "issue_type"
     df_model2_all = pd.read_csv(model_2_file_path, header=0, index_col=None)
@@ -92,11 +91,11 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     df_model2_all.pop("trace_id")
     df_model2_all.pop("test_trace_id")
     df_model2_all.pop("final_result")
-
+    df_model2_all = preprocessing_set.sampling(df_model2_all, y_model2)
     model2_train_x, model2_train_y = preprocessing_set.convert_y_multi_label_by_name(df_model2_all, y_model2)
     if ml_name == "rf":
         print("Big Model", "MODEL_2", "RF")
-        clf_model2 = RandomForestClassifier(min_samples_leaf=100, n_estimators=5)
+        clf_model2 = RandomForestClassifier(min_samples_leaf=500, n_estimators=3)
     elif ml_name == "knn":
         print("Big Model", "MODEL_2", "KNN")
         clf_model2 = KNeighborsClassifier(n_neighbors=200)
@@ -116,14 +115,13 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
 
     # 读入测试数据，并分离出真实的final_result,ms和dim_type
     df_test_trace = pd.read_csv(test_trace_file_path, header=0, index_col="trace_id")
+    print("测试集维度分布", df_test_trace["y_issue_dim_type"].value_counts())
     real_ms = df_test_trace.pop("y_issue_ms")
-    df_test_trace = df_test_trace.loc[(df_test_trace["y_final_result"] == 1)]
+    # df_test_trace = df_test_trace.loc[(df_test_trace["y_final_result"] == 1)]
     df_test_trace, real_dim_type = preprocessing_set.convert_y_multi_label_by_name(df_test_trace, "y_issue_dim_type")
     df_test_trace, real_result = preprocessing_set.convert_y_multi_label_by_name(df_test_trace, "y_final_result")
-    # real_dim_type = df_test_trace.pop("y_issue_dim_type")
-    # real_result = df_test_trace.pop("y_final_result")
-    df_test_trace.pop("trace_api")
-    df_test_trace.pop("trace_service")
+    # df_test_trace.pop("trace_api")
+    # df_test_trace.pop("trace_service")
     # 读入SPAN测试数据。这个与前面读入的测试数据的Index是匹配的，只是Trace拆分出的Span而已
     df_test_spans = pd.read_csv(test_spans_file_path, header=0, index_col=None)
     df_test_spans.pop("issue_type")
@@ -135,7 +133,9 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
 
     # 记录所有Trace的Index以便后=后续进行记录和提取
     indexs = df_test_trace.index.tolist()
+    spans_indexs = df_test_spans["trace_id"].tolist()
     for temp_trace_index in indexs:
+        print("==第", str(model_2_count+model_1_count))
         # 抽出测试集中的一条Trace
         temp_trace = df_test_trace.loc[temp_trace_index, :]
         temp_trace = [temp_trace]
@@ -144,7 +144,8 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
         temp_trace_proba = clf_le.predict_proba(temp_trace)
         # 如果置信度不符合预期，则进行Model_2预测，否则使用Model_1现有的模型预测
         # todo 这里还要检查一下对应的trace-id到底在span集合里存不存在。不存在的话还是要使用trace模型
-        if (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[1][0][1] < 0.6) \
+        if spans_indexs.__contains__(temp_trace_index)\
+                and (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[1][0][1] < 0.6) \
                 or (temp_trace_result[0][0] == 1 and temp_trace_result[0][1] == 0 and temp_trace_proba[0][0][1] < 0.6):
             model_2_count += 1
             # 根据Trace_id把对应的一串Span抽取出来
@@ -199,6 +200,11 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
                 ft_test_result.append([0, 0, 0])
         else:
             model_1_count += 1
+            # if temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1:
+            #     le_test_result.append(temp_trace_result[0])
+            #     ms_test_result.append(np.zeros(42))
+            #     ft_test_result.append([0, 0, 0])
+            # else:
             ms_pred_result = clf_ms.predict(temp_trace)
             ft_pred_result = clf_ft.predict(temp_trace)
             le_test_result.append(temp_trace_result[0])
@@ -215,9 +221,12 @@ def prepare_data_for_big_model():
     big_model(tf_file_path="ready_use_max_final_result.csv",
               fault_file_path="fault_without_sampling.csv",
               model_2_file_path="ts_model2_total.csv",
-              test_trace_file_path="fault_without_sampling.csv",
+              # test_trace_file_path="fault_without_sampling.csv",
+              test_trace_file_path="evaluation_2/evaluation_total_part0.csv",
               test_spans_file_path="ts_model2_total.csv",
-              ml_name="rf")
+              ml_name="knn")
+
+
 
 
 if __name__ == "__main__":

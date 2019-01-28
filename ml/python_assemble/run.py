@@ -219,7 +219,14 @@ def inspect():
 
 
 if __name__ == "__main__":
-    preprocessing_model_2()
+    df = pd.read_csv("ready_use_max_final_result.csv", header=0, index_col="trace_id")
+    df = preprocessing_set.fill_empty_data(df)
+    df.to_csv("ready_use_max_final_result.csv")
+
+    df = pd.read_csv("fault_without_sampling.csv", header=0, index_col="trace_id")
+    df = preprocessing_set.fill_empty_data(df)
+    df.to_csv("fault_without_sampling.csv")
+    # preprocessing_model_2()
 
 
 
