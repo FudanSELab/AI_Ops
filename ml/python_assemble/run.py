@@ -68,6 +68,29 @@ def get_min_data(df_raw: DataFrame):
     return df_raw
 
 
+def preprocessing_model_2():
+    ts_model_2_data = ["data_for_big_model/train_ticket_model2/model2_config.csv",
+                       "data_for_big_model/train_ticket_model2/model2_inst.csv",
+                       "data_for_big_model/train_ticket_model2/model2_seq.csv",]
+    ts_model2_config = pd.read_csv(ts_model_2_data[0], header=0, index_col=None)
+    ts_model2_inst = pd.read_csv(ts_model_2_data[1], header=0, index_col=None)
+    ts_model2_seq = pd.read_csv(ts_model_2_data[2], header=0, index_col=None)
+    ts_temp_append = preprocessing_set.append_data(ts_model2_config, ts_model2_inst)
+    ts_model2_total = preprocessing_set.append_data(ts_temp_append, ts_model2_seq)
+
+    ts_model2_total = preprocessing_set.drop_na_data(ts_model2_total)
+
+    print(ts_model2_total.keys())
+
+    # ts_model2_total = preprocessing_set.drop_all_same_data(ts_model2_total)
+
+    ts_model2_total.pop("issue_content")
+
+    ts_model2_total = preprocessing_set.fill_empty_data_model2(ts_model2_total)
+    ts_model2_total = preprocessing_set.convert_data_model2(ts_model2_total)
+    ts_model2_total.to_csv("ts_model2_total.csv")
+
+
 # 完成预处理并保存数据集
 def preprocessing():
     # First Set of CSV
@@ -192,15 +215,11 @@ def inspect():
 
 
 ########################以下方法仅限Model_2#########################
-def preprocessing_model2():
-    df = pd.read_csv("model2/model2.csv", header=0, index_col=None)
-    keys = df.keys()
-    for key in keys:
-        print(key)
+
 
 
 if __name__ == "__main__":
-   preprocessing()
+    preprocessing_model_2()
 
 
 

@@ -83,7 +83,6 @@ def drop_na_data(df_raw: DataFrame):
 # (Model_1 Model_2共用)丢弃全列值都一样的数据
 def drop_all_same_data(df_raw: DataFrame):
     df_raw = df_raw.ix[:, (df_raw != df_raw.ix[0]).any()]
-    print("After Drop All-Same-Column:" + df_raw.keys())
     return df_raw
 
 
@@ -93,12 +92,12 @@ def convert_y_multi_label_by_name(df_raw: DataFrame, y_name):
     y_multi_label = []
     for i in range(len(y_list)):
         y_service_name = y_list[i]
-        if y_name.endswith("ms"):
+        if y_name.endswith("_ms"):
             y_index = service_index_map.get(y_service_name)
             temp_y_multi_label = np.zeros(42)
             temp_y_multi_label[y_index] = 1
             y_multi_label.append(temp_y_multi_label)
-        elif y_name.endswith("dim_type"):
+        elif y_name.endswith("_type"):
             y_index = dim_index_map.get(y_service_name)
             temp_y_multi_label = np.zeros(3)
             temp_y_multi_label[y_index] = 1
@@ -301,30 +300,38 @@ def convert_data(df_raw: DataFrame):
 ########################以下方法仅限Model_2#########################
 
 
-def select_data_model2(df_raw: DataFrame):
-    for col in df_raw.keys():
-        if not(col.endswith("_seq")
-               or col.endswith("status_code")
-               or col.endswith("exec_time")
-               or col.endswith("var0")
-               or col.endswith("_diff")
-               or col.endswith("app_thread_count")
-               or col.endswith("_ready_number")
-               or col.endswith("shared_variable")
-               or col.endswith("dependent_db")
-               or col.endswith("dependent_cache")
-               or col.endswith("issue_ms")
-               or col.endswith("issue_type")
-               or col.endswith("final_result")):
-            df_raw.drop(columns=col, axis=1, inplace=True)
-            print("Drop:" + col)
-    print("Reserved:" + df_raw.keys())
+def fill_empty_data_model2(df_raw: DataFrame):
+    keys = df_raw.keys()
+    for col in keys:
+        if col.endswith("_seq"):
+            df_raw[col].fillna(-1, inplace=True)
+            print("Fill Empty: " + col)
+        elif col.endswith("issue_ms") or col.endswith("issue_type"):
+            df_raw[col].fillna("Success", inplace=True)
+            print("Fill Empty: " + col)
+        elif col.endswith("app_thread_count"):
+            df_raw[col].fillna(1, inplace=True)
+            print("Fill Empty: " + col)
     return df_raw
 
 
-def fill_empty_data(df_raw: DataFrame):
-    return 0
-
-
-def convert_data(df_raw: DataFrame):
-    return 0
+def convert_data_model2(df_raw: DataFrame):
+    keys = df_raw.keys()
+    for col in keys:
+        if col.endswith("status_code") \
+                or col.endswith("node_id"):
+            mapping_keys = df_raw[col].drop_duplicates().values
+            mapping = {}
+            for i in range(len(mapping_keys)):
+                mapping[mapping_keys[i]] = i
+            df_raw[col] = df_raw[col].map(mapping)
+        elif col.endswith("_time") \
+                or col.endswith("_mem") \
+                or col.endswith("_diff") \
+                or col.endswith("_cpu") \
+                or col.endswith("_delay") \
+                or col.endswith("_count") \
+                or col.endswith("_limit"):
+            df_raw[col].fillna(0, inplace=True)
+            df_raw[col] = pd.cut(df_raw[col], bins=5, labels=[1, 2, 3, 4, 5])
+    return df_raw

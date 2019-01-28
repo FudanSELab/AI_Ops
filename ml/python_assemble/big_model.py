@@ -5,6 +5,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 import preprocessing_set
 import calculation
+import numpy as np
 
 
 def big_model(tf_file_path, fault_file_path, model_2_file_path,
@@ -85,15 +86,17 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     # Train Model_2
     # TODO
     print("Model2 Model训练开始")
-    y_model2 = "y_issue_dim_type"
-    df_model2_all = pd.read_csv(model_2_file_path, header=0, index_col="trace_id")
-    df_model2_all.pop("y_issue_ms")
-    df_model2_all.pop("trace_api")
-    df_model2_all.pop("trace_service")
+    y_model2 = "issue_type"
+    df_model2_all = pd.read_csv(model_2_file_path, header=0, index_col=None)
+    df_model2_all.pop("issue_ms")
+    df_model2_all.pop("trace_id")
+    df_model2_all.pop("test_trace_id")
+    df_model2_all.pop("final_result")
+
     model2_train_x, model2_train_y = preprocessing_set.convert_y_multi_label_by_name(df_model2_all, y_model2)
     if ml_name == "rf":
         print("Big Model", "MODEL_2", "RF")
-        clf_model2 = RandomForestClassifier(min_samples_leaf=1200, n_estimators=10)
+        clf_model2 = RandomForestClassifier(min_samples_leaf=100, n_estimators=5)
     elif ml_name == "knn":
         print("Big Model", "MODEL_2", "KNN")
         clf_model2 = KNeighborsClassifier(n_neighbors=200)
@@ -123,7 +126,9 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     df_test_trace.pop("trace_service")
     # 读入SPAN测试数据。这个与前面读入的测试数据的Index是匹配的，只是Trace拆分出的Span而已
     df_test_spans = pd.read_csv(test_spans_file_path, header=0, index_col=None)
-
+    df_test_spans.pop("issue_type")
+    df_test_spans.pop("test_trace_id")
+    df_test_spans.pop("final_result")
     # 记录使用了Model_1和Model_2的数量
     model_2_count = 0
     model_1_count = 0
@@ -138,14 +143,15 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
         temp_trace_result = clf_le.predict(temp_trace)
         temp_trace_proba = clf_le.predict_proba(temp_trace)
         # 如果置信度不符合预期，则进行Model_2预测，否则使用Model_1现有的模型预测
-        if (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[1][0][1] < 0.3) \
-                or (temp_trace_result[0][0] == 1 and temp_trace_result[0][1] == 0 and temp_trace_proba[0][0][1] < 0.3):
+        # todo 这里还要检查一下对应的trace-id到底在span集合里存不存在。不存在的话还是要使用trace模型
+        if (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[1][0][1] < 0.6) \
+                or (temp_trace_result[0][0] == 1 and temp_trace_result[0][1] == 0 and temp_trace_proba[0][0][1] < 0.6):
             model_2_count += 1
             # 根据Trace_id把对应的一串Span抽取出来
             spans_set = df_test_spans.loc[df_test_spans["trace_id"] == temp_trace_index]
             # 服务名不代入训练模型，但是有用，要先记录下来
-            spans_set_ms_set = preprocessing_set.convert_y_multi_label_by_name(spans_set, "y_issue_ms")
-            spans_set_ms_set = spans_set.pop("y_issue_ms") # todo 检查一下服务名那列到底是什么属性名
+            spans_set_ms_set = preprocessing_set.convert_y_multi_label_by_name(spans_set, "issue_ms")
+            spans_set.pop("trace_id")
             # 准备储存这些Span的结果，以便后续转化输出
             spans_set_size = len(spans_set)
             span_set_dim_result_collect = []
@@ -153,36 +159,44 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
             # 执行并存储每个Span的结果
             for i in range(spans_set_size):
                 temp_span = spans_set.iloc[i]
+                temp_span = [temp_span]
                 temp_span_result = clf_model2.predict(temp_span)
                 temp_span_proba = clf_model2.predict_proba(temp_span)
                 span_set_dim_result_collect.append(temp_span_result[0])
                 span_set_dim_confidence_collect.append([temp_span_proba[0][0], temp_span_proba[1][0], temp_span_proba[2][0]])
             # 计算最终结果 1.计算le
             temp_trace_model2_le = True
+            temp_trace_model2_fault_span_record = [] # 记录哪些span是有错误的
             for i in range(spans_set_size):
                 if span_set_dim_result_collect[i][0] != 0 \
                     or span_set_dim_result_collect[i][1] != 0 \
                         or span_set_dim_result_collect[i][2] != 0:
                             temp_trace_model2_le = False
-                            break
-            if temp_trace_model2_le == False:
+                            temp_trace_model2_fault_span_record.append(i)
+            if not temp_trace_model2_le:
+                # 如果一系列span有些报错了，说明整体trace有错误，需要计算结论
                 le_test_result.append([0, 1])
+                # 计算最终结果 2.计算Dim_Type
+                temp_trace_model_2_max_index = -1
+                temp_trace_model_2_max_confidence = -1.0
+                for i in temp_trace_model2_fault_span_record:
+                    temp_confidence = max(span_set_dim_confidence_collect[i][0][0],
+                                          span_set_dim_confidence_collect[i][0][1]) \
+                                      + max(span_set_dim_confidence_collect[i][1][0],
+                                            span_set_dim_confidence_collect[i][1][1]) \
+                                      + max(span_set_dim_confidence_collect[i][1][0],
+                                            span_set_dim_confidence_collect[i][2][1])
+                    if temp_confidence > temp_trace_model_2_max_confidence:
+                        temp_trace_model_2_max_index = i
+                        temp_trace_model_2_max_confidence = temp_confidence
+                ft_test_result.append(span_set_dim_result_collect[temp_trace_model_2_max_index])
+                # 计算最终结果 3.计算MS
+                ms_test_result.append(spans_set_ms_set[temp_trace_model_2_max_index])
             else:
+                # 如果一系列span都没有报错，说明整体trace是对的，结论中输出正确结果
                 le_test_result.append([1, 0])
-            # 计算最终结果 2.计算Dim_Type
-            temp_trace_model_2_max_index = -1
-            temp_trace_model_2_max_confidence = -1.0
-            for i in range(spans_set_size):
-                temp_confidence = max(span_set_dim_confidence_collect[i][0][0], span_set_dim_confidence_collect[i][0][1]) \
-                                  + max(span_set_dim_confidence_collect[i][1][0], span_set_dim_confidence_collect[i][1][1]) \
-                                  + max(span_set_dim_confidence_collect[i][1][0], span_set_dim_confidence_collect[i][2][1])
-                if temp_confidence > temp_trace_model_2_max_confidence:
-                    temp_trace_model_2_max_index = i
-                    temp_trace_model_2_max_confidence = temp_confidence
-            ft_test_result.append(span_set_dim_result_collect[temp_trace_model_2_max_index])
-            # 计算最终结果 3.计算MS
-            ms_test_result.append(spans_set_ms_set[temp_trace_model_2_max_index])
-
+                ms_test_result.append(np.zeros(42))
+                ft_test_result.append([0, 0, 0])
         else:
             model_1_count += 1
             ms_pred_result = clf_ms.predict(temp_trace)
@@ -200,9 +214,9 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
 def prepare_data_for_big_model():
     big_model(tf_file_path="ready_use_max_final_result.csv",
               fault_file_path="fault_without_sampling.csv",
-              model_2_file_path="fault_without_sampling.csv",
+              model_2_file_path="ts_model2_total.csv",
               test_trace_file_path="fault_without_sampling.csv",
-              test_spans_file_path="fault_without_sampling.csv",
+              test_spans_file_path="ts_model2_total.csv",
               ml_name="rf")
 
 
