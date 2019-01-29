@@ -37,7 +37,7 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
         clf_le = KNeighborsClassifier(n_neighbors=200)
     else:
         print("Big Model", "LE", "MLP")
-        clf_le = MLPClassifier(hidden_layer_sizes=[10, 10], max_iter=200)
+        clf_le = MLPClassifier(hidden_layer_sizes=[5, 5], max_iter=100)
     clf_le.fit(le_train_x, le_train_y)
     print("LE Model训练完毕")
 
@@ -58,7 +58,7 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
         clf_ms = KNeighborsClassifier(n_neighbors=200)
     else:
         print("Big Model", "MS", "MLP")
-        clf_ms = MLPClassifier(hidden_layer_sizes=[10, 10], max_iter=200)
+        clf_ms = MLPClassifier(hidden_layer_sizes=[5, 1], max_iter=100)
     clf_ms.fit(X=ms_train_x, y=ms_train_y)
     print("MS Model训练结束")
 
@@ -79,7 +79,7 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
         clf_ft = KNeighborsClassifier(n_neighbors=200)
     else:
         print("Big Model", "FT", "MLP")
-        clf_ft = MLPClassifier(hidden_layer_sizes=[10, 10], max_iter=200)
+        clf_ft = MLPClassifier(hidden_layer_sizes=[5, 5], max_iter=100)
     clf_ft.fit(X=ft_train_x, y=ft_train_y)
     print("FT Model训练结束")
 
@@ -101,7 +101,7 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
         clf_model2 = KNeighborsClassifier(n_neighbors=200)
     else:
         print("Big Model", "MODEL_2", "MLP")
-        clf_model2 = MLPClassifier(hidden_layer_sizes=[10, 10], max_iter=200)
+        clf_model2 = MLPClassifier(hidden_layer_sizes=[5, 5], max_iter=100)
     clf_model2.fit(X=model2_train_x, y=model2_train_y)
     print("Model2 Model训练结束")
 
@@ -120,8 +120,8 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     # df_test_trace = df_test_trace.loc[(df_test_trace["y_final_result"] == 1)]
     df_test_trace, real_dim_type = preprocessing_set.convert_y_multi_label_by_name(df_test_trace, "y_issue_dim_type")
     df_test_trace, real_result = preprocessing_set.convert_y_multi_label_by_name(df_test_trace, "y_final_result")
-    # df_test_trace.pop("trace_api")
-    # df_test_trace.pop("trace_service")
+    df_test_trace.pop("trace_api")
+    df_test_trace.pop("trace_service")
     # 读入SPAN测试数据。这个与前面读入的测试数据的Index是匹配的，只是Trace拆分出的Span而已
     df_test_spans = pd.read_csv(test_spans_file_path, header=0, index_col=None)
     df_test_spans.pop("issue_type")
@@ -144,9 +144,16 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
         temp_trace_proba = clf_le.predict_proba(temp_trace)
         # 如果置信度不符合预期，则进行Model_2预测，否则使用Model_1现有的模型预测
         # todo 这里还要检查一下对应的trace-id到底在span集合里存不存在。不存在的话还是要使用trace模型
+        print("temp-trace-result:", temp_trace_result)
+        print("temp-trace-proba:", temp_trace_proba)
+        # [注意] mlp的置信度输出和别人不太一样 mlp是[0.2 0.8] 别人[[0.1,0.9],[0.8,0.2]]
+        # if spans_indexs.__contains__(temp_trace_index)\
+        #         and (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[1][0][1] < 0.6) \
+        #         or (temp_trace_result[0][0] == 1 and temp_trace_result[0][1] == 0 and temp_trace_proba[0][0][1] < 0.6):
+        # [注意]MLP的if用下面这行
         if spans_indexs.__contains__(temp_trace_index)\
-                and (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[1][0][1] < 0.6) \
-                or (temp_trace_result[0][0] == 1 and temp_trace_result[0][1] == 0 and temp_trace_proba[0][0][1] < 0.6):
+                and (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[0][1] < 0.6) \
+                or (temp_trace_result[0][0] == 1 and temp_trace_result[0][1] == 0 and temp_trace_proba[0][0] < 0.6):
             model_2_count += 1
             # 根据Trace_id把对应的一串Span抽取出来
             spans_set = df_test_spans.loc[df_test_spans["trace_id"] == temp_trace_index]
@@ -163,8 +170,17 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
                 temp_span = [temp_span]
                 temp_span_result = clf_model2.predict(temp_span)
                 temp_span_proba = clf_model2.predict_proba(temp_span)
+                print("temp_span_result", temp_span_result)
+                print("temp_span_proba", temp_span_proba)
                 span_set_dim_result_collect.append(temp_span_result[0])
-                span_set_dim_confidence_collect.append([temp_span_proba[0][0], temp_span_proba[1][0], temp_span_proba[2][0]])
+                # [注意] 下面这行是MLP专用
+                span_set_dim_confidence_collect.append([
+                    [1 - temp_span_proba[0][0], temp_span_proba[0][0]],
+                    [1 - temp_span_proba[0][1], temp_span_proba[0][1]],
+                    [1 - temp_span_proba[0][2], temp_span_proba[0][2]]
+                ])
+                # 下面这个是对一般算法
+                # span_set_dim_confidence_collect.append([temp_span_proba[0][0], temp_span_proba[1][0], temp_span_proba[2][0]])
             # 计算最终结果 1.计算le
             temp_trace_model2_le = True
             temp_trace_model2_fault_span_record = [] # 记录哪些span是有错误的
@@ -221,10 +237,10 @@ def prepare_data_for_big_model():
     big_model(tf_file_path="ready_use_max_final_result.csv",
               fault_file_path="fault_without_sampling.csv",
               model_2_file_path="ts_model2_total.csv",
-              # test_trace_file_path="fault_without_sampling.csv",
-              test_trace_file_path="evaluation_2/evaluation_total_part0.csv",
+              test_trace_file_path="fault_without_sampling.csv",
+              # test_trace_file_path="evaluation_2/evaluation_total_part0.csv",
               test_spans_file_path="ts_model2_total.csv",
-              ml_name="knn")
+              ml_name="mlp")
 
 
 

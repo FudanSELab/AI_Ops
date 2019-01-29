@@ -231,7 +231,7 @@ def select_data(df_raw: DataFrame):
     for col in df_raw.keys():
         if not(col.endswith("trace_service")
                or col.endswith("trace_api")
-               or col.endswith("_api")
+               # or col.endswith("_api")
                or col.endswith("_readynumber")
                or col.endswith("_diff")
                or col.endswith("_variable")

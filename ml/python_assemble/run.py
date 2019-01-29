@@ -80,7 +80,7 @@ def preprocessing_model_2():
 
     ts_model2_total = preprocessing_set.drop_na_data(ts_model2_total)
 
-    print(ts_model2_total.keys())
+    print(len(ts_model2_total.keys()))
 
     # ts_model2_total = preprocessing_set.drop_all_same_data(ts_model2_total)
 
@@ -89,6 +89,65 @@ def preprocessing_model_2():
     ts_model2_total = preprocessing_set.fill_empty_data_model2(ts_model2_total)
     ts_model2_total = preprocessing_set.convert_data_model2(ts_model2_total)
     ts_model2_total.to_csv("ts_model2_total.csv")
+
+
+def preprocessiong_sockshop_model2_data():
+    ss_model_2_data = ["data_for_big_model/sock_shop_model2/sock_shop_config_model2.csv",
+                       "data_for_big_model/sock_shop_model2/sock_shop_instance_model2.csv",
+                       "data_for_big_model/sock_shop_model2/sock_shop_sequence_model2.csv",]
+    ss_model2_config = pd.read_csv(ss_model_2_data[0], header=0, index_col=None)
+    ss_model2_inst = pd.read_csv(ss_model_2_data[1], header=0, index_col=None)
+    ss_model2_seq = pd.read_csv(ss_model_2_data[2], header=0, index_col=None)
+    ss_temp_append = preprocessing_set.append_data(ss_model2_config, ss_model2_inst)
+    ss_model2_total = preprocessing_set.append_data(ss_temp_append, ss_model2_seq)
+    ss_model2_total = preprocessing_set.drop_na_data(ss_model2_total)
+    print(len(ss_model2_total.keys()))
+    ss_model2_total.pop("issue_content")
+
+    ss_model2_total["issue_ms"] = ss_model2_total["issue_ms"].str.lower()
+    ss_model2_total["issue_type"] = ss_model2_total["issue_type"].str.lower()
+
+    ss_model2_total = preprocessing_set.fill_empty_data_model2(ss_model2_total)
+    ss_model2_total = preprocessing_set.convert_data_model2(ss_model2_total)
+    ss_model2_total.to_csv("ss_model2_total.csv")
+
+
+def preprocessing_sockshop_model1_data():
+    index_col = "trace_id"
+    df_part_1 = pd.read_csv("sockshop_data/trace_verified_config_cpu_sock_combined.csv", header=0, index_col=index_col)
+    df_part_2 = pd.read_csv("sockshop_data/trace_verified_config_sock_combined.csv", header=0, index_col=index_col)
+    df_part_3 = pd.read_csv("sockshop_data/trace_verified_instance_sock_combined.csv", header=0, index_col=index_col)
+    df_part_4 = pd.read_csv("sockshop_data/trace_verified_sequence_sock_combined.csv", header=0, index_col=index_col)
+
+    df_total = preprocessing_set.append_data(df_part_1,df_part_2)
+    df_total = preprocessing_set.append_data(df_total,df_part_3)
+    df_total = preprocessing_set.append_data(df_total,df_part_4)
+
+    df_total = get_min_data(df_total)
+
+    df_total["y_issue_ms"] = df_total["y_issue_ms"].str.lower()
+    df_total["y_issue_dim_type"] = df_total["y_issue_dim_type"].str.lower()
+
+
+    # 填补空缺值
+    df_total = preprocessing_set.fill_empty_data(df_total)
+
+    # 把不规则的值转换成数字
+    df_total = preprocessing_set.convert_data(df_total)
+
+    df_total = shuffle(df_total)
+
+    print("总数据:", len(df_total))
+
+    df_total.to_csv("sockshop_data/ss_total.csv")
+
+    # 丢弃没故障数据
+    df_total = df_total.loc[df_total["y_issue_ms"] != "Success"]
+
+    print("故障数据:", len(df_total))
+
+    df_total.to_csv("sockshop_data/ss_fault.csv")
+
 
 
 # 完成预处理并保存数据集
@@ -219,15 +278,7 @@ def inspect():
 
 
 if __name__ == "__main__":
-    df = pd.read_csv("ready_use_max_final_result.csv", header=0, index_col="trace_id")
-    df = preprocessing_set.fill_empty_data(df)
-    df.to_csv("ready_use_max_final_result.csv")
-
-    df = pd.read_csv("fault_without_sampling.csv", header=0, index_col="trace_id")
-    df = preprocessing_set.fill_empty_data(df)
-    df.to_csv("fault_without_sampling.csv")
-    # preprocessing_model_2()
-
+    preprocessiong_sockshop_model2_data()
 
 
 
