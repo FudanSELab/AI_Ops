@@ -20,7 +20,7 @@ def merge_all():
     ts_total["y_issue_dim_type"].fillna("Success", inplace=True)
 
     ts_total = ts_total.loc[ts_total["y_issue_dim_type"] != "Success"]
-
+    # ts_total = preprocessing_set.sampling(ts_total, "y_issue_ms")
     ts_total = shuffle(ts_total)
     print("总数据量:", len(ts_total))
     ts_total.to_csv("ts_tpds_total.csv")
@@ -29,7 +29,7 @@ def merge_all():
 def split_test_train():
     ts_tpds_total = pd.read_csv("ts_tpds_total.csv", header=0, index_col=0)
     print("总数据量:", len(ts_tpds_total))
-    ts_tpds_test, ts_tpds_train = preprocessing_set.split_data(ts_tpds_total, 0.1)
+    ts_tpds_test, ts_tpds_train = preprocessing_set.split_data(ts_tpds_total, 0.05)
     print("训练数据量:", len(ts_tpds_train))
     print("测试数据量:", len(ts_tpds_test))
     ts_tpds_test.to_csv("ts_tpds_test.csv")
@@ -52,11 +52,17 @@ def merge_all_sockshop():
 
     ss_total = shuffle(ss_total)
     print("总数据量:", len(ss_total))
+
+    # ss_total = ss_total.loc[ss_total["y_issue_dim_type"] != "unknown"]
+
+    ss_total = preprocessing_set.sampling(ss_total, "y_issue_ms")
+
     ss_total.to_csv("ss_tpds_total.csv")
 
 
 def split_test_train_sockshop():
     ss_tpds_total = pd.read_csv("ss_tpds_total.csv", header=0, index_col=0)
+
     print("总数据量:", len(ss_tpds_total))
     ss_tpds_test, ss_tpds_train = preprocessing_set.split_data(ss_tpds_total, 0.1)
     print("训练数据量:", len(ss_tpds_train))
@@ -66,5 +72,7 @@ def split_test_train_sockshop():
 
 
 if __name__ == "__main__":
-    merge_all_sockshop()
-    split_test_train_sockshop()
+    # merge_all_sockshop()
+    # split_test_train_sockshop()
+    merge_all()
+    split_test_train()

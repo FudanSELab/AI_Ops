@@ -44,7 +44,7 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     # Train MS Model
     print("MS Model训练开始")
     y_ms = "y_issue_ms"
-    df_fault_all_ms = pd.read_csv(fault_file_path, header=0, index_col="trace_id")
+    df_fault_all_ms = pd.read_csv(fault_file_path, header=0, index_col=0)
     df_fault_all_ms.pop("y_final_result")
     df_fault_all_ms.pop("y_issue_dim_type")
     df_fault_all_ms.pop("trace_api")
@@ -65,7 +65,7 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     # Train FT Model
     print("FT Model训练开始")
     y_ft = "y_issue_dim_type"
-    df_fault_all_ft = pd.read_csv(fault_file_path, header=0, index_col="trace_id")
+    df_fault_all_ft = pd.read_csv(fault_file_path, header=0, index_col=0)
     df_fault_all_ft.pop("y_final_result")
     df_fault_all_ft.pop("y_issue_ms")
     df_fault_all_ft.pop("trace_api")
@@ -114,7 +114,7 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     ft_test_result = []
 
     # 读入测试数据，并分离出真实的final_result,ms和dim_type
-    df_test_trace = pd.read_csv(test_trace_file_path, header=0, index_col="trace_id")
+    df_test_trace = pd.read_csv(test_trace_file_path, header=0, index_col=0)
     print("测试集维度分布", df_test_trace["y_issue_dim_type"].value_counts())
     real_ms = df_test_trace.pop("y_issue_ms")
     # df_test_trace = df_test_trace.loc[(df_test_trace["y_final_result"] == 1)]
@@ -147,13 +147,13 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
         print("temp-trace-result:", temp_trace_result)
         print("temp-trace-proba:", temp_trace_proba)
         # [注意] mlp的置信度输出和别人不太一样 mlp是[0.2 0.8] 别人[[0.1,0.9],[0.8,0.2]]
-        # if spans_indexs.__contains__(temp_trace_index)\
-        #         and (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[1][0][1] < 0.6) \
-        #         or (temp_trace_result[0][0] == 1 and temp_trace_result[0][1] == 0 and temp_trace_proba[0][0][1] < 0.6):
-        # [注意]MLP的if用下面这行
         if spans_indexs.__contains__(temp_trace_index)\
-                and (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[0][1] < 0.6) \
-                or (temp_trace_result[0][0] == 1 and temp_trace_result[0][1] == 0 and temp_trace_proba[0][0] < 0.6):
+                and (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[1][0][1] < 0.6) \
+                or (temp_trace_result[0][0] == 1 and temp_trace_result[0][1] == 0 and temp_trace_proba[0][0][1] < 0.6):
+        # [注意]MLP的if用下面这行
+        # if spans_indexs.__contains__(temp_trace_index)\
+        #         and (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[0][1] < 0.6) \
+        #         or (temp_trace_result[0][0] == 1 and temp_trace_result[0][1] == 0 and temp_trace_proba[0][0] < 0.6):
             model_2_count += 1
             # 根据Trace_id把对应的一串Span抽取出来
             spans_set = df_test_spans.loc[df_test_spans["trace_id"] == temp_trace_index]
@@ -174,13 +174,13 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
                 print("temp_span_proba", temp_span_proba)
                 span_set_dim_result_collect.append(temp_span_result[0])
                 # [注意] 下面这行是MLP专用
-                span_set_dim_confidence_collect.append([
-                    [1 - temp_span_proba[0][0], temp_span_proba[0][0]],
-                    [1 - temp_span_proba[0][1], temp_span_proba[0][1]],
-                    [1 - temp_span_proba[0][2], temp_span_proba[0][2]]
-                ])
+                # span_set_dim_confidence_collect.append([
+                #     [1 - temp_span_proba[0][0], temp_span_proba[0][0]],
+                #     [1 - temp_span_proba[0][1], temp_span_proba[0][1]],
+                #     [1 - temp_span_proba[0][2], temp_span_proba[0][2]]
+                # ])
                 # 下面这个是对一般算法
-                # span_set_dim_confidence_collect.append([temp_span_proba[0][0], temp_span_proba[1][0], temp_span_proba[2][0]])
+                span_set_dim_confidence_collect.append([temp_span_proba[0][0], temp_span_proba[1][0], temp_span_proba[2][0]])
             # 计算最终结果 1.计算le
             temp_trace_model2_le = True
             temp_trace_model2_fault_span_record = [] # 记录哪些span是有错误的
@@ -222,10 +222,12 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
             #     ft_test_result.append([0, 0, 0])
             # else:
             ms_pred_result = clf_ms.predict(temp_trace)
+            ms_proba = clf_ms.predict_proba(temp_trace)
             ft_pred_result = clf_ft.predict(temp_trace)
             le_test_result.append(temp_trace_result[0])
             ms_test_result.append(ms_pred_result[0])
             ft_test_result.append(ft_pred_result[0])
+
 
     # 输出结果并计算Precision, Recall与F1值
     print("使用Model1", model_1_count, "使用Model2", model_2_count)
@@ -234,16 +236,31 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
 
 
 def prepare_data_for_big_model():
-    big_model(tf_file_path="ready_use_max_final_result.csv",
-              fault_file_path="fault_without_sampling.csv",
-              model_2_file_path="ts_model2_total.csv",
-              test_trace_file_path="fault_without_sampling.csv",
-              # test_trace_file_path="evaluation_2/evaluation_total_part0.csv",
-              test_spans_file_path="ts_model2_total.csv",
-              ml_name="mlp")
-
+    # big_model(tf_file_path="ready_use_max_final_result.csv",
+    #           fault_file_path="fault_without_sampling.csv",
+    #           model_2_file_path="ts_model2_total.csv",
+    #           test_trace_file_path="fault_without_sampling.csv",
+    #           # test_trace_file_path="evaluation_2/evaluation_total_part0.csv",
+    #           test_spans_file_path="ts_model2_total.csv",
+    #           ml_name="mlp")
+    big_model(tf_file_path="sockshop_data/ss_total_train.csv",
+              fault_file_path="sockshop_data/ss_fault_train.csv",
+              model_2_file_path="ss_model2_total.csv",
+              test_trace_file_path="sockshop_data/ss_total_test.csv",
+              test_spans_file_path="ss_model2_total.csv",
+              ml_name="rf")
 
 
 
 if __name__ == "__main__":
+    df_fault = pd.read_csv("sockshop_data/ss_fault.csv", header=0, index_col="trace_id")
+    df_fault = preprocessing_set.sampling(df_fault, "y_issue_dim_type")
+    df_fault_test, df_fault_train = preprocessing_set.split_data(df_fault, 0.2)
+    df_fault_test.to_csv("sockshop_data/ss_fault_test.csv")
+    df_fault_test.to_csv("sockshop_data/ss_fault_train.csv")
+
+    df_total = pd.read_csv("sockshop_data/ss_total.csv", header=0, index_col="trace_id")
+    df_total_test, df_total_train = preprocessing_set.split_data(df_total, 0.5)
+    df_total_test.to_csv("sockshop_data/ss_total_test.csv")
+    df_total_test.to_csv("sockshop_data/ss_total_train.csv")
     prepare_data_for_big_model()

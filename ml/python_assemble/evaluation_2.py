@@ -59,13 +59,14 @@ def calculate_parts(n_parts, file_list, y_name):
         i += 1
 
     print("================Part", n_parts)
-    multi_label_model.rf_multi_label_provided_train_test_given_params(
+    p, r, f1 = multi_label_model.rf_multi_label_provided_train_test_given_params(
         df_train=df_train,
         df_test=df_test,
         y_name=y_name,
-        n_estimators=3,
-        min_samples_leaf=9000
+        n_estimators=5,
+        min_samples_leaf=800
     )
+    print("Precision:", p, "Recall", r, "F1", f1)
     # if y_name.endswith("_final_result"):
     #     accuracy, recall, precision = multi_label_model.rf_multi_label_provided_train_test_given_params(
     #         df_train=df_train,
@@ -104,7 +105,8 @@ if __name__ == "__main__":
 
     df = pd.read_csv("fault_without_sampling.csv", header=0, index_col="trace_id")
     # df.pop("y_issue_dim_type")
-    # df.pop("y_issue_ms")
+    df.pop("y_issue_ms")
+    df.pop("y_final_result")
     df.pop("trace_api")
     df.pop("trace_service")
     # df = preprocessing_set.sampling(df, "y_issue_dim_type")

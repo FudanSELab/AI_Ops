@@ -73,4 +73,4 @@ def calculate_a_p_r_f(y_real, y_predict, label_num):
     total_recall /= label_num
     total_F1 = (2 * total_precision * total_recall) / (total_precision + total_recall)
     print("总体Recall", total_recall, "总体Precision", total_precision, "F1", total_F1)
-    return total_precision, temp_recall, total_F1
+    return total_precision, total_recall, total_F1

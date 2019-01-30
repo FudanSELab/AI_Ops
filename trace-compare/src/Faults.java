@@ -127,21 +127,23 @@ public class Faults {
         int count = 0;
         for(int i = 0; i < total;i++) {
             ArrayList<String> tempTrace = f.testTraces.get(i);
-            ArrayList<String> kFaults = DistanceToFault.TopKNearestFaults(tempTrace,1,f.faults);
-            String realResult = f.testDimType.get(i);
-            String predictResult = kFaults.get(0);
+            ArrayList<String> kFaults = DistanceToFault.TopKNearestFaults(tempTrace,1,f.ms);
+//            String realResult = f.testMs.get(i);
+//            String predictResult = kFaults.get(0);
 
-            ArrayList<Integer> realResultArr = getDimTypeArr(realResult);
-            ArrayList<Integer> predictResultArr = getDimTypeArr(predictResult);
-            predictResultList.add(predictResultArr);
-            realResultList.add(realResultArr);
+//            ArrayList<Integer> realResultArr = getDimTypeArr(realResult);
+//            ArrayList<Integer> predictResultArr = getDimTypeArr(predictResult);
+//            predictResultList.add(predictResultArr);
+//            realResultList.add(realResultArr);
 
 
-            System.out.println("实际:" + f.testDimType.get(i) + " 预测:" + kFaults.get(0));
-            if(f.testDimType.get(i).equals(kFaults.get(0)))
+            System.out.println("实际:" + f.testMs.get(i) + " 预测:" + kFaults.get(0));
+            if(kFaults.contains(f.testMs.get(i)))
                 count++;
+//            if(f.testMs.get(i).equals(kFaults.get(0)))
+//                count++;
         }
-        calculateDimTypeNumber(predictResultList, realResultList);
+//        calculateDimTypeNumber(predictResultList, realResultList);
         System.out.print("Accuracy:" + ((double)count/(double)total));
 
 

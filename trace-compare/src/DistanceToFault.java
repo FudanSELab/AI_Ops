@@ -48,7 +48,7 @@ public class DistanceToFault {
 
             distances.add(i, dtf);
             faultNames.add(i, faultName);
-            //System.out.println( faultName + "值:" + dtf);
+//            System.out.println( faultName + "值:" + dtf);
         }
 
         // 挑出前K个最接近的
