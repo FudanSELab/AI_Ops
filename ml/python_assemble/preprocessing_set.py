@@ -100,23 +100,23 @@ def convert_y_multi_label_by_name(df_raw: DataFrame, y_name):
     for i in range(len(y_list)):
         y_service_name = y_list[i]
         if y_name.endswith("_ms"):
-            # if y_service_name.endswith("Success"):
-            #     temp_y_multi_label = np.zeros(42)
-            #     y_multi_label.append(temp_y_multi_label)
-            # else:
-            #     y_index = service_index_map.get(y_service_name)
-            #     temp_y_multi_label = np.zeros(42)
-            #     temp_y_multi_label[y_index] = 1
-            #     y_multi_label.append(temp_y_multi_label)
-            # For sockshop
             if y_service_name.endswith("Success"):
-                temp_y_multi_label = np.zeros(3)
+                temp_y_multi_label = np.zeros(42)
                 y_multi_label.append(temp_y_multi_label)
             else:
-                y_index = ss_service_index_map.get(y_service_name)
-                temp_y_multi_label = np.zeros(3)
+                y_index = service_index_map.get(y_service_name)
+                temp_y_multi_label = np.zeros(42)
                 temp_y_multi_label[y_index] = 1
                 y_multi_label.append(temp_y_multi_label)
+            # For sockshop
+            # if y_service_name.endswith("Success"):
+            #     temp_y_multi_label = np.zeros(3)
+            #     y_multi_label.append(temp_y_multi_label)
+            # else:
+            #     y_index = ss_service_index_map.get(y_service_name)
+            #     temp_y_multi_label = np.zeros(3)
+            #     temp_y_multi_label[y_index] = 1
+            #     y_multi_label.append(temp_y_multi_label)
         elif y_name.endswith("_type"):
             if y_service_name.endswith("Success"):
                 temp_y_multi_label = np.zeros(3)
