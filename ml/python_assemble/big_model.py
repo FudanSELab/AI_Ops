@@ -6,7 +6,8 @@ from sklearn.neural_network import MLPClassifier
 import preprocessing_set
 import calculation
 import numpy as np
-import heapq
+from sklearn.utils import shuffle
+
 
 
 def big_model(tf_file_path, fault_file_path, model_2_file_path,
@@ -54,7 +55,7 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     ms_train_x, ms_train_y = preprocessing_set.convert_y_multi_label_by_name(df_fault_all_ms, y_ms)
     if ml_name == "rf":
         print("Big Model", "MS", "RF")
-        clf_ms = RandomForestClassifier(min_samples_leaf=300, n_estimators=10)
+        clf_ms = RandomForestClassifier(min_samples_leaf=700, n_estimators=7)
     elif ml_name == "knn":
         print("Big Model", "MS", "KNN")
         clf_ms = KNeighborsClassifier(n_neighbors=10)
@@ -120,8 +121,8 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
 
     df_test_trace = df_test_trace.loc[df_test_trace["y_issue_ms"] != "Success"]
     # df_test_trace = preprocessing_set.sampling(df_test_trace, "y_issue_ms")
-
-    print("测试集维度分布", df_test_trace["y_issue_dim_type"].value_counts())
+    # df_test_trace = shuffle(df_test_trace)
+    # print("测试集维度分布", df_test_trace["y_issue_dim_type"].value_counts())
     real_ms = df_test_trace.pop("y_issue_ms")
 
     # df_test_trace = df_test_trace.loc[(df_test_trace["y_final_result"] == 1)]
@@ -148,7 +149,7 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     for temp_trace_index in indexs:
         # if model_2_count+model_1_count >= 2000:
         #     break
-        print("==第", str(model_2_count+model_1_count))
+        # print("==第", str(model_2_count+model_1_count))
         # 抽出测试集中的一条Trace
         temp_trace = df_test_trace.loc[temp_trace_index, :]
         temp_trace = [temp_trace]
@@ -160,13 +161,13 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
         # print("temp-trace-result:", temp_trace_result)
         # print("temp-trace-proba:", temp_trace_proba)
         # [注意] mlp的置信度输出和别人不太一样 mlp是[0.2 0.8] 别人[[0.1,0.9],[0.8,0.2]]
-        # if spans_indexs.__contains__(temp_trace_index)\
-        #         and (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[1][0][1] < 0.1) \
-        #         or (temp_trace_result[0][0] == 1 and temp_trace_result[0][1] == 0 and temp_trace_proba[0][0][1] < 0.1):
-        # [注意]MLP的if用下面这行
         if spans_indexs.__contains__(temp_trace_index)\
-                and (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[0][1] < 0.1) \
-                or (temp_trace_result[0][0] == 1 and temp_trace_result[0][1] == 0 and temp_trace_proba[0][0] < 0.1):
+                and (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[1][0][1] < 0.1) \
+                or (temp_trace_result[0][0] == 1 and temp_trace_result[0][1] == 0 and temp_trace_proba[0][0][1] < 0.1):
+        # [注意]MLP的if用下面这行
+        # if spans_indexs.__contains__(temp_trace_index)\
+        #         and (temp_trace_result[0][0] == 0 and temp_trace_result[0][1] == 1 and temp_trace_proba[0][1] < 0.1) \
+        #         or (temp_trace_result[0][0] == 1 and temp_trace_result[0][1] == 0 and temp_trace_proba[0][0] < 0.1):
 
             # 根据Trace_id把对应的一串Span抽取出来
             spans_set = df_test_spans.loc[df_test_spans["trace_id"] == temp_trace_index]
@@ -238,11 +239,15 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
             ms_pred_result = clf_ms.predict(temp_trace)
             ms_proba = clf_ms.predict_proba(temp_trace)
 
-            print("ms_proba[0]", ms_proba)
-            print("real_ms[(model_2_count+model_1_count)]",real_ms[(model_2_count+model_1_count)])
-            # ms_proba = convert_to_proba_list(ms_proba)
-            top1, top3, top5 = tryTopKMS(ms_proba[0], real_ms[(model_2_count+model_1_count)])
-            # top1, top3, top5 = tryTopKMS(ms_proba, real_ms[(model_2_count+model_1_count)])
+            # print("ms_proba[0]", ms_proba)
+            # print("real_ms[(model_2_count+model_1_count)]",real_ms[(model_2_count+model_1_count)])
+
+            # [注意]RF.KNN专用
+            ms_proba = convert_to_proba_list(ms_proba)
+            top1, top3, top5 = tryTopKMS(ms_proba, real_ms[(model_2_count+model_1_count)])
+            # [注意]MLP专用
+            # top1, top3, top5 = tryTopKMS(ms_proba[0], real_ms[(model_2_count+model_1_count)])
+
             if top1:
                 count_top1 += 1
             if top3:
@@ -258,7 +263,7 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
             model_1_count += 1
 
     # 输出结果并计算Precision, Recall与F1值
-    print("使用Model1", model_1_count, "使用Model2", model_2_count)
+    # print("使用Model1", model_1_count, "使用Model2", model_2_count)
     # calculation.calculate_a_p_r_f(real_dim_type, ft_test_result, 3)
     # calculation.calculate_a_p_r_f(real_result, le_test_result, 2)
 
@@ -282,13 +287,17 @@ def tryTopKMS(probaList, svcName):
 
 
 def prepare_data_for_big_model():
-    big_model(tf_file_path="ready_use_max_final_result.csv",
-              fault_file_path="fault_without_sampling.csv",
-              model_2_file_path="ts_model2_total.csv",
-              test_trace_file_path="fault_without_sampling.csv",
-              # test_trace_file_path="evaluation_2/evaluation_total_part0.csv",
-              test_spans_file_path="ts_model2_total.csv",
-              ml_name="mlp")
+    # for i in range(0,9):
+        train_file = "evaluation_2/evaluation_fault_part" + str(7) + "_added.csv"
+        big_model(tf_file_path="ready_use_max_final_result.csv",
+                  # fault_file_path="fault_without_sampling.csv",
+                  fault_file_path=train_file,
+                  model_2_file_path="ts_model2_total.csv",
+                  # test_trace_file_path="fault_without_sampling.csv",
+                  # test_trace_file_path="evaluation_2/evaluation_total_part0.csv",
+                  test_trace_file_path="evaluation_2/evaluation_fault_part9.csv",
+                  test_spans_file_path="ts_model2_total.csv",
+                  ml_name="rf")
     # big_model(tf_file_path="sockshop_data/ss_total_train.csv",
     #           fault_file_path="sockshop_data/ss_fault_train.csv",
     #           model_2_file_path="ss_model2_total.csv",
