@@ -155,7 +155,6 @@ def rf_multi_label_provided_train_test_given_params(df_train: DataFrame,
                                                     min_samples_leaf):
     train_x, train_y = preprocessing_set.convert_y_multi_label_by_name(df_train, y_name)
     test_x, test_y = preprocessing_set.convert_y_multi_label_by_name(df_test, y_name)
-    print(test_y)
     clf = RandomForestClassifier(min_samples_leaf=min_samples_leaf,
                                  n_estimators=n_estimators)
     clf.fit(X=train_x, y=train_y)

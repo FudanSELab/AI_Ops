@@ -55,20 +55,21 @@ def calculate_a_p_r_f(y_real, y_predict, label_num):
 
         # 0为负，1为正
         for j in range(test_num):
-            if y_predict[j][i] == 1 and y_real[j][i] == 1:
+            if y_predict[j][i] == 0 and y_real[j][i] == 0:
                 TP += 1
-            elif y_predict[j][i] == 1 and y_real[j][i] == 0:
+            elif y_predict[j][i] == 0 and y_real[j][i] == 1:
                 FP += 1
-            elif y_predict[j][i] == 0 and y_real[j][i] == 0:
+            elif y_predict[j][i] == 1 and y_real[j][i] == 1:
                 TN += 1
             else:
                 FN += 1
         print(TP, FP, TN, FN)
         temp_precision = TP / (TP + FP)
         temp_recall = TP / (TP + FN)
+        temp_f1 = (2 * temp_precision * temp_recall) / (temp_precision + temp_recall)
         total_precision += temp_precision
         total_recall += temp_recall
-        print("标签", i, "Recall", temp_recall, "Precision", temp_precision)
+        print("标签", i, "Recall", temp_recall, "Precision", temp_precision, "F1:", temp_f1)
     total_precision /= label_num
     total_recall /= label_num
     total_F1 = (2 * total_precision * total_recall) / (total_precision + total_recall)

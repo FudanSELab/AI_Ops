@@ -33,13 +33,13 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     le_train_x, le_train_y = preprocessing_set.convert_y_multi_label_by_name(df_tf_all, y_le)
     if ml_name == "rf":
         print("Big Model", "LE", "RF")
-        clf_le = RandomForestClassifier(min_samples_leaf=3000, n_estimators=5)
+        clf_le = RandomForestClassifier(min_samples_leaf=6000, n_estimators=3)
     elif ml_name == "knn":
         print("Big Model", "LE", "KNN")
         clf_le = KNeighborsClassifier(n_neighbors=200)
     else:
         print("Big Model", "LE", "MLP")
-        clf_le = MLPClassifier(hidden_layer_sizes=[5, 5], max_iter=100)
+        clf_le = MLPClassifier(hidden_layer_sizes=[5, 5], max_iter=200)
     clf_le.fit(le_train_x, le_train_y)
     print("LE Model训练完毕")
 
@@ -47,7 +47,11 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     print("MS Model训练开始")
     y_ms = "y_issue_ms"
     df_fault_all_ms = pd.read_csv(fault_file_path, header=0, index_col="trace_id")
-    df_fault_all_ms = df_fault_all_ms.loc[df_fault_all_ms["y_issue_ms"] != "Success"]
+
+    df_fault_all_ms["y_issue_ms"] = df_fault_all_ms["y_issue_ms"].str.lower()
+    df_fault_all_ms["y_issue_dim_type"] = df_fault_all_ms["y_issue_dim_type"].str.lower()
+
+    df_fault_all_ms = df_fault_all_ms.loc[df_fault_all_ms["y_final_result"] == 1]
     df_fault_all_ms.pop("y_final_result")
     df_fault_all_ms.pop("y_issue_dim_type")
     df_fault_all_ms.pop("trace_api")
@@ -55,13 +59,13 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     ms_train_x, ms_train_y = preprocessing_set.convert_y_multi_label_by_name(df_fault_all_ms, y_ms)
     if ml_name == "rf":
         print("Big Model", "MS", "RF")
-        clf_ms = RandomForestClassifier(min_samples_leaf=700, n_estimators=7)
+        clf_ms = RandomForestClassifier(min_samples_leaf=1200, n_estimators=5)
     elif ml_name == "knn":
         print("Big Model", "MS", "KNN")
         clf_ms = KNeighborsClassifier(n_neighbors=10)
     else:
         print("Big Model", "MS", "MLP")
-        clf_ms = MLPClassifier(hidden_layer_sizes=[30, 30], max_iter=200)
+        clf_ms = MLPClassifier(hidden_layer_sizes=[5, 5], max_iter=200)
     clf_ms.fit(X=ms_train_x, y=ms_train_y)
     print("MS Model训练结束")
 
@@ -69,6 +73,11 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     print("FT Model训练开始")
     y_ft = "y_issue_dim_type"
     df_fault_all_ft = pd.read_csv(fault_file_path, header=0, index_col="trace_id")
+
+    df_fault_all_ft["y_issue_ms"] = df_fault_all_ft["y_issue_ms"].str.lower()
+    df_fault_all_ft["y_issue_dim_type"] = df_fault_all_ft["y_issue_dim_type"].str.lower()
+
+    df_fault_all_ft = df_fault_all_ft.loc[df_fault_all_ft["y_final_result"] == 1]
     df_fault_all_ft.pop("y_final_result")
     df_fault_all_ft.pop("y_issue_ms")
     df_fault_all_ft.pop("trace_api")
@@ -76,13 +85,13 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     ft_train_x, ft_train_y = preprocessing_set.convert_y_multi_label_by_name(df_fault_all_ft, y_ft)
     if ml_name == "rf":
         print("Big Model", "FT", "RF")
-        clf_ft = RandomForestClassifier(min_samples_leaf=600, n_estimators=5)
+        clf_ft = RandomForestClassifier(min_samples_leaf=1500, n_estimators=3)
     elif ml_name == "knn":
         print("Big Model", "FT", "KNN")
         clf_ft = KNeighborsClassifier(n_neighbors=200)
     else:
         print("Big Model", "FT", "MLP")
-        clf_ft = MLPClassifier(hidden_layer_sizes=[5, 5], max_iter=100)
+        clf_ft = MLPClassifier(hidden_layer_sizes=[5, 5], max_iter=200)
     clf_ft.fit(X=ft_train_x, y=ft_train_y)
     print("FT Model训练结束")
 
@@ -104,7 +113,7 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
         clf_model2 = KNeighborsClassifier(n_neighbors=200)
     else:
         print("Big Model", "MODEL_2", "MLP")
-        clf_model2 = MLPClassifier(hidden_layer_sizes=[5, 5], max_iter=100)
+        clf_model2 = MLPClassifier(hidden_layer_sizes=[5, 5], max_iter=200)
     clf_model2.fit(X=model2_train_x, y=model2_train_y)
     print("Model2 Model训练结束")
 
@@ -119,13 +128,16 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
     # 读入测试数据，并分离出真实的final_result,ms和dim_type
     df_test_trace = pd.read_csv(test_trace_file_path, header=0, index_col=0)
 
-    df_test_trace = df_test_trace.loc[df_test_trace["y_issue_ms"] != "Success"]
     # df_test_trace = preprocessing_set.sampling(df_test_trace, "y_issue_ms")
     # df_test_trace = shuffle(df_test_trace)
     # print("测试集维度分布", df_test_trace["y_issue_dim_type"].value_counts())
+
+    df_test_trace["y_issue_ms"] = df_test_trace["y_issue_ms"].str.lower()
+    df_test_trace["y_issue_dim_type"] = df_test_trace["y_issue_dim_type"].str.lower()
+
     real_ms = df_test_trace.pop("y_issue_ms")
 
-    # df_test_trace = df_test_trace.loc[(df_test_trace["y_final_result"] == 1)]
+    df_test_trace = df_test_trace.loc[(df_test_trace["y_final_result"] == 1)]
     df_test_trace, real_dim_type = preprocessing_set.convert_y_multi_label_by_name(df_test_trace, "y_issue_dim_type")
     df_test_trace, real_result = preprocessing_set.convert_y_multi_label_by_name(df_test_trace, "y_final_result")
     df_test_trace.pop("trace_api")
@@ -184,8 +196,8 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
                 temp_span = [temp_span]
                 temp_span_result = clf_model2.predict(temp_span)
                 temp_span_proba = clf_model2.predict_proba(temp_span)
-                print("temp_span_result", temp_span_result)
-                print("temp_span_proba", temp_span_proba)
+                # print("temp_span_result", temp_span_result)
+                # print("temp_span_proba", temp_span_proba)
                 span_set_dim_result_collect.append(temp_span_result[0])
                 # [注意] 下面这行是MLP专用
                 # span_set_dim_confidence_collect.append([
@@ -257,19 +269,20 @@ def big_model(tf_file_path, fault_file_path, model_2_file_path,
 
             ft_pred_result = clf_ft.predict(temp_trace)
             le_test_result.append(temp_trace_result[0])
-            ms_test_result.append(ms_pred_result[0])
+            # ms_test_result.append(ms_pred_result[0])
             ft_test_result.append(ft_pred_result[0])
 
             model_1_count += 1
 
     # 输出结果并计算Precision, Recall与F1值
-    # print("使用Model1", model_1_count, "使用Model2", model_2_count)
-    # calculation.calculate_a_p_r_f(real_dim_type, ft_test_result, 3)
-    # calculation.calculate_a_p_r_f(real_result, le_test_result, 2)
+    print("使用Model1", model_1_count, "使用Model2", model_2_count)
+    calculation.calculate_a_p_r_f(real_dim_type, ft_test_result, 3)
+    calculation.calculate_a_p_r_f(real_result, le_test_result, 2)
 
     print("Top1:", count_top1/(model_1_count+model_2_count))
     print("Top3:", count_top3/(model_1_count+model_2_count))
     print("Top5:", count_top5/(model_1_count+model_2_count))
+
 
 # 检查某次预测中，前K个预测的微服务中有没有目标微服务
 def tryTopKMS(probaList, svcName):
@@ -287,15 +300,15 @@ def tryTopKMS(probaList, svcName):
 
 
 def prepare_data_for_big_model():
-    # for i in range(0,9):
-        train_file = "evaluation_2/evaluation_fault_part" + str(7) + "_added.csv"
-        big_model(tf_file_path="ready_use_max_final_result.csv",
-                  # fault_file_path="fault_without_sampling.csv",
-                  fault_file_path=train_file,
+    for i in range(0,9):
+        train_file = "evaluation_2/evaluation_total_part" + str(i) + "_added.csv"
+        big_model(tf_file_path=train_file,
+                  fault_file_path="fault_without_sampling.csv",
+                  # fault_file_path=train_file,
                   model_2_file_path="ts_model2_total.csv",
                   # test_trace_file_path="fault_without_sampling.csv",
                   # test_trace_file_path="evaluation_2/evaluation_total_part0.csv",
-                  test_trace_file_path="evaluation_2/evaluation_fault_part9.csv",
+                  test_trace_file_path="evaluation_2/evaluation_total_part9.csv",
                   test_spans_file_path="ts_model2_total.csv",
                   ml_name="rf")
     # big_model(tf_file_path="sockshop_data/ss_total_train.csv",
@@ -310,7 +323,10 @@ def convert_to_proba_list(raw_proba):
     new_proba = []
     raw_proba_len = len(raw_proba)
     for i in range(raw_proba_len):
-        new_proba.append(raw_proba[i][0][1])
+        if len(raw_proba[i][0]) == 1:
+            new_proba.append(0.0)
+        else:
+            new_proba.append(raw_proba[i][0][1])
     return new_proba
 
 

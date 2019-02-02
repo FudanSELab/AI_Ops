@@ -83,7 +83,6 @@ def append_data(df_one: DataFrame, df_two: DataFrame):
 # (Model_1 Model_2共用)丢弃全列为NA的数据
 def drop_na_data(df_raw: DataFrame):
     df_raw.dropna(axis=1, how='all', inplace=True)
-    print("After Drop NA:" + df_raw.keys())
     return df_raw
 
 
@@ -262,8 +261,6 @@ def select_data(df_raw: DataFrame):
                or col.endswith("y_final_result")
                or col.endswith("y_issue_dim_type")):
             df_raw.drop(columns=col, axis=1, inplace=True)
-            print("Drop:" + col)
-    print("Reserved:" + df_raw.keys())
     return df_raw
 
 
@@ -275,16 +272,12 @@ def fill_empty_data(df_raw: DataFrame):
                 or col.endswith("_readynumber")\
                 or col.endswith("_app_thread_count"):
             df_raw[col].fillna(0, inplace=True)
-            print("Fill Empty: " + col)
         elif col.endswith("_seq"):
             df_raw[col].fillna(-1, inplace=True)
-            print("Fill Empty: " + col)
         elif col.endswith("_caller"):
             df_raw[col].fillna("No", inplace=True)
-            print("Fill Empty: " + col)
         elif col.endswith("y_issue_ms") or col.endswith("y_issue_dim_type"):
             df_raw[col].fillna("Success", inplace=True)
-            print("Fill Empty: " + col)
 
     return df_raw
 
