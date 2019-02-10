@@ -18,11 +18,11 @@ def calculate_a_p_f_single_label(y_real, y_predict):
     TN = 1  # 预测为负，实际为负
     FN = 1  # 预测为负，实际为正
     for j in range(test_num):
-        if real[j] == 0 and result[j] == 0:
+        if real[j] == 1 and result[j] == 1:
             TP += 1
-        elif real[j] == 1 and result[j] == 0:
+        elif real[j] == 0 and result[j] == 1:
             FP += 1
-        elif real[j] == 1 and result[j] == 1:
+        elif real[j] == 0 and result[j] == 0:
             TN += 1
         else:
             FN += 1
@@ -55,11 +55,11 @@ def calculate_a_p_r_f(y_real, y_predict, label_num):
 
         # 0为负，1为正
         for j in range(test_num):
-            if y_predict[j][i] == 0 and y_real[j][i] == 0:
+            if y_predict[j][i] == 1 and y_real[j][i] == 1:
                 TP += 1
-            elif y_predict[j][i] == 0 and y_real[j][i] == 1:
+            elif y_predict[j][i] == 1 and y_real[j][i] == 0:
                 FP += 1
-            elif y_predict[j][i] == 1 and y_real[j][i] == 1:
+            elif y_predict[j][i] == 0 and y_real[j][i] == 0:
                 TN += 1
             else:
                 FN += 1

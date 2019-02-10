@@ -67,27 +67,27 @@ def calculate_parts(n_parts, file_list, y_name):
         min_samples_leaf=500
     )
     print("Precision:", p, "Recall", r, "F1", f1)
-    # if y_name.endswith("_final_result"):
-    #     accuracy, recall, precision = multi_label_model.rf_multi_label_provided_train_test_given_params(
-    #         df_train=df_train,
-    #         df_test=df_test,
-    #         y_name=y_name,
-    #         n_estimators=3,
-    #         min_samples_leaf=2000
-    #     )
-    #     F = (2 * precision * recall) / (precision + recall)
-    #     print("目标类型", y_name, "比例:", str((n_parts+1)/10.0),
-    #           "Accuracy:", accuracy, "Recall:", recall, "Precision:", precision)
-    #     print("F值:" + str(F))
-    # else:
-    #     accuracy = multi_label_model.rf_multi_label_provided_train_test_given_params(
-    #         df_train=df_train,
-    #         df_test=df_test,
-    #         y_name=y_name,
-    #         n_estimators=10,
-    #         min_samples_leaf=600
-    #     )
-    #     print("目标类型", y_name, "比例:", str((n_parts+1)/10.0), "Accuracy:", accuracy)
+    if y_name.endswith("_final_result"):
+        accuracy, recall, precision = multi_label_model.rf_multi_label_provided_train_test_given_params(
+            df_train=df_train,
+            df_test=df_test,
+            y_name=y_name,
+            n_estimators=3,
+            min_samples_leaf=2000
+        )
+        F = (2 * precision * recall) / (precision + recall)
+        print("目标类型", y_name, "比例:", str((n_parts+1)/10.0),
+              "Accuracy:", accuracy, "Recall:", recall, "Precision:", precision)
+        print("F值:" + str(F))
+    else:
+        accuracy = multi_label_model.rf_multi_label_provided_train_test_given_params(
+            df_train=df_train,
+            df_test=df_test,
+            y_name=y_name,
+            n_estimators=10,
+            min_samples_leaf=600
+        )
+        print("目标类型", y_name, "比例:", str((n_parts+1)/10.0), "Accuracy:", accuracy)
 
 
 if __name__ == "__main__":
