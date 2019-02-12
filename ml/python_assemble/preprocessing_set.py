@@ -126,11 +126,15 @@ def convert_y_multi_label_by_name(df_raw: DataFrame, y_name):
                 temp_y_multi_label[y_index] = 1
                 y_multi_label.append(temp_y_multi_label)
         else:
-            y_service_name = str(y_service_name)
-            y_index = result_index_map.get(y_service_name)
-            temp_y_multi_label = np.zeros(2)
-            temp_y_multi_label[y_index] = 1
-            y_multi_label.append(temp_y_multi_label)
+            le_name = str(y_service_name)
+            if le_name == "0":
+                y_multi_label.append([1, 0])
+            elif le_name == "1":
+                y_multi_label.append([0, 1])
+            elif le_name == "2":
+                y_multi_label.append([1, 1])
+            else:
+                y_multi_label.append([0, 0])
     df_raw.pop(y_name)
     return df_raw, y_multi_label
 
