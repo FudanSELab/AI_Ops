@@ -1,0 +1,17 @@
+故障相同 trace不同
+Trace.1
+ts-travel-service,ts-station-service,ts-ticketinfo-service,ts-route-service,
+ts-price-service,ts-train-service,ts-basic-service,ts-order-service,
+ts-config-service,ts-seat-service,
+
+Trace.2
+ts-travel-service,ts-food-map-service,ts-food-service,ts-route-service
+
+
+trace相同 故障不同
+Trace.1 config故障
+ts-travel-service,ts-food-service,ts-food-map-service config故障
+Trace.2 instance故障
+ts-travel-service,ts-food-service,ts-food-map-service instance故障
+
+

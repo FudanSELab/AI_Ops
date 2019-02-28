@@ -1,5 +1,6 @@
 seq-caller表中所有的属性
 
+
 ui_dashboard__login_service_caller
 login_service__ui_dashboard_caller
 ui_dashboard__register_service_caller

@@ -30,7 +30,12 @@ def calculate_a_p_f_single_label(y_real, y_predict):
     precision = TP / (TP + FP)
     recall = TP / (TP + FN)
     F1 = (2 * precision * recall) / (precision + recall)
-    print("单Recall", recall, "单Precision", precision, "单F1", F1)
+    fpr = FP / (FP + TN)
+    # print("故障为positive")
+    print("Recall", recall, "Precision", precision, "F1", F1)
+    print("FPR", fpr)
+
+
     return precision, recall, F1
 
 

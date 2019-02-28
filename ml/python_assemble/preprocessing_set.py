@@ -251,6 +251,12 @@ def select_data(df_raw: DataFrame):
         if not(col.endswith("trace_service")
                or col.endswith("trace_api")
                # or col.endswith("_api")
+               or col.endswith("_volume_support")
+               or col.endswith("_cpu")
+               or col.endswith("_memory")
+               or col.endswith("_status_code")
+               or col.endswith("_exec_time")
+               or col.endswith("_node_instance_count")
                or col.endswith("_readynumber")
                or col.endswith("_diff")
                or col.endswith("_variable")
@@ -282,6 +288,8 @@ def fill_empty_data(df_raw: DataFrame):
             df_raw[col].fillna("No", inplace=True)
         elif col.endswith("y_issue_ms") or col.endswith("y_issue_dim_type"):
             df_raw[col].fillna("Success", inplace=True)
+        else:
+            df_raw[col].fillna(-1, inplace=True)
 
     return df_raw
 
@@ -298,21 +306,38 @@ def convert_data(df_raw: DataFrame):
                 mapping[mapping_keys[i]] = i
             df_raw[col] = df_raw[col].map(mapping)
         elif col.endswith("trace_service") \
+                or col.endswith("_status_code") \
                 or col.endswith("_api") \
+                or col.endswith("_volume_support") \
                 or col.endswith("_caller"):
             df_raw[col].fillna("No", inplace=True)
             mapping_keys = df_raw[col].drop_duplicates().values
             mapping = {}
             for i in range(len(mapping_keys)):
-                mapping[mapping_keys[i]] = i
+                mapping[mapping_keys[i]] = i/len(mapping_keys)
             df_raw[col] = df_raw[col].map(mapping)
             # df_raw = pd.get_dummies(df_raw, columns=[col])
+            # scaler = MinMaxScaler()
+            # df_raw[col] = scaler.fit_transform(df_raw[col])
+
         elif col.endswith("_diff") \
                 or col.endswith("_cpu") \
                 or col.endswith("_memory") \
+                or col.endswith("_exec_time") \
+                or col.endswith("_node_instance_count") \
                 or col.endswith("_limit"):
             df_raw[col].fillna(0, inplace=True)
-            df_raw[col] = pd.cut(df_raw[col], bins=5, labels=[1, 2, 3, 4, 5])
+            df_raw[col] = pd.cut(df_raw[col], bins=5, labels=[0.2, 0.4, 0.6, 0.8, 1.0])
+
+        elif col.endswith("_readynumber"):
+            df_raw[col] = pd.cut(df_raw[col], bins=3, labels=[-1, 0.5, 1])
+        elif col.endswith("_seq"):
+            df_raw[col] = pd.cut(df_raw[col], bins=3, labels=[-1, 0, 1])
+
+
+
+
+
     return df_raw
     # TODO: DROP SOME USELESS COLUMNS AFTER EXTRACTION
     # return df_raw

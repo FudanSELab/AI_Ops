@@ -1,4 +1,6 @@
 import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+
 import preprocessing_set
 import big_model
 
@@ -198,17 +200,73 @@ def evaluation_3():
         "production/f13/f13.csv"
     ]
 
+    df_train = pd.read_csv("production/train_total.csv", header=0, index_col="trace_id")
+    df_train = df_train.loc[(df_train["y_final_result"] == 0) | (df_train["y_final_result"] == 1)]
+    df_train.pop("y_issue_ms")
+    df_train.pop("y_issue_dim_type")
+
+
+    print("train")
+    df_train = preprocessing_set.sampling(df_train, "y_final_result")
+    x, y = df_train, df_train.pop("y_final_result")
+
+    clf = RandomForestClassifier(min_samples_leaf=6000, n_estimators=3)
+    clf.fit(x, y)
+
     for i in range(len(file_list)):
+        print("F", i)
         file_name = file_list[i]
-        print("=====", i, "=====")
-        big_model.big_model(
-            tf_file_path="production/train_total.csv",
-            fault_file_path="production/train_fault.csv",
-            model_2_file_path="ts_model2_total.csv",
-            # test_trace_file_path="production/f1/f1.csv",
-            test_trace_file_path=file_name,
-            test_spans_file_path="ts_model2_total.csv",
-            ml_name="rf")
+        df_test = pd.read_csv(file_name, header=0, index_col="trace_id")
+        df_test = df_test.loc[(df_test["y_final_result"] == 0) | (df_test["y_final_result"] == 1)]
+
+        df_test.pop("y_issue_ms")
+        df_test.pop("y_issue_dim_type")
+
+
+        print("predict")
+        df_test = preprocessing_set.sampling(df_test, "y_final_result")
+
+        real_x, real_y = df_test, df_test.pop("y_final_result")
+
+        pred_y = clf.predict(real_x)
+
+        calculate(real_y, pred_y)
+
+        # count_f = len(df[df["y_final_result"] == 1])
+        # count_t = len(df)
+        # print("F",i, (count_f/count_t))
+        # print("=====", i, "=====")
+        # big_model.big_model(
+        #     tf_file_path="production/train_total.csv",
+        #     fault_file_path="production/train_fault.csv",
+        #     model_2_file_path="ts_model2_total.csv",
+        #     # test_trace_file_path="production/f1/f1.csv",
+        #     test_trace_file_path=file_name,
+        #     test_spans_file_path="ts_model2_total.csv",
+        #     ml_name="rf")
+
+def calculate(y_real, y_pred):
+
+    TP = 1  # 预测为正，实际为正
+    FP = 1  # 预测为正，实际为负
+    TN = 1  # 预测为负，实际为负
+    FN = 1  # 预测为负，实际为正
+    for j in range(len(y_real)):
+        if y_real[j] == 1 and y_pred[j] == 1:
+            TP += 1
+        elif y_real[j] == 0 and y_pred[j] == 1:
+            FP += 1
+        elif y_real[j] == 0 and y_pred[j] == 0:
+            TN += 1
+        else:
+            FN += 1
+    print(TP, FP, TN, FN)
+    precision = TP / (TP + FP)
+    recall = TP / (TP + FN)
+    fpr = FP / (FP + TN)
+    F1 = (2 * precision * recall) / (precision + recall)
+    print("Recall", recall, "Precision", precision, "F1", F1, "FPR", fpr)
+    return precision, recall, F1
 
 
 

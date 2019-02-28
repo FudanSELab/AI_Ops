@@ -60,9 +60,9 @@ def for_model_2():
 # 尽可能缩小数据集以防内存占满
 def get_min_data(df_raw: DataFrame):
     # 丢弃全列为NA的数据
-    df_raw = preprocessing_set.drop_na_data(df_raw)
+    # df_raw = preprocessing_set.drop_na_data(df_raw)
     # 丢弃全列值相同的数据
-    df_raw = preprocessing_set.drop_all_same_data(df_raw)
+    # df_raw = preprocessing_set.drop_all_same_data(df_raw)
     # 丢弃不需要的列
     df_raw = preprocessing_set.select_data(df_raw)
     return df_raw
@@ -123,30 +123,35 @@ def preprocessing_sockshop_model1_data():
     df_total = preprocessing_set.append_data(df_total,df_part_3)
     df_total = preprocessing_set.append_data(df_total,df_part_4)
 
+    print("select")
+
     df_total = get_min_data(df_total)
 
     df_total["y_issue_ms"] = df_total["y_issue_ms"].str.lower()
     df_total["y_issue_dim_type"] = df_total["y_issue_dim_type"].str.lower()
 
+    print("fill")
 
     # 填补空缺值
     df_total = preprocessing_set.fill_empty_data(df_total)
 
+    print("convert")
+
     # 把不规则的值转换成数字
     df_total = preprocessing_set.convert_data(df_total)
 
-    df_total = shuffle(df_total)
+    # df_total = shuffle(df_total)
 
     print("总数据:", len(df_total))
 
-    df_total.to_csv("sockshop_data/ss_total.csv")
-
-    # 丢弃没故障数据
-    df_total = df_total.loc[df_total["y_issue_ms"] != "Success"]
-
-    print("故障数据:", len(df_total))
-
-    df_total.to_csv("sockshop_data/ss_fault.csv")
+    df_total.to_csv("sockshop_data/ss_total_mms.csv")
+    #
+    # # 丢弃没故障数据
+    # df_total = df_total.loc[df_total["y_issue_ms"] != "Success"]
+    #
+    # print("故障数据:", len(df_total))
+    #
+    # df_total.to_csv("sockshop_data/ss_fault.csv")
 
 
 
@@ -192,17 +197,20 @@ def preprocessing():
                                             df_seq=df_total_1,
                                             df_seq_caller=df_total_2)
     # 填补空缺值
+    print("fill")
     df_total = preprocessing_set.fill_empty_data(df_total)
     # 丢弃没故障数据
-    df_total = df_total.loc[df_total["y_issue_ms"] != "Success"]
+    # df_total = df_total.loc[df_total["y_issue_ms"] != "Success"]
     # 把不规则的值转换成数字
+    print("convert")
     df_total = preprocessing_set.convert_data(df_total)
     # 按照某个Label对数据进行过采样以平衡样本数量
     # df_total = preprocessing_set.sampling(df_total, "y_final_result")
     # 过采样后打乱数据
-    df_total = shuffle(df_total)
+    # df_total = shuffle(df_total)
     # 输出数据
-    df_total.to_csv("ready_use_max_without_sampling.csv")
+    print("output")
+    df_total.to_csv("ready_use_max_without_sampling_mms.csv")
 
 
 # 读取准备好的数据，丢弃无用列，分割训练集和测试集合，对训练集过采样保持分类平衡，并开始训练
@@ -278,7 +286,7 @@ def inspect():
 
 
 if __name__ == "__main__":
-    preprocessiong_sockshop_model2_data()
+    preprocessing_sockshop_model1_data()
 
 
 
