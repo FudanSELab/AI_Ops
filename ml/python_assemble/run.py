@@ -112,38 +112,41 @@ def preprocessiong_sockshop_model2_data():
     ss_model2_total.to_csv("ss_model2_total.csv")
 
 
+# 预处理Sockshop的数据
 def preprocessing_sockshop_model1_data():
+    # trace_id列数序号列
     index_col = "trace_id"
+    # 把需要的数据全读进来
     df_part_1 = pd.read_csv("sockshop_data/trace_verified_config_cpu_sock_combined.csv", header=0, index_col=index_col)
     df_part_2 = pd.read_csv("sockshop_data/trace_verified_config_sock_combined.csv", header=0, index_col=index_col)
     df_part_3 = pd.read_csv("sockshop_data/trace_verified_instance_sock_combined.csv", header=0, index_col=index_col)
     df_part_4 = pd.read_csv("sockshop_data/trace_verified_sequence_sock_combined.csv", header=0, index_col=index_col)
-
+    # 把读进来的数据都串在一起
     df_total = preprocessing_set.append_data(df_part_1,df_part_2)
     df_total = preprocessing_set.append_data(df_total,df_part_3)
     df_total = preprocessing_set.append_data(df_total,df_part_4)
 
+    # 做数据的筛选
     print("select")
-
     df_total = get_min_data(df_total)
 
+    # 把y_issue_ms和y_issue_dim_type两列的值全搞成小写
     df_total["y_issue_ms"] = df_total["y_issue_ms"].str.lower()
     df_total["y_issue_dim_type"] = df_total["y_issue_dim_type"].str.lower()
 
-    print("fill")
-
     # 填补空缺值
+    print("fill")
     df_total = preprocessing_set.fill_empty_data(df_total)
 
-    print("convert")
-
     # 把不规则的值转换成数字
+    print("convert")
     df_total = preprocessing_set.convert_data(df_total)
 
     # df_total = shuffle(df_total)
 
-    print("总数据:", len(df_total))
+    print("处理完的数据有这么多:", len(df_total))
 
+    # 把文件保存下来
     df_total.to_csv("sockshop_data/ss_total_mms.csv")
     #
     # # 丢弃没故障数据
@@ -152,7 +155,6 @@ def preprocessing_sockshop_model1_data():
     # print("故障数据:", len(df_total))
     #
     # df_total.to_csv("sockshop_data/ss_fault.csv")
-
 
 
 # 完成预处理并保存数据集

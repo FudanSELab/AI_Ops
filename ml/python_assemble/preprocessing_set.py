@@ -9,14 +9,14 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-
+# 把表格中的这些列转化成数字
 ss_service_index_map = {
     "carts": 0,
     "orders": 1,
     "user": 2
 }
 
-
+# 把表格中的这些列转化成数字
 service_index_map = {
     "ts-admin-basic-info-service": 0,
     "ts-admin-order-service": 1,
@@ -62,12 +62,14 @@ service_index_map = {
     "ts-voucher-service": 41
 }
 
+# 把表格中的这些列转化成数字
 dim_index_map = {
     "seq": 0,
     "config": 1,
     "instance": 2
 }
 
+# 把表格中的这些列转化成数字
 result_index_map = {
     "0": 0,
     "1": 1,
